@@ -6,3 +6,4 @@
 - Máquinas del lote 1 (centrífuga, secuenciador, biorreactor): modeladas por script propio (tools/blender/maquinas_lote1.py).
 - Objetos de laboratorio (tubos, eppendorf, vial, placa de Petri, gradilla) y etiquetas: script propio (tools/blender/objetos.py, generación de etiquetas con PIL).
 - Centrífuga detallada y calcomanías (riesgo biológico, rotor, placa, franja de peligro): scripts propios (tools/blender/centrifuga.py, tools/texturas.py).
+- Secuenciador detallado: script propio (tools/blender/secuenciador.py).

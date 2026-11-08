@@ -30,6 +30,11 @@ var _liquido: Node3D
 var _mat_baliza: StandardMaterial3D
 var _torre := {}            # Estado -> material de su lente (torre de luces de 3 colores)
 var _tapa: Node3D
+var _puente: Node3D
+var _carro: Node3D
+var _pipeta: Node3D
+var _pipeta_y0 := 0.0
+var _estaciones: Array[Vector3] = []
 var _tapa_ang := 0.0
 var _mat_pantalla: StandardMaterial3D
 var _ui: PantallaMaquina
@@ -60,6 +65,16 @@ func _ready() -> void:
 			m.emission_enabled = true
 			_torre[par[0]] = m
 	_tapa = _buscar("tapa")
+	_puente = _buscar("puente")
+	_carro = _buscar("carro")
+	_pipeta = _buscar("pipeta")
+	if _pipeta:
+		_pipeta_y0 = _pipeta.position.y
+	for i in 8:
+		var e := _buscar("estacion_%d" % i)
+		if e == null:
+			break
+		_estaciones.append(e.position)
 	_montar_pantalla(_buscar("pantalla") as MeshInstance3D)
 	_t = randf() * 10.0
 
@@ -128,6 +143,8 @@ func _process(dt: float) -> void:
 		_ui.estado = estado
 		_ui.progreso = _progreso
 		_ui.velocidad = _vel_giro
+	if _puente and _carro and _estaciones.size() >= 2:
+		_mover_portico(dt, trabaja)
 	if _tapa:
 		# la tapa se abre cuando la máquina espera material (se ve el rotor vacío esperando)
 		var objetivo := deg_to_rad(68.0) if estado == Estado.SIN_MATERIAL else 0.0
@@ -158,3 +175,27 @@ func _process(dt: float) -> void:
 		_mat_baliza.albedo_color = c
 		_mat_baliza.emission = c
 		_mat_baliza.emission_energy_multiplier = brillo
+
+## Pórtico cartesiano: recorre las estaciones (coger, dispensar, dejar) con bajadas
+## de la pipeta, sincronizado con el progreso de la pieza.
+func _mover_portico(dt: float, trabaja: bool) -> void:
+	var n := _estaciones.size()
+	var destino: Vector3
+	var bajada := 0.0
+	if trabaja:
+		var tramo := _progreso * n            # n tramos: ir a la estación i y bajar
+		var i := int(tramo) % n
+		var u := tramo - floorf(tramo)
+		var desde: Vector3 = _estaciones[(i - 1 + n) % n]
+		var hasta: Vector3 = _estaciones[i]
+		var mov := smoothstep(0.0, 0.6, u)
+		destino = desde.lerp(hasta, mov)
+		if u > 0.62:
+			bajada = sin((u - 0.62) / 0.38 * PI)
+	else:
+		destino = _estaciones[0].lerp(_estaciones[n - 1], 0.5)
+	var k := 1.0 - exp(-14.0 * dt)
+	_puente.position.z = lerpf(_puente.position.z, destino.z, k)
+	_carro.position.x = lerpf(_carro.position.x, destino.x, k)
+	if _pipeta:
+		_pipeta.position.y = lerpf(_pipeta.position.y, _pipeta_y0 - 0.12 * bajada, 1.0 - exp(-20.0 * dt))

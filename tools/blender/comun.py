@@ -396,3 +396,22 @@ def torre_luces(pos, padre, r=0.045, h=0.055, poste=0.22):
         zz += h + 0.008
     cilindro("torre_tapa_anillo", r * 1.04, 0.01, (x, y, zz + 0.005), g, lados=24, bisel=0.0, padre=padre)
     esfera("torre_tapa", r, (x, y, zz + 0.01), g, padre=padre, media=True, escala=(1, 1, 0.45))
+
+
+def puerto_lamas(nombre, lado, x_cara, z, padre, ancho=0.24, alto=0.18, y=0.0, z_flecha=None, x_flecha=None):
+    """Boca con marco, hueco oscuro, cortina de lamas translúcidas, tornillos y chevron en el suelo.
+    lado -1 = entrada (-X), +1 = salida (+X); x_cara = posición X de la cara del armario."""
+    x = x_cara + lado * 0.03
+    gr = mat("grafito")
+    caja(f"{nombre}_marco", (0.06, ancho + 0.06, alto + 0.06), (x, y, z), gr, bisel=0.015, padre=padre)
+    caja(f"{nombre}_hueco", (0.065, ancho, alto), (x, y, z), mat("negro_mate", color=(0.05, 0.055, 0.06), rug=0.7), bisel=0.0, padre=padre)
+    n = max(4, int(ancho / 0.04))
+    for k in range(n):
+        caja(f"{nombre}_lama{k}", (0.004, ancho / n - 0.004, alto - 0.005),
+             (x + lado * 0.03, y - ancho / 2 + ancho / n * (k + 0.5), z),
+             mat("lama", color=(0.2, 0.22, 0.24), rug=0.5, alfa=0.85), bisel=0.0, padre=padre)
+    for s in (-1, 1):
+        tornillo(f"{nombre}_torn{s}", (x + lado * 0.032, y + s * (ancho / 2 + 0.012), z + alto / 2 + 0.01), padre, r=0.007,
+                 normal="+X" if lado > 0 else "-X")
+    if z_flecha is not None:
+        chevron(f"{nombre}_flecha", (x_flecha if x_flecha is not None else x + lado * 0.08, y, z_flecha), 0.11, mat("amarillo"), padre)
