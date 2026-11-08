@@ -15,3 +15,6 @@
 | 2026-11-08 | Godot 4.3 estable (no 4.4+) | Es la versión de MOVECORP que Edu tiene instalada; el proyecto abre igual en versiones posteriores |
 | 2026-11-08 | Web sin hilos (web_nothreads) | Funciona en itch.io y móviles sin cabeceras COOP/COEP |
 | 2026-11-08 | Capturas automáticas con el autoload Captura (`-- --captura=ruta.png`) | Para comparar cada vuelta contra las referencias sin abrir el editor |
+| 2026-11-08 | Casilla = 1 m; sala de 24 × 16 casillas, paredes de 3,2 m con zócalo verde clínico y ventanas cada 4 casillas | Proporción con el becario (0,9) y las máquinas (1,2 de alto) |
+| 2026-11-08 | Las dos paredes que dan a la cámara se esconden al girar | Como Timberborn / Two Point: nunca tapan la fábrica |
+| 2026-11-08 | Fondo oscuro fuera de la sala (sin exterior por ahora) | Como Shapez 2: la fábrica resalta; el exterior se valorará en la pantalla objetivo |
