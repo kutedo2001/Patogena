@@ -22,6 +22,7 @@ Fábrica 3D isométrica de un laboratorio farmacéutico que provoca un apocalips
 
 ## Sincronización
 - git pull al empezar; commit y push al acabar cada tarea; actualizar D: o avisar a Edu.
+- D: se actualiza con bundles incrementales en D:\programar again\juegos\Patogena\_sync (nombre distinto cada vez) y `git merge --ff-only`.
 
 ## Registro
 - Antes de tocar nada: docs/bugs.md y docs/decisiones.md.
