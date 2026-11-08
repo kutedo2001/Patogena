@@ -3,12 +3,27 @@ config_version=5
 
 [application]
 config/name="Patógena S.A."
+run/main_scene="res://escenas/principal.tscn"
 config/description="Fábrica 3D isométrica de un laboratorio que provoca un apocalipsis zombi."
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.3", "Forward Plus")
 
 [internationalization]
 locale/fallback="es"
+locale/translations=PackedStringArray("res://locale/textos.es.translation", "res://locale/textos.en.translation")
 
 [rendering]
 renderer/rendering_method="forward_plus"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+
+[display]
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[gui]
+theme/custom_font_size=16
+
+[autoload]
+Captura="*res://scripts/captura.gd"

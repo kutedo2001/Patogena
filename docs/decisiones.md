@@ -12,3 +12,6 @@
 | 2026-11-08 | Motor: Godot 4 con GDScript; los prototipos en three.js quedan solo como referencia | Método del estudio: Windows, Steam y web |
 | 2026-11-08 | Interfaz sin texto flotando en el mundo: luces e iconos de estado en las máquinas, el resto en paneles del HUD | Petición de Edu |
 | 2026-11-08 | Puerta 2 aprobada | Edu: «hecho» tras revisar el documento de diseño |
+| 2026-11-08 | Godot 4.3 estable (no 4.4+) | Es la versión de MOVECORP que Edu tiene instalada; el proyecto abre igual en versiones posteriores |
+| 2026-11-08 | Web sin hilos (web_nothreads) | Funciona en itch.io y móviles sin cabeceras COOP/COEP |
+| 2026-11-08 | Capturas automáticas con el autoload Captura (`-- --captura=ruta.png`) | Para comparar cada vuelta contra las referencias sin abrir el editor |
