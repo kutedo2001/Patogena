@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patógena S.A. · Hoja de ruta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f0;--paper:#fbfcfb;--ink:#17201c;--mute:#66736d;--line:#d5dcd8;--green:#1f8a4c;--acid:#7ee05a;--amber:#d99a1e;--red:#c0392b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 'IBM Plex Sans',system-ui,sans-serif}
+.wrap{max-width:1060px;margin:0 auto;padding:28px 20px 60px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:3px solid var(--ink);padding-bottom:14px;margin-bottom:22px}
+.brand{font:700 13px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--green)}
+h1{margin:4px 0 0;font-size:30px;letter-spacing:-.01em}.doc{font:12px 'IBM Plex Mono',monospace;color:var(--mute);text-align:right}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:22px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.k{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.now h2{margin:6px 0 4px;font-size:20px}.now p{margin:0;color:var(--mute)}
+.pct{font:700 44px 'IBM Plex Mono',monospace;line-height:1}.bar{height:8px;background:#dfe5e2;border-radius:4px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;background:var(--green)}
+.gates{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:24px}
+.gate{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px;font-size:13px}.gate b{display:block;font-size:14px}
+.gate.done{border-color:var(--green);background:#e8f4ec}.gate.cur{border:2px solid var(--ink)}
+.gate .st{font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}.gate.done .st{color:var(--green)}
+h3{font-size:13px;font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase;margin:26px 0 10px;color:var(--mute)}
+.task{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;margin-bottom:8px}
+.task.hecho{border-left-color:var(--green)}.task.curso{border-left-color:var(--amber)}
+.task summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:70px 1fr auto;gap:12px;align-items:center;padding:11px 14px}
+.task summary::-webkit-details-marker{display:none}.id{font:600 12px 'IBM Plex Mono',monospace;color:var(--mute)}
+.badge{font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:3px;background:#e4e9e6;color:var(--mute)}
+.hecho .badge{background:#d9efe1;color:var(--green)}.curso .badge{background:#f6ead0;color:#8a6110}
+.body{padding:0 14px 14px 96px;font-size:14px}.body dl{display:grid;grid-template-columns:130px 1fr;gap:4px 12px;margin:0}.body dt{color:var(--mute)}.body dd{margin:0}
+.foot{margin-top:30px;font:12px 'IBM Plex Mono',monospace;color:var(--mute);border-top:1px solid var(--line);padding-top:12px}
+a{color:var(--green)}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.gates{grid-template-columns:repeat(3,1fr)}.body{padding-left:14px}.body dl{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+<header><div><div class="brand">PATÓGENA S.A. · PROYECTO REINICIO</div><h1>Hoja de ruta</h1></div><div class="doc">DOC-INT-0001 · uso interno<br><span id="upd"></span></div></header>
+<div class="grid"><div class="card now"><div class="k">Tarea en curso</div><h2 id="curT"></h2><p id="curD"></p></div><div class="card"><div class="k">Versión 0.1 · hecho</div><div class="pct" id="pct"></div><div class="bar"><i id="pbar"></i></div></div></div>
+<div class="gates" id="gates"></div>
+<div id="tasks"></div>
+<div class="foot">Diseño: <a href="https://claude.ai/artifact/XVYRKWeQAvMiSUE9AbUn59">documento de diseño</a> · Repo: github.com/kutedo2001/patogena · Prototipos: <a href="https://claude.ai/artifact/Q7pVRafGUfrY7P8g9AKu38">página de prototipos</a></div>
+</div>
+<script>
+const DATA={actualizado:'2026-11-08',
+gates:[{n:2,t:'Diseño',s:'hecho'},{n:3,t:'Pantalla objetivo',s:'curso'},{n:4,t:'Mecánica principal',s:''},{n:5,t:'Trozo vertical',s:''},{n:6,t:'Sistemas',s:''},{n:7,t:'Publicar',s:''}],
+fases:[
+{f:'Puerta 2 · Diseño',t:[
+ {id:'P2.1',n:'Documento de diseño completo',e:'hecho',inc:'Pilares, referencias, bucle, 4 mecánicas, contenido y números, arte, interfaz, tono, tecnología, fases',hc:'Edu lo aprueba',dep:'—',ver:'Aprobado por Edu el 8-nov-2026',c:'—'},
+ {id:'P2.2',n:'Nombre del juego',e:'hecho',inc:'Descartar «Farmacorp» (marca real) y elegir nombre',hc:'Edu elige',dep:'—',ver:'Patógena S.A.',c:'—'},
+ {id:'P2.3',n:'Repo con estructura y CLAUDE.md',e:'hecho',inc:'Carpetas, CLAUDE.md, README, CHANGELOG, docs (diseño, bugs, decisiones, créditos, referencias), project.godot',hc:'Primer commit en main',dep:'P2.1',ver:'ver commit',c:'inicial'},
+ {id:'P2.4',n:'Clon en D:\\programar again\\juegos\\Patogena',e:'',inc:'Clonar el repo en el PC de Edu',hc:'La carpeta existe y está al día',dep:'P2.3 · app de escritorio conectada',ver:'',c:''}]},
+{f:'Puerta 3 · Pantalla objetivo',t:[
+ {id:'P3.1',n:'Análisis de referencias con capturas',e:'curso',inc:'Capturas y 10 rasgos medibles de Timberborn, Shapez 2, Alchemy Factory, Satisfactory, Factorio, DSP',hc:'docs/referencias completo y revisado',dep:'—',ver:'',c:''},
+ {id:'P3.2',n:'Godot 4 en el entorno y proyecto que arranca',e:'',inc:'Instalar Godot 4 sin interfaz para compilar, capturar y exportar web',hc:'Escena vacía exportada a web y capturada',dep:'—',ver:'',c:''},
+ {id:'P3.3',n:'Cámara, luz y suelo del laboratorio',e:'',inc:'Cámara isométrica 30°/50°, giro y zoom, luz cenital, paredes, ventanas',hc:'Captura aprobada contra las referencias',dep:'P3.2',ver:'',c:''},
+ {id:'P3.4',n:'Lote 1 de máquinas: centrífuga, secuenciador, biorreactor',e:'',inc:'Modelos por script de Blender con animación y luz de estado; lámina con la cámara del juego',hc:'Edu aprueba la lámina',dep:'P3.3',ver:'',c:''},
+ {id:'P3.5',n:'Lote 2: mezcladora, envasadora, cámara de cepa',e:'',inc:'Igual que P3.4',hc:'Edu aprueba la lámina',dep:'P3.4',ver:'',c:''},
+ {id:'P3.6',n:'Objetos y cintas',e:'',inc:'14 objetos reconocibles, cinta con objetos moviéndose',hc:'Se distinguen a tamaño de juego',dep:'P3.3',ver:'',c:''},
+ {id:'P3.7',n:'Personajes: investigador, pacientes, zombi',e:'',inc:'Pack CC0 recoloreado, gore estilizado de prueba',hc:'Encaja con las máquinas en la misma luz',dep:'P3.3',ver:'',c:''},
+ {id:'P3.8',n:'HUD de la pantalla objetivo',e:'',inc:'Barra superior, barra de construcción con iconos 3D, panel de máquina, inventario, objetivo',hc:'Ningún texto sobre el mundo; legible a 1080p y en móvil',dep:'P3.4',ver:'',c:''},
+ {id:'P3.9',n:'Pantalla objetivo montada y comparada',e:'',inc:'Laboratorio de nivel 2 con todo lo anterior, 2 capturas al lado de las referencias',hc:'Edu da el aprobado de la puerta 3',dep:'P3.4–P3.8',ver:'',c:''}]},
+{f:'Puerta 4 · Mecánica principal (planificada)',t:[
+ {id:'P4.1',n:'Simulación de fábrica',e:'',inc:'Cuadrícula, máquinas con recetas, cintas como carriles, brazos, divisores, almacenes, a 20 pasos/s',hc:'Bot sin pantalla produce plasma y una mutación',dep:'P3.9',ver:'',c:''},
+ {id:'P4.2',n:'Construcción',e:'',inc:'Fantasma, giro, arrastrar cintas, quitar con devolución',hc:'Prueba con ratón real',dep:'P4.1',ver:'',c:''},
+ {id:'P4.3',n:'Extracción a mano y automática + pedidos',e:'',inc:'Nodos con calidad, extractores, terminal y camión',hc:'Se juega sin explicaciones',dep:'P4.1',ver:'',c:''},
+ {id:'P4.4',n:'Biorreactor y cámara de cepa',e:'',inc:'Recetas de mutación, vial, virus que crece',hc:'Primera mutación en 4–6 min',dep:'P4.1',ver:'',c:''},
+ {id:'P4.5',n:'Prueba de Edu: 15 minutos',e:'',inc:'Build web en gris',hc:'Edu quiere seguir automatizando',dep:'P4.1–P4.4',ver:'',c:''}]}]};
+const all=DATA.fases.flatMap(f=>f.t),done=all.filter(t=>t.e==='hecho').length,cur=all.find(t=>t.e==='curso');
+document.getElementById('upd').textContent='Actualizado '+DATA.actualizado;
+document.getElementById('pct').textContent=Math.round(done/all.length*100)+' %';document.getElementById('pbar').style.width=(done/all.length*100)+'%';
+document.getElementById('curT').textContent=cur?cur.id+' · '+cur.n:'—';document.getElementById('curD').textContent=cur?cur.inc:'';
+document.getElementById('gates').innerHTML=DATA.gates.map(g=>`<div class="gate ${g.s==='hecho'?'done':g.s==='curso'?'cur':''}"><span class="st">Puerta ${g.n} · ${g.s==='hecho'?'aprobada':g.s==='curso'?'en curso':'pendiente'}</span><b>${g.t}</b></div>`).join('');
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+document.getElementById('tasks').innerHTML=DATA.fases.map(f=>`<h3>${f.f}</h3>`+f.t.map(t=>`<details class="task ${t.e}"><summary><span class="id">${t.id}</span><span>${esc(t.n)}</span><span class="badge">${t.e==='hecho'?'hecho':t.e==='curso'?'en curso':'pendiente'}</span></summary><div class="body"><dl><dt>Qué incluye</dt><dd>${esc(t.inc)}</dd><dt>Hecho cuando</dt><dd>${esc(t.hc)}</dd><dt>Depende de</dt><dd>${esc(t.dep)}</dd><dt>Verificación</dt><dd>${esc(t.ver||'—')}</dd><dt>Commit</dt><dd>${esc(t.c||'—')}</dd></dl></div></details>`).join('')).join('');
+</script></body></html>

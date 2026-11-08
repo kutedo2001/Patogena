@@ -1,0 +1,14 @@
+; Patógena S.A. — proyecto Godot 4
+config_version=5
+
+[application]
+config/name="Patógena S.A."
+config/description="Fábrica 3D isométrica de un laboratorio que provoca un apocalipsis zombi."
+config/features=PackedStringArray("4.4", "Forward Plus")
+
+[internationalization]
+locale/fallback="es"
+
+[rendering]
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="gl_compatibility"
