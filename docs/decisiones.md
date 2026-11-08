@@ -18,3 +18,7 @@
 | 2026-11-08 | Casilla = 1 m; sala de 24 × 16 casillas, paredes de 3,2 m con zócalo verde clínico y ventanas cada 4 casillas | Proporción con el becario (0,9) y las máquinas (1,2 de alto) |
 | 2026-11-08 | Las dos paredes que dan a la cámara se esconden al girar | Como Timberborn / Two Point: nunca tapan la fábrica |
 | 2026-11-08 | Fondo oscuro fuera de la sala (sin exterior por ahora) | Como Shapez 2: la fábrica resalta; el exterior se valorará en la pantalla objetivo |
+| 2026-11-08 | Cámara: giro en pasos de 45° y zoom de 12 a 40 casillas (el diseño decía 90° y 6–30) | Aprobado por Edu en P3.3; 6 casillas era demasiado cerca para la densidad de Shapez 2 |
+| 2026-11-08 | Máquinas por script de Blender 4.2 (tools/blender/) → glTF; piezas animadas con nombre fijo (rotor, cabezal, agitador, líquido, pantalla, baliza) que anima scripts/maquina.gd | Animación por código: un solo script sirve para todas las máquinas y sigue el estado de la simulación |
+| 2026-11-08 | Color por familia: procesado = azul cian, producto = verde de marca (resto al llegar a sus lotes); chasis crema y zócalo grafito en todas | Como Shapez 2: se lee la familia de un vistazo |
+| 2026-11-08 | Entrada por la izquierda (-X) y salida por la derecha (+X), con chevron amarillo en el zócalo | Sentido del flujo legible sin texto |

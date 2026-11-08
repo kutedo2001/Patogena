@@ -158,7 +158,7 @@ Eventos: inspección sanitaria, huelga de transportistas, apagón, filtración a
 
 **3D low-poly limpio, laboratorio blanco y verde corporativo, vista isométrica.** Pantalla objetivo en la puerta 3 comparada con Timberborn, Shapez 2 y Alchemy Factory.
 
-- Cámara: perspectiva de unos 30° de campo, inclinación 50°, giro de 90° (Q/E), zoom de 6 a 30 casillas, WASD o arrastrar.
+- Cámara: perspectiva de unos 30° de campo, inclinación 50°, giro de 45° (Q/E), zoom de 12 a 40 casillas, WASD o arrastrar.
 - Escala: casilla = 1 m; becario 0,9; máquinas 1×1, 2×2 o 3×3 y 1–2,5 de alto.
 - Paleta: blanco roto y gris claro, metal gris azulado, verde de marca, productos saturados; verde ácido solo para virus y zombis.
 - Luz cenital fría, sombras suaves, máquinas que emiten al trabajar, día y noche por las ventanas.

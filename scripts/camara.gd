@@ -26,6 +26,9 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():  # para capturas automáticas
 		if a.begins_with("--giro="):
 			giro = float(a.trim_prefix("--giro=")); _giro_obj = giro
+		elif a.begins_with("--centro="):
+			var c := a.trim_prefix("--centro=").split(",")
+			position = Vector3(float(c[0]), 0, float(c[1]))
 		elif a.begins_with("--dist="):
 			distancia = float(a.trim_prefix("--dist=")); _dist_obj = distancia
 	_aplicar()
