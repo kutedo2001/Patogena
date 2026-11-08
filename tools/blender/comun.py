@@ -339,3 +339,60 @@ def pantalla_plano(nombre, w, h, pos, padre=None, giro=(math.radians(90), 0, 0))
     if padre is not None:
         ob.parent = padre
     return ob
+
+
+def mat_calcomania(nombre, ruta, rug=0.5, recorte=False):
+    """Material con imagen; con recorte=True usa el canal alfa (pegatinas con forma)."""
+    if nombre in _mats and nombre in bpy.data.materials:
+        return _mats[nombre]
+    m = mat_imagen(nombre, ruta, rug)
+    if recorte:
+        nt = m.node_tree
+        tex = [n for n in nt.nodes if n.type == "TEX_IMAGE"][0]
+        nt.links.new(tex.outputs["Alpha"], nt.nodes["Principled BSDF"].inputs["Alpha"])
+        m.blend_method = "CLIP"
+        m.alpha_threshold = 0.5
+    return m
+
+
+def calcomania(nombre, w, h, pos, material, padre=None, giro=(math.radians(90), 0, 0)):
+    """Plano fino con UV 0..1 para pegatinas y placas; por defecto mira a -Y."""
+    bpy.ops.mesh.primitive_plane_add(size=1, location=pos, rotation=giro)
+    ob = bpy.context.active_object
+    ob.name = nombre
+    ob.scale = (w, h, 1)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    ob.data.materials.append(material)
+    if padre is not None:
+        ob.parent = padre
+    return ob
+
+
+def tornillo(nombre, pos, padre, r=0.012, normal="-Y"):
+    """Tornillo de cabeza hexagonal con arandela, asomando por la cara indicada."""
+    giros = {"-Y": (math.radians(90), 0, 0), "+Y": (math.radians(-90), 0, 0), "+Z": (0, 0, 0),
+             "-X": (0, math.radians(-90), 0), "+X": (0, math.radians(90), 0)}
+    g = giros[normal]
+    v = vacio(nombre, pos, padre)
+    v.rotation_euler = g
+    cilindro(nombre + "_arandela", r * 1.35, r * 0.25, (0, 0, r * 0.12), mat("metal"), lados=16, bisel=0.0, padre=v)
+    cilindro(nombre + "_cabeza", r, r * 0.6, (0, 0, r * 0.25 + r * 0.3), mat("metal"), lados=6, bisel=r * 0.15, padre=v)
+    return v
+
+
+def torre_luces(pos, padre, r=0.045, h=0.055, poste=0.22):
+    """Torre de señalización de tres colores (verde, ámbar, rojo) con poste y tapa.
+    Nodos baliza_v / baliza_a / baliza_r: el juego enciende el que toca."""
+    g = mat("grafito")
+    x, y, z = pos
+    cilindro("torre_base", r * 1.2, 0.03, (x, y, z + 0.015), g, lados=24, bisel=0.006, padre=padre)
+    cilindro("torre_poste", r * 0.35, poste, (x, y, z + 0.03 + poste / 2), mat("metal"), lados=16, padre=padre)
+    zz = z + 0.03 + poste
+    cols = (("baliza_v", (0.2, 0.9, 0.35)), ("baliza_a", (1.0, 0.65, 0.08)), ("baliza_r", (0.95, 0.12, 0.1)))
+    for i, (nombre, c) in enumerate(cols):
+        cilindro(nombre + "_anillo", r * 1.04, 0.008, (x, y, zz + 0.004), g, lados=24, bisel=0.0, padre=padre)
+        m = mat("lente_" + nombre, color=tuple(v * 0.5 for v in c), rug=0.25, emision=c, fuerza=0.0)
+        cilindro(nombre, r, h, (x, y, zz + 0.008 + h / 2), m, lados=24, bisel=0.004, padre=padre)
+        zz += h + 0.008
+    cilindro("torre_tapa_anillo", r * 1.04, 0.01, (x, y, zz + 0.005), g, lados=24, bisel=0.0, padre=padre)
+    esfera("torre_tapa", r, (x, y, zz + 0.01), g, padre=padre, media=True, escala=(1, 1, 0.45))

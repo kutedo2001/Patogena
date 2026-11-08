@@ -28,6 +28,9 @@ var _agitador: Node3D
 var _cabezal: Node3D
 var _liquido: Node3D
 var _mat_baliza: StandardMaterial3D
+var _torre := {}            # Estado -> material de su lente (torre de luces de 3 colores)
+var _tapa: Node3D
+var _tapa_ang := 0.0
 var _mat_pantalla: StandardMaterial3D
 var _ui: PantallaMaquina
 var _progreso := 0.0
@@ -51,6 +54,12 @@ func _ready() -> void:
 	if _liquido:
 		_liq_y0 = _liquido.scale.y
 	_mat_baliza = _material_propio(_buscar("baliza"))
+	for par in [[Estado.TRABAJANDO, "baliza_v"], [Estado.SIN_MATERIAL, "baliza_a"], [Estado.AVERIA, "baliza_r"]]:
+		var m := _material_propio(_buscar(par[1]))
+		if m:
+			m.emission_enabled = true
+			_torre[par[0]] = m
+	_tapa = _buscar("tapa")
 	_montar_pantalla(_buscar("pantalla") as MeshInstance3D)
 	_t = randf() * 10.0
 
@@ -119,6 +128,23 @@ func _process(dt: float) -> void:
 		_ui.estado = estado
 		_ui.progreso = _progreso
 		_ui.velocidad = _vel_giro
+	if _tapa:
+		# la tapa se abre cuando la máquina espera material (se ve el rotor vacío esperando)
+		var objetivo := deg_to_rad(68.0) if estado == Estado.SIN_MATERIAL else 0.0
+		_tapa_ang = lerpf(_tapa_ang, objetivo, 1.0 - exp(-4.0 * dt))
+		_tapa.rotation.x = -_tapa_ang
+	if not _torre.is_empty():
+		for e in _torre:
+			var m: StandardMaterial3D = _torre[e]
+			var on: bool = e == estado
+			var brillo := 0.0
+			if on:
+				brillo = 3.0
+				if estado == Estado.SIN_MATERIAL:
+					brillo = 1.0 + 2.5 * (0.5 + 0.5 * sin(_t_estado * 4.0))
+				elif estado == Estado.AVERIA:
+					brillo = 4.0 if fmod(_t_estado, 0.5) < 0.25 else 0.3
+			m.emission_energy_multiplier = brillo
 	if _mat_baliza:
 		var c: Color = COLOR_BALIZA[estado]
 		var brillo := 4.0

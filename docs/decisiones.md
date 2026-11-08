@@ -27,3 +27,5 @@
 | 2026-11-08 | Vidrio y plásticos translúcidos con material propio en Godot (scripts/materiales.gd): albedo oscuro, una cara, sin sombra | El vidrio importado blanqueaba la sangre y los líquidos |
 | 2026-11-08 | Etiquetas sin palabras: código de barras, franja de color del producto, riesgo biológico y logotipo «P» | Regla de no texto en el mundo y lectura internacional |
 | 2026-11-08 | Pantallas de máquina vivas (SubViewport) dibujadas con _draw(): números con unidades, iconos y gráficas, sin palabras | Petición de Edu (pantallas con información) sin romper la regla de no texto en el mundo |
+| 2026-11-08 | Torre de luces de 3 colores en las máquinas detalladas (sustituye a la baliza única) | Más legible y más de laboratorio/industria; el estado se lee por posición y color |
+| 2026-11-08 | Centrífuga con rotor de ángulo fijo (no basculante) | Los tubos a escala de juego no caben basculando en una cuba de 1 casilla |

@@ -36,7 +36,9 @@ static func _vidrio(base: Material, alfa: float) -> StandardMaterial3D:
 	m.cull_mode = BaseMaterial3D.CULL_BACK
 	m.roughness = 0.12
 	m.metallic_specular = 0.5
-	m.rim_enabled = false
+	m.rim_enabled = true
+	m.rim = 0.3
+	m.rim_tint = 0.6
 	m.rim = 0.2
 	m.rim_tint = 0.2
 	_cache[clave] = m
