@@ -1,11 +1,22 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/principal.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/sala.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/camara.gd" id="3"]
 
+[sub_resource type="ProceduralSkyMaterial" id="cielo_mat"]
+sky_top_color = Color(0.75, 0.8, 0.85, 1)
+sky_horizon_color = Color(0.9, 0.9, 0.88, 1)
+ground_bottom_color = Color(0.3, 0.32, 0.33, 1)
+ground_horizon_color = Color(0.7, 0.72, 0.72, 1)
+
+[sub_resource type="Sky" id="cielo"]
+sky_material = SubResource("cielo_mat")
+
 [sub_resource type="Environment" id="entorno"]
 background_mode = 1
+sky = SubResource("cielo")
+reflected_light_source = 2
 background_color = Color(0.1, 0.12, 0.13, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.78, 0.83, 0.86, 1)

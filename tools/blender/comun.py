@@ -58,6 +58,7 @@ def mat(nombre, color=None, metal=0.0, rug=0.5, emision=None, fuerza=0.0, alfa=1
     if alfa < 1.0:
         b.inputs["Alpha"].default_value = alfa
         m.blend_method = "BLEND"
+        m.use_backface_culling = True   # una sola capa de vidrio: si no, se suman dos reflejos
     _mats[nombre] = m
     return m
 
@@ -213,3 +214,115 @@ def exportar(ruta):
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.export_scene.gltf(filepath=ruta, export_format="GLB", use_selection=True,
                               export_apply=True, export_yup=True)
+
+
+# ---------------------------------------------------------------- piezas finas
+
+def torneado(nombre, perfil, material, lados=48, padre=None, pos=(0, 0, 0), cerrar=False, suave=True):
+    """Sólido de revolución alrededor de Z a partir de una lista (r, z).
+    Si el perfil empieza y acaba en r=0 queda cerrado; con cerrar=True une el último con el primero."""
+    me = bpy.data.meshes.new(nombre)
+    bm = bmesh.new()
+    vs = [bm.verts.new((max(r, 0.0), 0.0, z)) for r, z in perfil]
+    es = [bm.edges.new((vs[i], vs[i + 1])) for i in range(len(vs) - 1)]
+    if cerrar:
+        es.append(bm.edges.new((vs[-1], vs[0])))
+    bmesh.ops.spin(bm, geom=vs + es, axis=(0, 0, 1), cent=(0, 0, 0), angle=math.tau, steps=lados,
+                   use_merge=True)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(nombre, me)
+    bpy.context.collection.objects.link(ob)
+    ob.location = pos
+    ob.data.materials.append(material)
+    for p in ob.data.polygons:
+        p.use_smooth = suave
+    try:
+        ob.data.set_sharp_from_angle(angle=math.radians(40))
+    except AttributeError:
+        pass
+    if padre is not None:
+        ob.parent = padre
+    return ob
+
+
+def estriado(nombre, r, h, n, prof, material, padre=None, pos=(0, 0, 0), bisel=0.0):
+    """Cilindro con estrías verticales (tapón de rosca, mando moleteado)."""
+    me = bpy.data.meshes.new(nombre)
+    bm = bmesh.new()
+    pasos = n * 4
+    abajo, arriba = [], []
+    for i in range(pasos):
+        a = i / pasos * math.tau
+        rr = r - (prof if (i % 4) in (2, 3) else 0.0)
+        abajo.append(bm.verts.new((math.cos(a) * rr, math.sin(a) * rr, 0)))
+        arriba.append(bm.verts.new((math.cos(a) * rr, math.sin(a) * rr, h)))
+    for i in range(pasos):
+        j = (i + 1) % pasos
+        bm.faces.new((abajo[i], abajo[j], arriba[j], arriba[i]))
+    bm.faces.new(list(reversed(abajo)))
+    bm.faces.new(arriba)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(nombre, me)
+    bpy.context.collection.objects.link(ob)
+    ob.location = pos
+    ob.data.materials.append(material)
+    if padre is not None:
+        ob.parent = padre
+    if bisel > 0:
+        bpy.context.view_layer.objects.active = ob
+        md = ob.modifiers.new("b", "BEVEL"); md.width = bisel; md.segments = 1
+        md.limit_method = "ANGLE"; md.angle_limit = math.radians(60)
+        bpy.ops.object.modifier_apply(modifier="b")
+    return ob
+
+
+def mat_imagen(nombre, ruta, rug=0.6):
+    if nombre in _mats and nombre in bpy.data.materials:
+        return _mats[nombre]
+    m = bpy.data.materials.new(nombre)
+    m.use_nodes = True
+    nt = m.node_tree
+    b = nt.nodes["Principled BSDF"]
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = bpy.data.images.load(ruta)
+    nt.links.new(tex.outputs["Color"], b.inputs["Base Color"])
+    b.inputs["Roughness"].default_value = rug
+    _mats[nombre] = m
+    return m
+
+
+def manga(nombre, r, h, pos, material, padre=None, arco=1.0, lados=48):
+    """Cilindro abierto (sin tapas) con UV de 0 a 1 en vertical y arco en horizontal: etiquetas."""
+    me = bpy.data.meshes.new(nombre)
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new()
+    n = max(4, int(lados * arco))
+    ab, ar = [], []
+    for i in range(n + 1):
+        a = -math.pi / 2 - arco * math.pi + i / n * arco * math.tau
+        ab.append(bm.verts.new((math.cos(a) * r, math.sin(a) * r, 0)))
+        ar.append(bm.verts.new((math.cos(a) * r, math.sin(a) * r, h)))
+    for i in range(n):
+        f = bm.faces.new((ab[i], ab[i + 1], ar[i + 1], ar[i]))
+        for lp, (u, v) in zip(f.loops, ((i / n, 0), ((i + 1) / n, 0), ((i + 1) / n, 1), (i / n, 1))):
+            lp[uv].uv = (u, v)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(nombre, me)
+    bpy.context.collection.objects.link(ob)
+    ob.location = pos
+    ob.data.materials.append(material)
+    for p in ob.data.polygons:
+        p.use_smooth = True
+    if padre is not None:
+        ob.parent = padre
+    return ob
+
+
+def vidrio():
+    return mat("vidrio", color=(0.8, 0.9, 0.95), rug=0.03, alfa=0.1)

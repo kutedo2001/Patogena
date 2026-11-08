@@ -22,3 +22,7 @@
 | 2026-11-08 | Máquinas por script de Blender 4.2 (tools/blender/) → glTF; piezas animadas con nombre fijo (rotor, cabezal, agitador, líquido, pantalla, baliza) que anima scripts/maquina.gd | Animación por código: un solo script sirve para todas las máquinas y sigue el estado de la simulación |
 | 2026-11-08 | Color por familia: procesado = azul cian, producto = verde de marca (resto al llegar a sus lotes); chasis crema y zócalo grafito en todas | Como Shapez 2: se lee la familia de un vistazo |
 | 2026-11-08 | Entrada por la izquierda (-X) y salida por la derecha (+X), con chevron amarillo en el zócalo | Sentido del flujo legible sin texto |
+| 2026-11-08 | Zoom máximo de detalle: 4 casillas de ancho (antes 12) | Edu quiere ver el detalle al acercarse |
+| 2026-11-08 | Los productos se dibujan a 2,5× su tamaño real (un tubo mide 0,33 m en el juego) | A tamaño real no se leían ni con el zoom máximo; como en Can 'Em All, el producto manda |
+| 2026-11-08 | Vidrio y plásticos translúcidos con material propio en Godot (scripts/materiales.gd): albedo oscuro, una cara, sin sombra | El vidrio importado blanqueaba la sangre y los líquidos |
+| 2026-11-08 | Etiquetas sin palabras: código de barras, franja de color del producto, riesgo biológico y logotipo «P» | Regla de no texto en el mundo y lectura internacional |

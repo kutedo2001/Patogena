@@ -34,7 +34,9 @@ var _t_estado := 0.0
 
 func _ready() -> void:
 	if modelo:
-		add_child(modelo.instantiate())
+		var inst := modelo.instantiate()
+		Materiales.ajustar(inst)
+		add_child(inst)
 	_rotor = _buscar("rotor")
 	_agitador = _buscar("agitador")
 	_cabezal = _buscar("cabezal")
