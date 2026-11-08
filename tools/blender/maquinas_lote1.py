@@ -47,8 +47,7 @@ def centrifuga():
     panel = caja("panel", (0.42, 0.1, 0.22), (0, -0.43, zh + 0.3), gr, bisel=0.02, padre=r,
                  giro=(math.radians(-20), 0, 0))
     pan = mat("pantalla", color=(0.05, 0.25, 0.2), rug=0.3, emision=(0.25, 1.0, 0.7), fuerza=1.5)
-    caja("pantalla", (0.24, 0.02, 0.1), (-0.05, -0.485, zh + 0.32), pan, bisel=0.0, padre=r,
-         giro=(math.radians(-20), 0, 0))
+    pantalla_plano("pantalla", 0.25, 0.11, (-0.05, -0.487, zh + 0.32), padre=r, giro=(math.radians(70), 0, 0))
     for k, x in enumerate((0.12, 0.17)):
         cilindro(f"mando{k}", 0.022, 0.03, (x, -0.49, zh + 0.29), me, lados=12, padre=r,
                  giro=(math.radians(70), 0, 0))
@@ -77,20 +76,7 @@ def secuenciador():
     pan_raiz.rotation_euler = (inc, 0, 0)
     caja("pantalla_marco", (1.16, 0.06, 0.56), (0, 0, 0), gr, bisel=0.025, padre=pan_raiz)
     pan = mat("pantalla", color=(0.02, 0.06, 0.07), rug=0.3, emision=(0.05, 0.2, 0.2), fuerza=1.0)
-    caja("pantalla", (1.04, 0.02, 0.44), (0, -0.03, 0), pan, bisel=0.0, padre=pan_raiz)
-    cols = [(0.2, 0.9, 0.4), (0.25, 0.6, 1.0), (1.0, 0.8, 0.2), (1.0, 0.3, 0.3)]
-    nombres = ["A", "C", "G", "T"]
-    import random
-    random.seed(7)
-    for fila in range(5):
-        x = -0.46
-        while x < 0.44:
-            w = random.choice((0.03, 0.05, 0.07))
-            k = random.randrange(4)
-            m = mat("base_" + nombres[k], color=cols[k], rug=0.3, emision=cols[k], fuerza=2.2)
-            caja(f"barra{fila}_{x:.2f}", (w, 0.012, 0.05), (x + w / 2, -0.045, 0.16 - fila * 0.08), m,
-                 bisel=0.0, padre=pan_raiz)
-            x += w + 0.012
+    pantalla_plano("pantalla", 1.06, 0.46, (0, -0.032, 0), padre=pan_raiz)
     # mesa delantera con campana de cristal
     caja("mesa", (1.5, 1.1, 0.72), (0, -0.33, zh + 0.36), ch, bisel=0.06, segmentos=3, padre=r)
     caja("mesa_banda", (1.52, 1.12, 0.06), (0, -0.33, zh + 0.6), ac, bisel=0.02, padre=r)
@@ -165,7 +151,7 @@ def biorreactor():
     caja("armario_franja", (0.48, 0.44, 0.06), (ax, ay, zh + 1.0), ac, bisel=0.015, padre=r)
     pan = mat("pantalla", color=(0.05, 0.25, 0.2), rug=0.3, emision=(0.25, 1.0, 0.7), fuerza=1.5)
     caja("pantalla_marco", (0.32, 0.03, 0.24), (ax, ay - 0.215, zh + 0.78), gr, bisel=0.01, padre=r)
-    caja("pantalla", (0.27, 0.02, 0.19), (ax, ay - 0.228, zh + 0.78), pan, bisel=0.0, padre=r)
+    pantalla_plano("pantalla", 0.28, 0.2, (ax, ay - 0.232, zh + 0.78), padre=r)
     for k in range(3):
         cilindro(f"boton{k}", 0.02, 0.02, (ax - 0.08 + k * 0.08, ay - 0.225, zh + 0.55), mat("amarillo") if k == 1 else me,
                  lados=12, padre=r, giro=(math.radians(90), 0, 0))

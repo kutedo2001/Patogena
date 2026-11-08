@@ -26,3 +26,4 @@
 | 2026-11-08 | Los productos se dibujan a 2,5× su tamaño real (un tubo mide 0,33 m en el juego) | A tamaño real no se leían ni con el zoom máximo; como en Can 'Em All, el producto manda |
 | 2026-11-08 | Vidrio y plásticos translúcidos con material propio en Godot (scripts/materiales.gd): albedo oscuro, una cara, sin sombra | El vidrio importado blanqueaba la sangre y los líquidos |
 | 2026-11-08 | Etiquetas sin palabras: código de barras, franja de color del producto, riesgo biológico y logotipo «P» | Regla de no texto en el mundo y lectura internacional |
+| 2026-11-08 | Pantallas de máquina vivas (SubViewport) dibujadas con _draw(): números con unidades, iconos y gráficas, sin palabras | Petición de Edu (pantallas con información) sin romper la regla de no texto en el mundo |

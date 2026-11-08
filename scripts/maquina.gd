@@ -15,6 +15,9 @@ const COLOR_BALIZA := {
 }
 
 @export var modelo: PackedScene
+@export var tipo_pantalla: PantallaMaquina.Tipo = PantallaMaquina.Tipo.CENTRIFUGA
+@export var ciclo := 3.0              # segundos por pieza (lo fijará la receta)
+@export var color_producto := Color(0.3, 0.9, 0.2)
 @export var estado: Estado = Estado.TRABAJANDO:
 	set(v):
 		estado = v
@@ -26,6 +29,8 @@ var _cabezal: Node3D
 var _liquido: Node3D
 var _mat_baliza: StandardMaterial3D
 var _mat_pantalla: StandardMaterial3D
+var _ui: PantallaMaquina
+var _progreso := 0.0
 var _cabezal_x0 := 0.0
 var _liq_y0 := 0.0
 var _vel_giro := 0.0      # 0..1, arranca y frena con inercia
@@ -46,8 +51,38 @@ func _ready() -> void:
 	if _liquido:
 		_liq_y0 = _liquido.scale.y
 	_mat_baliza = _material_propio(_buscar("baliza"))
-	_mat_pantalla = _material_propio(_buscar("pantalla"))
+	_montar_pantalla(_buscar("pantalla") as MeshInstance3D)
 	_t = randf() * 10.0
+
+## Pantalla viva: un SubViewport con PantallaMaquina cuya textura se pinta en la malla.
+func _montar_pantalla(mi: MeshInstance3D) -> void:
+	if mi == null:
+		return
+	var tam := mi.get_aabb().size
+	var lados := [tam.x, tam.y, tam.z]
+	lados.sort()
+	var aspecto: float = lados[2] / maxf(lados[1], 0.001)
+	var vp := SubViewport.new()
+	vp.size = Vector2i(384, int(384.0 / aspecto))
+	vp.transparent_bg = false
+	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	vp.disable_3d = true
+	_ui = PantallaMaquina.new()
+	_ui.tipo = tipo_pantalla
+	_ui.color_producto = color_producto
+	_ui.size = Vector2(vp.size)
+	vp.add_child(_ui)
+	add_child(vp)
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = vp.get_texture()
+	m.emission_enabled = true
+	m.emission_texture = vp.get_texture()
+	m.emission_energy_multiplier = 1.3
+	m.roughness = 0.25
+	m.metallic_specular = 0.6
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	mi.material_override = m
+	_mat_pantalla = null
 
 func _buscar(nombre: String) -> Node3D:
 	var r := find_child(nombre, true, false)
@@ -78,8 +113,12 @@ func _process(dt: float) -> void:
 		_cabezal.position.x = lerpf(_cabezal.position.x, objetivo, 1.0 - exp(-8.0 * dt))
 	if _liquido:
 		_liquido.scale.y = _liq_y0 * (1.0 + sin(_t * 3.1) * 0.015 * _vel_giro)
-	if _mat_pantalla:
-		_mat_pantalla.emission_energy_multiplier = (1.4 + sin(_t * 9.0) * 0.25) if trabaja else 0.15
+	if trabaja:
+		_progreso = fmod(_progreso + dt / ciclo, 1.0)
+	if _ui:
+		_ui.estado = estado
+		_ui.progreso = _progreso
+		_ui.velocidad = _vel_giro
 	if _mat_baliza:
 		var c: Color = COLOR_BALIZA[estado]
 		var brillo := 4.0

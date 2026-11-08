@@ -326,3 +326,16 @@ def manga(nombre, r, h, pos, material, padre=None, arco=1.0, lados=48):
 
 def vidrio():
     return mat("vidrio", color=(0.8, 0.9, 0.95), rug=0.03, alfa=0.1)
+
+
+def pantalla_plano(nombre, w, h, pos, padre=None, giro=(math.radians(90), 0, 0)):
+    """Pantalla como plano con UV 0..1 (el juego le pone una textura viva). Por defecto mira a -Y."""
+    bpy.ops.mesh.primitive_plane_add(size=1, location=pos, rotation=giro)
+    ob = bpy.context.active_object
+    ob.name = nombre
+    ob.scale = (w, h, 1)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    ob.data.materials.append(mat("pantalla", color=(0.02, 0.06, 0.07), rug=0.3, emision=(0.1, 0.4, 0.35), fuerza=1.0))
+    if padre is not None:
+        ob.parent = padre
+    return ob
