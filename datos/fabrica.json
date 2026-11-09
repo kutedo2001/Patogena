@@ -17,18 +17,23 @@
  "objetos": [
   "tubo_sangre",
   "tubo_plasma",
+  "hematies",
+  "plaquetas",
   "placa_petri",
   "tubo_adn",
+  "arn",
   "garrafa_agua",
   "frasco_reactivo",
   "bolsa_suero",
+  "medio_cultivo",
+  "viriones",
   "proteina",
   "vector",
   "neurotoxina",
   "capside",
   "nucleo_zombi",
-  "vial_mutacion",
-  "caja_vacunas"
+  "caja_vacunas",
+  "sangre_l"
  ],
  "maquinas": {
   "centrifuga": {
@@ -38,7 +43,9 @@
    ],
    "salida": 0,
    "recetas": [
-    "plasma"
+    "plasma",
+    "hematies",
+    "plaquetas"
    ],
    "entradas": [
     [
@@ -54,7 +61,8 @@
    ],
    "salida": 1,
    "recetas": [
-    "adn"
+    "adn",
+    "arn"
    ],
    "entradas": [
     [
@@ -70,16 +78,17 @@
    ],
    "salida": 0,
    "recetas": [
-    "suero"
+    "suero",
+    "medio"
    ],
    "entradas": [
     [
      0,
-     "frasco_reactivo"
+     ""
     ],
     [
      1,
-     "garrafa_agua"
+     ""
     ]
    ]
   },
@@ -95,11 +104,11 @@
    "entradas": [
     [
      0,
-     "vial_mutacion"
+     ""
     ],
     [
      1,
-     "bolsa_suero"
+     ""
     ]
    ]
   },
@@ -110,34 +119,14 @@
    ],
    "salida": 1,
    "recetas": [
-    "tos",
-    "estornudos",
-    "fiebre",
-    "nauseas",
-    "frio",
-    "calor"
+    "viriones",
+    "vector"
    ],
    "entradas": [
     [
      0,
      ""
     ],
-    [
-     1,
-     ""
-    ]
-   ]
-  },
-  "camara_cepa": {
-   "tam": [
-    3,
-    3
-   ],
-   "salida": 1,
-   "recetas": [
-    "inyectar"
-   ],
-   "entradas": [
     [
      1,
      ""
@@ -151,7 +140,8 @@
    ],
    "salida": 0,
    "recetas": [
-    "plasma_ind"
+    "plasma_ind",
+    "hematies_ind"
    ],
    "entradas": [
     [
@@ -161,6 +151,90 @@
     [
      1,
      "sangre_l"
+    ]
+   ]
+  },
+  "sintetizador": {
+   "tam": [
+    2,
+    2
+   ],
+   "salida": 1,
+   "recetas": [
+    "proteina"
+   ],
+   "entradas": [
+    [
+     0,
+     ""
+    ],
+    [
+     1,
+     ""
+    ]
+   ]
+  },
+  "destilador": {
+   "tam": [
+    2,
+    2
+   ],
+   "salida": 1,
+   "recetas": [
+    "neurotoxina"
+   ],
+   "entradas": [
+    [
+     0,
+     ""
+    ],
+    [
+     1,
+     ""
+    ]
+   ]
+  },
+  "impresora": {
+   "tam": [
+    2,
+    2
+   ],
+   "salida": 1,
+   "recetas": [
+    "capside"
+   ],
+   "entradas": [
+    [
+     0,
+     ""
+    ],
+    [
+     1,
+     ""
+    ]
+   ]
+  },
+  "fusionador": {
+   "tam": [
+    3,
+    3
+   ],
+   "salida": 1,
+   "recetas": [
+    "nucleo"
+   ],
+   "entradas": [
+    [
+     0,
+     ""
+    ],
+    [
+     1,
+     ""
+    ],
+    [
+     2,
+     ""
     ]
    ]
   }
@@ -175,105 +249,23 @@
    },
    "tiempo": 4.0
   },
-  "adn": {
+  "hematies": {
    "entradas": {
-    "placa_petri": 1
+    "tubo_sangre": 1
    },
    "salidas": {
-    "tubo_adn": 1
+    "hematies": 1
    },
    "tiempo": 4.0
   },
-  "suero": {
+  "plaquetas": {
    "entradas": {
-    "garrafa_agua": 1,
-    "frasco_reactivo": 1
+    "tubo_sangre": 2
    },
    "salidas": {
-    "bolsa_suero": 2
+    "plaquetas": 1
    },
-   "tiempo": 3.0
-  },
-  "vacunas": {
-   "entradas": {
-    "vial_mutacion": 1,
-    "bolsa_suero": 2
-   },
-   "salidas": {
-    "caja_vacunas": 4
-   },
-   "tiempo": 8.0,
-   "hereda": "vial_mutacion"
-  },
-  "inyectar": {
-   "entradas": {
-    "vial_mutacion": 1
-   },
-   "salidas": {},
-   "tiempo": 3.0,
-   "cuenta": "mutacion"
-  },
-  "tos": {
-   "entradas": {
-    "tubo_plasma": 2
-   },
-   "salidas": {
-    "vial_mutacion": 1
-   },
-   "tiempo": 8.0,
-   "mutacion": "tos"
-  },
-  "estornudos": {
-   "entradas": {
-    "tubo_plasma": 2
-   },
-   "salidas": {
-    "vial_mutacion": 1
-   },
-   "tiempo": 8.0,
-   "mutacion": "estornudos"
-  },
-  "fiebre": {
-   "entradas": {
-    "tubo_adn": 2
-   },
-   "salidas": {
-    "vial_mutacion": 1
-   },
-   "tiempo": 8.0,
-   "mutacion": "fiebre"
-  },
-  "nauseas": {
-   "entradas": {
-    "tubo_adn": 2
-   },
-   "salidas": {
-    "vial_mutacion": 1
-   },
-   "tiempo": 8.0,
-   "mutacion": "nauseas"
-  },
-  "frio": {
-   "entradas": {
-    "tubo_plasma": 1,
-    "tubo_adn": 1
-   },
-   "salidas": {
-    "vial_mutacion": 1
-   },
-   "tiempo": 8.0,
-   "mutacion": "frio"
-  },
-  "calor": {
-   "entradas": {
-    "tubo_plasma": 1,
-    "tubo_adn": 1
-   },
-   "salidas": {
-    "vial_mutacion": 1
-   },
-   "tiempo": 8.0,
-   "mutacion": "calor"
+   "tiempo": 6.0
   },
   "plasma_ind": {
    "entradas": {
@@ -283,6 +275,161 @@
     "tubo_plasma": 1
    },
    "tiempo": 1.0
+  },
+  "hematies_ind": {
+   "entradas": {
+    "sangre_l": 2
+   },
+   "salidas": {
+    "hematies": 1
+   },
+   "tiempo": 1.0
+  },
+  "adn": {
+   "entradas": {
+    "placa_petri": 1
+   },
+   "salidas": {
+    "tubo_adn": 1
+   },
+   "tiempo": 4.0
+  },
+  "arn": {
+   "entradas": {
+    "placa_petri": 1
+   },
+   "salidas": {
+    "arn": 1
+   },
+   "tiempo": 5.0
+  },
+  "suero": {
+   "entradas": {
+    "frasco_reactivo": 1,
+    "garrafa_agua": 1
+   },
+   "salidas": {
+    "bolsa_suero": 2
+   },
+   "tiempo": 3.0,
+   "bocas": [
+    "frasco_reactivo",
+    "garrafa_agua"
+   ]
+  },
+  "medio": {
+   "entradas": {
+    "tubo_plasma": 1,
+    "garrafa_agua": 1
+   },
+   "salidas": {
+    "medio_cultivo": 1
+   },
+   "tiempo": 4.0,
+   "bocas": [
+    "tubo_plasma",
+    "garrafa_agua"
+   ]
+  },
+  "viriones": {
+   "entradas": {
+    "tubo_adn": 1,
+    "medio_cultivo": 1
+   },
+   "salidas": {
+    "viriones": 1
+   },
+   "tiempo": 6.0,
+   "bocas": [
+    "tubo_adn",
+    "medio_cultivo"
+   ]
+  },
+  "vector": {
+   "entradas": {
+    "hematies": 1,
+    "tubo_adn": 1
+   },
+   "salidas": {
+    "vector": 1
+   },
+   "tiempo": 8.0,
+   "bocas": [
+    "hematies",
+    "tubo_adn"
+   ]
+  },
+  "proteina": {
+   "entradas": {
+    "tubo_plasma": 2,
+    "arn": 1
+   },
+   "salidas": {
+    "proteina": 1
+   },
+   "tiempo": 6.0,
+   "bocas": [
+    "tubo_plasma",
+    "arn"
+   ]
+  },
+  "neurotoxina": {
+   "entradas": {
+    "bolsa_suero": 2,
+    "proteina": 1
+   },
+   "salidas": {
+    "neurotoxina": 1
+   },
+   "tiempo": 8.0,
+   "bocas": [
+    "bolsa_suero",
+    "proteina"
+   ]
+  },
+  "vacunas": {
+   "entradas": {
+    "viriones": 1,
+    "bolsa_suero": 2
+   },
+   "salidas": {
+    "caja_vacunas": 4
+   },
+   "tiempo": 8.0,
+   "bocas": [
+    "viriones",
+    "bolsa_suero"
+   ]
+  },
+  "capside": {
+   "entradas": {
+    "proteina": 2,
+    "vector": 1
+   },
+   "salidas": {
+    "capside": 1
+   },
+   "tiempo": 10.0,
+   "bocas": [
+    "proteina",
+    "vector"
+   ]
+  },
+  "nucleo": {
+   "entradas": {
+    "capside": 1,
+    "neurotoxina": 1,
+    "vector": 2
+   },
+   "salidas": {
+    "nucleo_zombi": 1
+   },
+   "tiempo": 15.0,
+   "bocas": [
+    "capside",
+    "neurotoxina",
+    "vector"
+   ]
   }
  },
  "brazo": {
@@ -325,8 +472,13 @@
  },
  "ventas": {
   "caja_vacunas": 40,
-  "tubo_plasma": 4,
-  "tubo_adn": 6
+  "tubo_plasma": 3,
+  "tubo_adn": 5,
+  "hematies": 4,
+  "plaquetas": 9,
+  "bolsa_suero": 4,
+  "proteina": 18,
+  "viriones": 14
  },
  "pedidos": {
   "frasco_reactivo": {
@@ -373,47 +525,529 @@
  },
  "_nota_estaciones": "Estaciones de extracción: modo mano (trabaja el científico), maquina (el científico con la mejora, más rápido) y zombi (un zombi opera la máquina: automático y saca por su boca).",
  "_nota_bocas": "entradas: [fila local, objeto o '']: la boca está en la cara −X local de esa fila; solo se entra por ahí (a mano se entra por cualquier lado). La salida es la cara +X de la fila 'salida'. Cinta Mk1 = 1 objeto/s; centrífuga y secuenciador 15/min; biorreactor consume 15 plasma/min (1 centrífuga : 1 biorreactor); envasadora: 1 vial + 2 sueros → 4 cajas con la mutación del vial.",
- "fases": [
-  {
-   "pide": {
-    "tubo_plasma": 30
-   },
-   "desbloquea": [
-    "incubadora",
-    "toma_agua",
-    "secuenciador",
-    "mezcladora",
-    "almacen",
-    "generador"
-   ]
-  },
-  {
-   "pide": {
-    "tubo_adn": 20,
-    "bolsa_suero": 30
-   },
-   "desbloquea": [
-    "envasadora",
-    "brazo",
-    "divisor"
-   ]
-  },
-  {
-   "pide": {
-    "vial_mutacion": 10,
-    "caja_vacunas": 40
-   },
-   "desbloquea": [
-    "capsula",
-    "tuberia"
-   ]
-  }
- ],
  "inicio_desbloqueado": [
   "camilla",
   "centrifuga",
-  "biorreactor",
   "cinta",
   "sala_espera"
- ]
+ ],
+ "cepa": {
+  "mejoras": [
+   {
+    "id": "tos",
+    "rama": "transmision",
+    "nivel": 1,
+    "requiere": [],
+    "pide": {
+     "tubo_plasma": 10
+    },
+    "efecto": {
+     "contagio": 0.25
+    },
+    "desbloquea": [
+     "incubadora",
+     "toma_agua",
+     "secuenciador",
+     "mezcladora",
+     "almacen"
+    ]
+   },
+   {
+    "id": "estornudos",
+    "rama": "transmision",
+    "nivel": 1,
+    "requiere": [
+     "tos"
+    ],
+    "pide": {
+     "viriones": 30,
+     "hematies": 30
+    },
+    "efecto": {
+     "contagio": 0.35
+    },
+    "desbloquea": [
+     "capsula",
+     "tuberia",
+     "deposito",
+     "centrifuga_ind"
+    ]
+   },
+   {
+    "id": "agua",
+    "rama": "transmision",
+    "nivel": 2,
+    "requiere": [
+     "estornudos"
+    ],
+    "pide": {
+     "proteina": 60,
+     "hematies": 80
+    },
+    "efecto": {
+     "contagio": 0.4,
+     "humedo": 1
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "ratas",
+    "rama": "transmision",
+    "nivel": 2,
+    "requiere": [
+     "agua"
+    ],
+    "pide": {
+     "vector": 50,
+     "viriones": 120
+    },
+    "efecto": {
+     "contagio": 0.5
+    },
+    "desbloquea": [
+     "impresora"
+    ]
+   },
+   {
+    "id": "mosquitos",
+    "rama": "transmision",
+    "nivel": 3,
+    "requiere": [
+     "ratas"
+    ],
+    "pide": {
+     "capside": 40,
+     "proteina": 150
+    },
+    "efecto": {
+     "contagio": 0.7,
+     "calido": 1
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "aves",
+    "rama": "transmision",
+    "nivel": 3,
+    "requiere": [
+     "mosquitos"
+    ],
+    "pide": {
+     "nucleo_zombi": 20,
+     "vector": 120
+    },
+    "efecto": {
+     "contagio": 0.9,
+     "frio": 1
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "ganado",
+    "rama": "transmision",
+    "nivel": 4,
+    "requiere": [
+     "aves"
+    ],
+    "pide": {
+     "nucleo_zombi": 40,
+     "capside": 80
+    },
+    "efecto": {
+     "contagio": 1.2
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "aerosol",
+    "rama": "transmision",
+    "nivel": 4,
+    "requiere": [
+     "ganado"
+    ],
+    "pide": {
+     "nucleo_zombi": 80,
+     "neurotoxina": 200
+    },
+    "efecto": {
+     "contagio": 2.0
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "fiebre",
+    "rama": "sintomas",
+    "nivel": 1,
+    "requiere": [],
+    "pide": {
+     "tubo_plasma": 20,
+     "tubo_adn": 10
+    },
+    "efecto": {
+     "deteccion": 0.1
+    },
+    "desbloquea": [
+     "biorreactor",
+     "generador",
+     "brazo"
+    ]
+   },
+   {
+    "id": "nauseas",
+    "rama": "sintomas",
+    "nivel": 1,
+    "requiere": [
+     "fiebre"
+    ],
+    "pide": {
+     "viriones": 40,
+     "plaquetas": 20,
+     "arn": 20
+    },
+    "efecto": {
+     "deteccion": 0.1,
+     "contagio": 0.1
+    },
+    "desbloquea": [
+     "sintetizador",
+     "biogas"
+    ]
+   },
+   {
+    "id": "insomnio",
+    "rama": "sintomas",
+    "nivel": 2,
+    "requiere": [
+     "nauseas"
+    ],
+    "pide": {
+     "neurotoxina": 40,
+     "viriones": 80
+    },
+    "efecto": {
+     "deteccion": 0.15
+    },
+    "desbloquea": [
+     "granja"
+    ]
+   },
+   {
+    "id": "mordisco",
+    "rama": "sintomas",
+    "nivel": 2,
+    "requiere": [
+     "insomnio"
+    ],
+    "pide": {
+     "neurotoxina": 60,
+     "vector": 40
+    },
+    "efecto": {
+     "zombificacion": 0.004,
+     "contagio": 0.2
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "hambre",
+    "rama": "sintomas",
+    "nivel": 3,
+    "requiere": [
+     "mordisco"
+    ],
+    "pide": {
+     "capside": 60,
+     "neurotoxina": 100
+    },
+    "efecto": {
+     "zombificacion": 0.006
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "rabia",
+    "rama": "sintomas",
+    "nivel": 3,
+    "requiere": [
+     "hambre"
+    ],
+    "pide": {
+     "nucleo_zombi": 20,
+     "capside": 60
+    },
+    "efecto": {
+     "zombificacion": 0.01,
+     "contagio": 0.3
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "necrosis",
+    "rama": "sintomas",
+    "nivel": 4,
+    "requiere": [
+     "rabia"
+    ],
+    "pide": {
+     "nucleo_zombi": 50,
+     "proteina": 200
+    },
+    "efecto": {
+     "zombificacion": 0.015
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "zombi_total",
+    "rama": "sintomas",
+    "nivel": 4,
+    "requiere": [
+     "necrosis"
+    ],
+    "pide": {
+     "nucleo_zombi": 100
+    },
+    "efecto": {
+     "zombificacion": 0.03
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "frio",
+    "rama": "resistencias",
+    "nivel": 1,
+    "requiere": [],
+    "pide": {
+     "viriones": 10,
+     "bolsa_suero": 20
+    },
+    "efecto": {
+     "frio": 1
+    },
+    "desbloquea": [
+     "envasadora",
+     "divisor"
+    ]
+   },
+   {
+    "id": "calor",
+    "rama": "resistencias",
+    "nivel": 1,
+    "requiere": [
+     "frio"
+    ],
+    "pide": {
+     "proteina": 30,
+     "bolsa_suero": 60
+    },
+    "efecto": {
+     "calido": 1
+    },
+    "desbloquea": [
+     "destilador"
+    ]
+   },
+   {
+    "id": "humedad",
+    "rama": "resistencias",
+    "nivel": 2,
+    "requiere": [
+     "calor"
+    ],
+    "pide": {
+     "plaquetas": 80,
+     "neurotoxina": 40
+    },
+    "efecto": {
+     "humedo": 1,
+     "resistencia": 0.15
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "farmacos1",
+    "rama": "resistencias",
+    "nivel": 2,
+    "requiere": [
+     "humedad"
+    ],
+    "pide": {
+     "capside": 30,
+     "plaquetas": 100
+    },
+    "efecto": {
+     "resistencia": 0.3
+    },
+    "desbloquea": [
+     "fusionador"
+    ]
+   },
+   {
+    "id": "farmacos2",
+    "rama": "resistencias",
+    "nivel": 3,
+    "requiere": [
+     "farmacos1"
+    ],
+    "pide": {
+     "nucleo_zombi": 10,
+     "capside": 50
+    },
+    "efecto": {
+     "resistencia": 0.4
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "camuflaje",
+    "rama": "resistencias",
+    "nivel": 3,
+    "requiere": [
+     "farmacos2"
+    ],
+    "pide": {
+     "nucleo_zombi": 30,
+     "arn": 200
+    },
+    "efecto": {
+     "deteccion": -0.4
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "bunker",
+    "rama": "resistencias",
+    "nivel": 4,
+    "requiere": [
+     "camuflaje"
+    ],
+    "pide": {
+     "nucleo_zombi": 50,
+     "capside": 100
+    },
+    "efecto": {
+     "resistencia": 0.6
+    },
+    "desbloquea": []
+   },
+   {
+    "id": "mutacion_genetica",
+    "rama": "resistencias",
+    "nivel": 4,
+    "requiere": [
+     "bunker"
+    ],
+    "pide": {
+     "nucleo_zombi": 80,
+     "neurotoxina": 200
+    },
+    "efecto": {
+     "resistencia": 1.0
+    },
+    "desbloquea": []
+   }
+  ]
+ },
+ "mundo": {
+  "regiones": [
+   {
+    "id": "norteamerica",
+    "pob": 370,
+    "clima": "templado",
+    "riqueza": 1.0,
+    "x": 10,
+    "y": 7
+   },
+   {
+    "id": "sudamerica",
+    "pob": 430,
+    "clima": "calido",
+    "riqueza": 0.4,
+    "x": 15,
+    "y": 15
+   },
+   {
+    "id": "europa_occ",
+    "pob": 420,
+    "clima": "templado",
+    "riqueza": 0.95,
+    "x": 23.5,
+    "y": 6
+   },
+   {
+    "id": "europa_este",
+    "pob": 290,
+    "clima": "frio",
+    "riqueza": 0.5,
+    "x": 28,
+    "y": 4.5
+   },
+   {
+    "id": "norte_africa",
+    "pob": 250,
+    "clima": "calido",
+    "riqueza": 0.3,
+    "x": 24,
+    "y": 10
+   },
+   {
+    "id": "africa_sub",
+    "pob": 1100,
+    "clima": "humedo",
+    "riqueza": 0.15,
+    "x": 26,
+    "y": 14
+   },
+   {
+    "id": "oriente_medio",
+    "pob": 300,
+    "clima": "calido",
+    "riqueza": 0.6,
+    "x": 30,
+    "y": 9
+   },
+   {
+    "id": "india",
+    "pob": 1450,
+    "clima": "humedo",
+    "riqueza": 0.3,
+    "x": 35,
+    "y": 11
+   },
+   {
+    "id": "china",
+    "pob": 1420,
+    "clima": "templado",
+    "riqueza": 0.7,
+    "x": 38,
+    "y": 7
+   },
+   {
+    "id": "sudeste_asiatico",
+    "pob": 690,
+    "clima": "humedo",
+    "riqueza": 0.35,
+    "x": 40,
+    "y": 12
+   },
+   {
+    "id": "japon_corea",
+    "pob": 175,
+    "clima": "templado",
+    "riqueza": 0.95,
+    "x": 43,
+    "y": 6.5
+   },
+   {
+    "id": "oceania",
+    "pob": 45,
+    "clima": "calido",
+    "riqueza": 0.85,
+    "x": 44,
+    "y": 17
+   }
+  ],
+  "por_caja": 0.02,
+  "victoria": 0.9
+ }
 }

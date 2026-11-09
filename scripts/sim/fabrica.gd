@@ -27,6 +27,59 @@ var vendido := {}
 var ingresos := 0.0              # lo cobrado por ventas
 var vendidas_con := {}           # mutación → cajas de vacunas vendidas con ella
 var desechados := 0              # viales con una mutación repetida (se tiran)
+var vacunas_vendidas := 0
+var vendidas_destino := {}       # región → cajas vendidas allí
+# --- sala de cepas (V1.14): árbol de mejoras tipo Plague Inc
+var cepa_hechas: Array = []      # ids de mejoras completadas, en orden
+var cepa_actual := ""            # mejora elegida que se está alimentando
+var cepa_entregado := {}         # objeto → unidades entregadas para la actual
+
+static func mejora(id: String) -> Dictionary:
+	for m in datos.cepa.mejoras:
+		if m.id == id:
+			return m
+	return {}
+
+func mejora_disponible(id: String) -> bool:
+	var m := mejora(id)
+	if m.is_empty() or id in cepa_hechas:
+		return false
+	for r in m.requiere:
+		if not r in cepa_hechas:
+			return false
+	return true
+
+## Elegir otra mejora conserva lo entregado que también sirva para la nueva.
+func elegir_mejora(id: String) -> void:
+	if not mejora_disponible(id):
+		return
+	var nueva := mejora(id)
+	var guardado := {}
+	for o in cepa_entregado:
+		if nueva.pide.has(o):
+			guardado[o] = mini(int(cepa_entregado[o]), int(nueva.pide[o]))
+	cepa_actual = id
+	cepa_entregado = guardado
+
+func cepa_falta(o: String) -> int:
+	if cepa_actual == "":
+		return 0
+	var m := mejora(cepa_actual)
+	return int(m.pide.get(Fabrica.base(o), 0)) - int(cepa_entregado.get(Fabrica.base(o), 0))
+
+## Entrega a la sala de cepas; si con esto se completa, la mejora queda hecha.
+func entregar_cepa(o: String) -> bool:
+	if cepa_falta(o) <= 0:
+		return false
+	cepa_entregado[Fabrica.base(o)] = int(cepa_entregado.get(Fabrica.base(o), 0)) + 1
+	var m := mejora(cepa_actual)
+	for k in m.pide:
+		if int(cepa_entregado.get(k, 0)) < int(m.pide[k]):
+			return true
+	cepa_hechas.append(cepa_actual)
+	cepa_actual = ""
+	cepa_entregado = {}
+	return true
 # --- pacientes (V1.8): llegan por la puerta a la sala de espera; las camillas los llaman
 const LLEGADA_BASE := 7.0        # s entre pacientes sin campañas
 var espera_pacientes := 1        # sentados esperando (el primero ya está)
@@ -138,9 +191,6 @@ func poner_estacion(tipo: String, c: Vector2i, giro: int) -> Estacion:
 func poner_muelle_envio(c: Vector2i) -> MuelleEnvio:
 	return _alta(MuelleEnvio.new(c)) as MuelleEnvio
 
-func poner_ascensor(c: Vector2i) -> Ascensor:
-	return _alta(Ascensor.new(c)) as Ascensor
-
 func poner_tuberia(c: Vector2i, giro: int) -> Tuberia:
 	return _alta(Tuberia.new(c, giro)) as Tuberia
 
@@ -158,6 +208,9 @@ func poner_capsula(tipo: String, c: Vector2i, giro: int) -> Capsula:
 
 func poner_deposito(c: Vector2i, giro: int) -> Deposito:
 	return _alta(Deposito.new(c, giro)) as Deposito
+
+func poner_sala_cepas(c: Vector2i) -> SalaCepas:
+	return _alta(SalaCepas.new(c)) as SalaCepas
 
 func poner_sala_espera(c: Vector2i, giro: int) -> SalaEspera:
 	return _alta(SalaEspera.new(c, giro)) as SalaEspera
@@ -349,10 +402,19 @@ class MaquinaSim extends Entidad:
 	var bocas: Array = []                # [casilla, filtro] por donde entra cada ingrediente
 	## Boca por la que entraría o (desde fuera, en dirección d, a la casilla c). null si ninguna.
 	func boca(o: String, d: int, c: Vector2i):
-		for b in bocas:
-			if b[0] == c and d == giro and (b[1] == "" or b[1] == Fabrica.base(o)):
+		for i in bocas.size():
+			var b: Array = bocas[i]
+			var fl := filtro_boca(i)
+			if b[0] == c and d == giro and (fl == "" or fl == Fabrica.base(o)):
 				return b
 		return null
+	## Ingrediente que entra por la boca i con la receta actual (las recetas de dos ingredientes
+	## los reparten por filas: «bocas»: [fila 0, fila 1, …]); "" = cualquiera de la receta.
+	func filtro_boca(i: int) -> String:
+		if _r.has("bocas"):
+			var bs: Array = _r.bocas
+			return str(bs[i]) if i < bs.size() else ""
+		return str(bocas[i][1]) if i < bocas.size() else ""
 	func _cabe(o: String) -> bool:
 		var n: int = _r.entradas.get(Fabrica.base(o), 0)
 		return n > 0 and entrada.get(Fabrica.base(o), 0) < maxi(4 * n, 4)   # tolva: hasta 4 recetas
@@ -478,6 +540,7 @@ class Divisor extends Entidad:
 
 ## Almacén: acepta de cualquier lado; si tiene giro, saca por ese lado.
 class Almacen extends Entidad:
+	var carga := false           # el muelle de carga de los pedidos (fijo)
 	var contenido: Array = []
 	var capacidad := 50
 	var t := 0.0
@@ -554,6 +617,7 @@ class Extractor extends Entidad:
 
 ## Muelle de envío: vende lo que le llega (cajas de vacunas) y suma el dinero.
 class MuelleEnvio extends Entidad:
+	var destino := "europa_occ"    # región a la que van las vacunas (la elige el jugador)
 	var carga := 0                 # cajas cargadas en la furgoneta (sale con 8)
 	var viajes := 0
 	func _init(c: Vector2i) -> void:
@@ -568,9 +632,9 @@ class MuelleEnvio extends Entidad:
 		if carga >= 8:
 			carga = 0
 			viajes += 1
-		var et := Fabrica.etiqueta(o)
-		if et != "":
-			f.vendidas_con[et] = f.vendidas_con.get(et, 0) + 1   # vender vacunas = propagar esa mutación
+		if Fabrica.base(o) == "caja_vacunas":
+			f.vacunas_vendidas += 1              # vender vacunas = propagar la cepa (V1.14)
+			f.vendidas_destino[destino] = f.vendidas_destino.get(destino, 0) + 1
 		f.vendido[Fabrica.base(o)] = f.vendido.get(Fabrica.base(o), 0) + 1
 		return true
 
@@ -653,44 +717,6 @@ class Estacion extends Entidad:
 		if tipo == "incubadora" and crecimiento < _crece():
 			return crecimiento / _crece()
 		return progreso / duracion()
-
-## Ascensor de pedidos (como el ascensor espacial de Satisfactory): 2×2, acepta por cualquier lado
-## lo que pida la fase actual; al completarla sube la cápsula y se desbloquean máquinas.
-class Ascensor extends Entidad:
-	var fase := 0
-	var entregado := {}
-	var completadas := 0
-	var subiendo := 0.0            # >0 mientras sube la cápsula (s)
-	func _init(c: Vector2i) -> void:
-		casillas = [c, c + Vector2i(1, 0), c + Vector2i(0, 1), c + Vector2i(1, 1)]
-	func pide() -> Dictionary:
-		var fs: Array = Fabrica.datos.fases
-		return fs[fase].pide if fase < fs.size() else {}
-	func falta(o: String) -> int:
-		return int(pide().get(Fabrica.base(o), 0)) - int(entregado.get(Fabrica.base(o), 0))
-	func aceptar(_f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
-		if subiendo > 0.0 or falta(o) <= 0:
-			return false
-		entregado[Fabrica.base(o)] = entregado.get(Fabrica.base(o), 0) + 1
-		return true
-	func completa() -> bool:
-		var p := pide()
-		if p.is_empty():
-			return false
-		for o in p:
-			if int(entregado.get(o, 0)) < int(p[o]):
-				return false
-		return true
-	func paso(_f: Fabrica, dt: float) -> void:
-		if subiendo > 0.0:
-			subiendo -= dt
-			if subiendo <= 0.0:
-				subiendo = 0.0
-		elif completa():
-			completadas += 1
-			fase += 1
-			entregado.clear()
-			subiendo = 6.0
 
 ## Sala de espera (V1.8): 2×1, cuatro asientos más para los pacientes que llegan por la puerta.
 class SalaEspera extends Entidad:
@@ -810,3 +836,13 @@ class Deposito extends Entidad:
 			litros -= 1
 		if litros == 0:
 			_t = 0.0
+
+## Sala de cepas (V1.14): 4×3, la mesa de ingeniería genética y la cámara con la cepa viva (3×3).
+## Acepta por cualquier lado lo que pida la mejora elegida.
+class SalaCepas extends Entidad:
+	func _init(c: Vector2i) -> void:
+		for i in 4:
+			for j in 3:
+				casillas.append(c + Vector2i(i, j))
+	func aceptar(f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
+		return f.entregar_cepa(o)

@@ -110,69 +110,61 @@ func _guion() -> void:
 	await _clic(Vector2i(0, 1))
 	ok = await _hasta(func(): return juego.cuenta_mochila("tubo_sangre") == 0, 10.0)
 	comprobar(ok, "clic en la centrífuga con la sangre en la mano: la mete")
-	await _hasta(func(): return juego.tutorial.leyendo, 8.0)
-	comprobar(juego.tutorial.leyendo, "con el primer plasma llega el correo del biorreactor")
+	await _hasta(func(): return juego.tutorial.leyendo, 12.0)
+	comprobar(juego.tutorial.leyendo, "con el primer plasma llega el correo de la sala de cepas")
 	await _correo()
-	await _clic(Vector2i(-2, 1))
-	await _hasta(func(): return juego.cuenta_mochila("tubo_sangre") >= 1, 25.0)
-	await _clic(Vector2i(0, 1))
-	await _hasta(func(): return juego.cuenta_mochila("tubo_sangre") == 0, 10.0)
-	ok = await _hasta(func(): return f.producido.get("tubo_plasma", 0) >= 2, 25.0)
-	comprobar(ok, "la centrífuga trabaja sola y hace 2 plasmas")
-	await _construir("HUD_CAT_PRODUCTO", KEY_1, Vector2i(2, 0))
-	var bio: Fabrica.MaquinaSim = f.celdas.get(Vector2i(3, 1))
-	comprobar(bio != null, "biorreactor construido")
-	juego.mano_i = -1
-	await _clic(Vector2i(0, 1))
-	ok = await _hasta(func(): return juego.cuenta_mochila("tubo_plasma") >= 2, 10.0)
-	comprobar(ok and juego.mano_obj == "tubo_plasma", "clic en la centrífuga con la mano vacía: recoge los plasmas a la mano")
-	await _clic(Vector2i(2, 0))
-	ok = await _hasta(func(): return f.producido.get("vial_mutacion", 0) >= 1, 25.0)
-	comprobar(ok, "clic en el biorreactor: mete los plasmas y hace el vial")
-	await _clic(Vector2i(2, 0))
-	await _hasta(func(): return juego.mano_obj.begins_with("vial"), 10.0)
-	await _clic(Vector2i(4, -5))
-	ok = await _hasta(func(): return f.mutaciones >= 1, 20.0)
-	comprobar(ok and juego.liberado, "vial a la cámara de cepa: primera mutación y virus liberado")
-	if OS.get_cmdline_user_args().has("--hasta_cepa"):
-		get_tree().quit()
-		return
-	comprobar(juego.hitos_pagados[1], "se paga el hito de la primera mutación")
-	await _correo()
-	# repetir la tos: el biorreactor no la fabrica y lo dice (B9)
-	await _clic(Vector2i(-2, 1))
-	await _hasta(func(): return juego.cuenta_mochila("tubo_sangre") >= 1, 25.0)
-	await _clic(Vector2i(0, 1))
-	await _esperar(5.0)
-	await _clic(Vector2i(-2, 1))
-	await _hasta(func(): return juego.cuenta_mochila("tubo_sangre") >= 1, 25.0)
-	await _clic(Vector2i(0, 1))
-	await _esperar(5.0)
-	juego.mano_i = -1
-	await _clic(Vector2i(0, 1))
-	await _hasta(func(): return juego.cuenta_mochila("tubo_plasma") >= 2, 10.0)
-	await _clic(Vector2i(2, 0))
-	await _esperar(1.0)
-	comprobar(bio.estado == Fabrica.MaquinaSim.Estado.REPETIDA, "con la tos ya registrada, el biorreactor se para y avisa")
-	var antes: Dictionary = bio.entrada.duplicate()
-	juego.seleccion = bio
-	juego.elegir_receta("estornudos")
-	comprobar(bio.entrada == antes, "cambiar a estornudos no pierde el plasma cargado (B7)")
-	ok = await _hasta(func(): return f.producido.get("vial_mutacion", 0) >= 2, 25.0)
-	comprobar(ok, "hace el vial de estornudos")
-	# vender en el muelle
-	await _clic(Vector2i(-2, 1))
-	await _hasta(func(): return juego.cuenta_mochila("tubo_sangre") >= 1, 25.0)
-	await _clic(Vector2i(0, 1))
-	await _esperar(5.0)
-	juego.mano_i = -1
-	await _clic(Vector2i(0, 1))
-	await _hasta(func(): return juego.mano_obj == "tubo_plasma", 10.0)
+	# sala de cepas: clic derecho abre su panel; el árbol se abre y se elige la tos
+	await _clic(Vector2i(5, -6), MOUSE_BUTTON_RIGHT)
+	await _esperar(0.5)
+	comprobar(juego.seleccion is Fabrica.SalaCepas, "clic derecho en la sala de cepas: abre su panel")
+	hud.abrir_cepas()
+	await _esperar(0.5)
+	comprobar(hud._cepas_modal != null and hud._cepas_modal.is_inside_tree(), "se abre el árbol de la cepa a pantalla completa")
+	if _captura != "":
+		hud._cepas_sel = "tos"
+		hud.abrir_cepas()
+		await _esperar(0.6)
+		get_viewport().get_texture().get_image().save_png(_captura.get_basename() + "_cepas.png")
+	juego.elegir_mejora("tos")
+	hud.cerrar_cepas()
+	comprobar(f.cepa_actual == "tos", "mejora «Tos» elegida")
+	# 10 plasmas a la sala con un clic (Mayús+clic: todo lo que pida)
+	juego.mochila[1] = {"o": "tubo_plasma", "n": 10}
+	juego.mano_i = 1
+	var d_antes := f.dinero
+	await _clic(Vector2i(4, -6))
+	var ok_t := await _hasta(func(): return "tos" in f.cepa_hechas, 20.0)
+	comprobar(ok_t, "clic en la sala con 10 plasmas: se entregan y la tos queda aplicada")
+	comprobar(juego.desbloqueadas.has("secuenciador") and f.dinero >= d_antes + 400.0, "la tos desbloquea máquinas y LISA paga 400 €")
+	await _esperar(0.5)
+	while juego.tutorial.leyendo:
+		await _correo()
+	# recetas elegibles: la centrífuga cambia a hematíes sin perder lo cargado (B7)
+	cf.entrada["tubo_sangre"] = 2
+	cf.salida.clear()                 # lo hecho antes se queda en la salida si nadie lo recoge
+	cf.progreso = -1.0
+	var antes: Dictionary = cf.entrada.duplicate()
+	juego.seleccion = cf
+	juego.elegir_receta("hematies")
+	comprobar(cf.receta == "hematies" and cf.entrada == antes, "la centrífuga cambia a hematíes sin perder la sangre cargada")
+	ok = await _hasta(func(): return f.producido.get("hematies", 0) >= 1, 20.0)
+	comprobar(ok, "y fabrica hematíes")
+	juego.elegir_receta("plasma")
+	# vender en el muelle: plasma y la primera caja de vacunas (libera el virus)
+	juego.mochila[2] = {"o": "tubo_plasma", "n": 1}
+	juego.mano_i = 2
 	var ing := f.ingresos
 	await _clic(Vector2i(5, 5))
 	ok = await _hasta(func(): return f.ingresos > ing, 15.0)
 	comprobar(ok, "clic en el muelle con plasma en la mano: lo vende")
-	await _correo()
+	juego.mochila[2] = {"o": "caja_vacunas", "n": 4}
+	juego.mano_i = 2
+	await _clic(Vector2i(5, 5))
+	ok = await _hasta(func(): return f.vacunas_vendidas >= 4, 15.0)
+	await _esperar(0.5)
+	comprobar(ok and juego.liberado and juego.mundo.total("i") > 0.0, "vender vacunas infecta en la región de destino")
+	while juego.tutorial.leyendo:
+		await _correo()
 	# mejora de la camilla, cinta hasta la centrífuga y zombi
 	juego.seleccion = cam
 	juego.mejorar(cam)
@@ -183,12 +175,13 @@ func _guion() -> void:
 	await get_tree().process_frame
 	_raton(Vector2i(-1, 1), MOUSE_BUTTON_LEFT, false)
 	await get_tree().process_frame
-	await _clic(Vector2i(0, 0), MOUSE_BUTTON_RIGHT)
+	juego.cancelar()
 	comprobar(f.celdas.get(Vector2i(-1, 1)) is Fabrica.Cinta, "cinta de la camilla a la centrífuga")
 	juego.velocidad = 3.0
 	ok = await _hasta(func(): return juego.zombis_libres > 0, 30.0)
 	comprobar(ok, "llega un zombi trabajador tras liberar el virus")
 	juego.asignar_zombi(cam)
+	cf.salida.clear()
 	var p0: int = f.producido.get("tubo_plasma", 0)
 	ok = await _hasta(func(): return f.producido.get("tubo_plasma", 0) >= p0 + 2, 30.0)
 	comprobar(cam.modo == "zombi" and ok, "con el zombi la camilla trabaja sola y la sangre llega por cinta")
@@ -244,7 +237,7 @@ func _guion() -> void:
 	# ficha al pasar el puntero
 	juego.seleccion = null
 	var mm := InputEventMouseMotion.new()
-	mm.position = _pantalla(Vector2i(3, 1))
+	mm.position = _pantalla(Vector2i(0, 1))
 	Input.parse_input_event(mm)
 	await _esperar(0.4)
 	comprobar(hud._ficha_flotante != null and hud._ficha_flotante.visible and hud._ff_titulo.text != "", "al pasar el puntero sale qué es y qué hace (%s)" % (hud._ff_titulo.text if hud._ff_titulo else ""))
@@ -252,7 +245,7 @@ func _guion() -> void:
 		get_viewport().get_texture().get_image().save_png(_captura.get_basename() + "_ficha.png")
 		juego.camara.distancia = 34.0
 		juego.camara._dist_obj = 34.0
-		juego.seleccion = juego.ascensor
+		juego.seleccion = f.celdas.get(Vector2i(5, -6))
 		await _esperar(1.5)
 		get_viewport().get_texture().get_image().save_png(_captura.get_basename() + "_general.png")
 	# comprar una parcela: clic en el terreno oscuro y comprar desde su panel
@@ -263,6 +256,16 @@ func _guion() -> void:
 	var precio := juego.precio_parcela(juego.parcela_sel)
 	juego.comprar_parcela(juego.parcela_sel)
 	comprobar(juego.comprada(Vector2i(9, 2)) and is_equal_approx(f.dinero, d0 - precio), "parcela comprada por %d €" % precio)
+	# guardar y cargar: la fábrica vuelve igual
+	var n_ent := f.entidades.size()
+	var din := f.dinero
+	var hechas: Array = f.cepa_hechas.duplicate()
+	Guardado.guardar(juego)
+	f.dinero = 0.0
+	Guardado.cargar(juego)
+	comprobar(f.entidades.size() == n_ent and is_equal_approx(f.dinero, din) and f.cepa_hechas == hechas,
+		"guardar y cargar deja la fábrica igual (%d piezas, %d €)" % [f.entidades.size(), int(f.dinero)])
+	Guardado.borrar()
 	print("PRUEBA RATON: %s" % ("OK" if fallos == 0 else "%d FALLOS" % fallos))
 	if _captura != "":
 		juego.seleccion = cam

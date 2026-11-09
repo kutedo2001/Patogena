@@ -40,10 +40,14 @@ const CATALOGO := {
 		["secuenciador", "secuenciador", "MAQ_SECUENCIADOR", 500, 6.0, "maquina", "secuenciador"],
 		["mezcladora", "mezcladora", "MAQ_MEZCLADORA", 400, 3.0, "maquina", "mezcladora"],
 		["centrifuga_ind", "centrifuga_ind", "MAQ_CENTRIFUGA_IND", 1800, 12.0, "maquina", "centrifuga_ind"],
+		["sintetizador", "sintetizador", "MAQ_SINTETIZADOR", 900, 7.0, "maquina", "sintetizador"],
+		["destilador", "destilador", "MAQ_DESTILADOR", 1100, 6.0, "maquina", "destilador"],
 	],
 	"HUD_CAT_PRODUCTO": [
 		["biorreactor", "biorreactor", "MAQ_BIORREACTOR", 600, 9.0, "maquina", "biorreactor"],
 		["envasadora", "envasadora", "MAQ_ENVASADORA", 600, 5.0, "maquina", "envasadora"],
+		["impresora", "impresora", "MAQ_IMPRESORA", 2500, 10.0, "maquina", "impresora"],
+		["fusionador", "fusionador", "MAQ_FUSIONADOR", 6000, 20.0, "maquina", "fusionador"],
 	],
 	"HUD_CAT_LOGISTICA": [
 		["cinta", "cinta_recta_mk1", "MAQ_CINTA_MK1", 5, 0.1, "cinta", ""],
@@ -62,7 +66,8 @@ const CATALOGO := {
 const CAMPANAS := [["CAMP_BOCADILLO", 60, 2.0, 60.0], ["CAMP_ANALISIS", 250, 3.0, 120.0], ["CAMP_HOSPITAL", 1500, 1.5, 0.0]]
 const MEJORA := {"camilla": ["MEJ_EXTRACTOR", 250], "incubadora": ["MEJ_RECOLECTOR", 250], "toma_agua": ["MEJ_BOMBA", 150]}
 ## [objeto contado, cantidad, clave, premio de Dirección]
-const HITOS := [["tubo_plasma", 10, "HUD_OBJ_PLASMA", 500], ["mutacion", 1, "HUD_OBJ_MUTACION", 1000], ["fase_ascensor", 1, "HUD_OBJ_ASCENSOR", 800]]
+## Premio de LISA (inversores) al completar cada mejora de la cepa, según su nivel.
+const PREMIO_MEJORA := [0, 400, 1200, 3000, 8000]
 
 var fab: Fabrica
 var vista: VistaFabrica
@@ -113,12 +118,12 @@ var _pedidos: Array = []
 var _muelle_carga: Fabrica.Almacen
 var _terminal := Vector2i(-6, 7)
 var compradas := {}                  # parcela → true
-var ascensor: Fabrica.Ascensor
+var mundo := Mundo.new()
 var muelle: Fabrica.MuelleEnvio
 var desbloqueadas := {}              # id del catálogo → true
 var _vendidas_previas := 0
 var _parcelas_vis := {}              # parcela → nodo con la marca de «se vende»
-var _cepa: Fabrica.MaquinaSim
+var _cepa: Fabrica.SalaCepas
 var _ventas_hist: Array = []
 var _ultimo_ingreso := 0.0
 var _desechados := 0
@@ -162,6 +167,8 @@ func _ready() -> void:
 	cientifico.animacion = "idle"
 	add_child(cientifico)
 	cientifico.position = Vector3(pos.x, 0, pos.y)
+	var args := OS.get_cmdline_user_args()
+	inicio_pendiente = Guardado.hay_partida() and not ("--sin_tutorial" in args or "--prueba_raton" in args or "--nueva" in args)
 	tutorial = Tutorial.new()
 	tutorial.juego = self
 	add_child(tutorial)
@@ -190,24 +197,19 @@ func _montar_nivel_1() -> void:
 		compradas[p] = true
 	for id in Fabrica.datos.inicio_desbloqueado:
 		desbloqueadas[id] = true
-	_cepa = fab.poner_maquina("camara_cepa", Vector2i(4, -7))
+	_cepa = fab.poner_sala_cepas(Vector2i(4, -7))
 	muelle = fab.poner_muelle_envio(Vector2i(5, 5))
-	ascensor = fab.poner_ascensor(Vector2i(-7, -7))
 	_muelle_carga = fab.poner_almacen(Vector2i(-7, 7), 0)
-	# terminal de pedidos
+	_muelle_carga.carga = true
+	# terminal de pedidos, puerta de pacientes y muelle de carga (modelos detallados, V1.11)
 	var t := Provisional.new()
 	t.position = Vector3(_terminal.x + 0.5, 0, _terminal.y + 0.5)
 	add_child(t)
-	t.caja(Vector3(0.5, 1.0, 0.4), Vector3(0, 0.5, 0), Provisional.C_CHASIS)
-	t.caja(Vector3(0.4, 0.3, 0.02), Vector3(0, 0.8, -0.21), Color(0.1, 0.3, 0.3))
-	t.caja(Vector3(0.52, 0.06, 0.42), Vector3(0, 1.0, 0), Provisional.C_ACENTO)
-	# puerta de pacientes en la pared oeste
+	t.modelo("terminal")
 	var pu := Provisional.new()
-	pu.position = Vector3(SALA.position.x - 0.05, 0, 0.5)
+	pu.position = Vector3(SALA.position.x - 0.02, 0, 0.5)
 	add_child(pu)
-	pu.caja(Vector3(0.12, 2.2, 1.3), Vector3(0, 1.1, 0), Provisional.C_GRAFITO)
-	pu.caja(Vector3(0.14, 2.0, 1.1), Vector3(0.02, 1.0, 0), Color(0.55, 0.75, 0.8))
-	pu.caja(Vector3(0.16, 0.18, 1.1), Vector3(0.02, 2.0, 0), Color(0.3, 1.0, 0.45))
+	pu.modelo("puerta")
 	_marcar_parcelas()
 
 # ------------------------------------------------------------------ parcelas
@@ -220,12 +222,12 @@ func comprada(c: Vector2i) -> bool:
 func rect_parcela(p: Vector2i) -> Rect2i:
 	return Rect2i(SALA.position + p * PARCELA, Vector2i(PARCELA, PARCELA))
 
-## Precio: 600 € la primera, ×1,6 cada una; las de los extremos piden la fase 2 del ascensor.
+## Precio: 600 € la primera, ×1,6 cada una; las de los extremos piden 4 mejoras de la cepa.
 func precio_parcela(p: Vector2i) -> int:
 	return int(600.0 * pow(1.6, compradas.size() - INICIALES.size()))
 
 func fase_parcela(p: Vector2i) -> int:
-	return 2 if p.x == 0 or p.x == PARCELAS.x - 1 else 0
+	return 4 if p.x == 0 or p.x == PARCELAS.x - 1 else 0
 
 func comprable(p: Vector2i) -> bool:
 	if compradas.has(p) or p.x < 0 or p.y < 0 or p.x >= PARCELAS.x or p.y >= PARCELAS.y:
@@ -238,7 +240,7 @@ func comprable(p: Vector2i) -> bool:
 func comprar_parcela(p: Vector2i) -> void:
 	if not comprable(p):
 		return
-	if ascensor.completadas < fase_parcela(p):
+	if fab.cepa_hechas.size() < fase_parcela(p):
 		aviso.emit("AVISO_PARCELA_FASE")
 		return
 	var precio := precio_parcela(p)
@@ -288,23 +290,37 @@ func _marcar_parcelas() -> void:
 func desbloqueada(entrada: Array) -> bool:
 	return desbloqueadas.has(entrada[0])
 
-func _revisar_fases() -> void:
-	while _fases_vistas < ascensor.completadas:
-		var fs: Array = Fabrica.datos.fases
-		var nuevas: Array = fs[_fases_vistas].desbloquea
+## Al completar una mejora de la cepa: se desbloquean sus máquinas, LISA paga y se anuncia.
+func _revisar_cepa() -> void:
+	while _fases_vistas < fab.cepa_hechas.size():
+		var m := Fabrica.mejora(fab.cepa_hechas[_fases_vistas])
 		var nombres: Array = []
-		for id in nuevas:
+		for id in m.desbloquea:
 			desbloqueadas[id] = true
 			for cat in CATALOGO:
 				for en in CATALOGO[cat]:
 					if en[0] == id:
 						nombres.append(tr(en[2]))
+		Sonido.tocar("mejora")
+		var premio: int = PREMIO_MEJORA[int(m.nivel)]
+		fab.dinero += premio
 		_fases_vistas += 1
-		anuncio.emit(tr("ANUNCIO_FASE_T") % _fases_vistas, tr("ANUNCIO_FASE") % ", ".join(nombres) if not nombres.is_empty() else tr("ANUNCIO_FASE_PRONTO"))
+		var txt := tr("DESC_MEJ_" + str(m.id).to_upper())
+		if not nombres.is_empty():
+			txt += "\n" + tr("ANUNCIO_DESBLOQUEA") % ", ".join(nombres)
+		anuncio.emit(tr("ANUNCIO_MEJORA_T") % tr("MEJ_" + str(m.id).to_upper()), txt + "  ·  +%d €" % premio)
 		_marcar_parcelas()
+		if not liberado and fab.vacunas_vendidas > 0:
+			liberado = true
 
 var _fases_vistas := 0
+var _vendidas_dest := {}
+var _final_visto := false
+signal final(ganado: bool)
 var _demo: Fabrica.Estacion
+## Hay partida guardada y el HUD pregunta si continuar (el tutorial espera).
+var inicio_pendiente := false
+var _t_guardar := 0.0
 var _apagon := false
 var _demo_k := -1.0
 
@@ -315,6 +331,10 @@ func _process(dt: float) -> void:
 		velocidad = 0.0
 		_trabajando = _demo
 	var dtj := dt * velocidad
+	_t_guardar += dt
+	if _t_guardar > 60.0 and not inicio_pendiente and puede_guardar():
+		_t_guardar = 0.0
+		Guardado.guardar(self)
 	var kw := 0.0
 	for e in fab.entidades:
 		kw += kw_de(e)
@@ -349,40 +369,37 @@ func _process(dt: float) -> void:
 	if fab.desechados > _desechados:
 		_desechados = fab.desechados
 		anuncio.emit(tr("ANUNCIO_REPETIDA_T"), tr("ANUNCIO_REPETIDA"))
-	if fab.mutaciones_hechas.size() > _n_mut:
-		_n_mut = fab.mutaciones_hechas.size()
-		var m: String = fab.mutaciones_hechas[_n_mut - 1]
-		anuncio.emit(tr("ANUNCIO_MUTACION_T"), tr("ANUNCIO_MUTACION") % [tr("MUT_" + m.to_upper()), _n_mut])
-	if not liberado and fab.mutaciones > 0:
-		liberado = true                   # hay producto: llegan zombis (pacientes de prueba que vuelven)
-		aviso.emit("AVISO_LIBERADO")
-	if liberado:
-		propagacion = minf(1.0, propagacion + propagacion * 0.0006 * (1.0 + fab.mutaciones * 0.3) * dtj)
-		if propagacion > 0.0:
-			cura = minf(1.0, cura + 0.0002 * dtj * (1.0 + propagacion * 4.0))
-		_t_zombi += dtj
-		if _t_zombi >= 40.0 and zombis_libres < 6:
-			_t_zombi = 0.0
-			_llega_zombi()
-	# hitos con premio de Dirección
-	for i in HITOS.size():
-		if not hitos_pagados[i] and hito(i).x >= hito(i).y:
-			hitos_pagados[i] = true
-			fab.dinero += HITOS[i][3]
-			anuncio.emit(tr("ANUNCIO_HITO_T"), tr(HITOS[i][2]) + "  ·  +%d €" % HITOS[i][3])
-	_revisar_fases()
-	# vender vacunas con la mutación dentro propaga el virus
-	var vendidas := 0
-	for m in fab.vendidas_con:
-		vendidas += int(fab.vendidas_con[m])
-	if vendidas > _vendidas_previas:
-		var nuevas := vendidas - _vendidas_previas
-		_vendidas_previas = vendidas
+	# mundo: las vacunas vendidas infectan en su destino; la cepa decide el resto
+	if fab.vacunas_vendidas > _vendidas_previas:
+		for reg in fab.vendidas_destino:
+			var antes: int = _vendidas_dest.get(reg, 0)
+			var ahora: int = fab.vendidas_destino[reg]
+			if ahora > antes:
+				mundo.sembrar(reg, (ahora - antes) * float(Fabrica.datos.mundo.por_caja))
+				_vendidas_dest[reg] = ahora
+		_vendidas_previas = fab.vacunas_vendidas
 		if not liberado:
 			liberado = true
 			aviso.emit("AVISO_LIBERADO")
-		propagacion = minf(1.0, propagacion + nuevas * 0.0008 * (1.0 + fab.mutaciones * 0.4))
+	mundo.efectos = Mundo.efectos_de(fab.cepa_hechas)
+	mundo.paso(dtj)
+	propagacion = mundo.fraccion_infectada()
+	cura = mundo.cura
+	if liberado:
+		_t_zombi += dtj
+		var tope := 6 + int(mundo.fraccion_zombi() * 60.0)
+		if _t_zombi >= 40.0 and zombis_libres < tope:
+			_t_zombi = 0.0
+			_llega_zombi()
+	_revisar_cepa()
+	if mundo.victoria and not _final_visto:
+		_final_visto = true
+		final.emit(true)
+	elif mundo.derrota and not _final_visto:
+		_final_visto = true
+		final.emit(false)
 	if fab.ingresos > _ultimo_ingreso:
+		Sonido.tocar("vender", 0.6)
 		_ventas_hist.append([fab.tiempo, fab.ingresos - _ultimo_ingreso])
 	_ultimo_ingreso = fab.ingresos
 	while not _ventas_hist.is_empty() and fab.tiempo - _ventas_hist[0][0] > 60.0:
@@ -417,10 +434,20 @@ func dia() -> int:
 func hora() -> int:
 	return int(fmod(fab.tiempo, SEG_POR_DIA) / SEG_POR_DIA * 24.0 * 60.0 + 8 * 60) % 1440
 
-func hito(i: int) -> Vector2i:
-	var h: Array = HITOS[i]
-	var v: int = ascensor.completadas if h[0] == "fase_ascensor" else int(fab.producido.get(h[0], 0))
-	return Vector2i(mini(v, h[1]), h[1])
+## Progreso de la mejora elegida: [entregado, pedido] en total de unidades.
+func progreso_cepa() -> Vector2i:
+	if fab.cepa_actual == "":
+		return Vector2i.ZERO
+	var m := Fabrica.mejora(fab.cepa_actual)
+	var hecho := 0
+	var total := 0
+	for o in m.pide:
+		total += int(m.pide[o])
+		hecho += mini(int(fab.cepa_entregado.get(o, 0)), int(m.pide[o]))
+	return Vector2i(hecho, total)
+
+func elegir_mejora(id: String) -> void:
+	fab.elegir_mejora(id)
 
 func hay(t: String) -> bool:
 	for e in fab.entidades:
@@ -431,6 +458,7 @@ func hay(t: String) -> bool:
 # ------------------------------------------------------------------ zombis trabajadores
 func _llega_zombi() -> void:
 	zombis_libres += 1
+	Sonido.tocar("zombi", 0.6)
 	var z := Personaje.new()
 	z.variante = ["zombi", "paciente_infectado", "investigador_infectado"][randi() % 3]
 	z.animacion = "idle"
@@ -544,7 +572,7 @@ func _mover_cientifico(dt: float) -> void:
 ## Camino por casillas (BFS) hasta la casilla destino o hasta una vecina de la entidad.
 ## Muestra de las piezas de la etapa 1–3 para láminas y capturas.
 func _demo_piezas() -> void:
-	for p in [Vector2i(1, 1), Vector2i(4, 1), Vector2i(1, 2), Vector2i(4, 2), Vector2i(2, 3), Vector2i(3, 3)]:
+	for p in [Vector2i(1, 1), Vector2i(4, 1), Vector2i(1, 2), Vector2i(4, 2), Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3), Vector2i(4, 0), Vector2i(3, 0), Vector2i(5, 1), Vector2i(5, 2)]:
 		compradas[p] = true
 	fab.espera_pacientes = 6
 	fab.poner_sala_espera(Vector2i(-6, -3), 0)
@@ -564,6 +592,33 @@ func _demo_piezas() -> void:
 	fab.poner_linea_tuberia([Vector2i(-2, 1), Vector2i(-1, 1), Vector2i(0, 1), Vector2i(0, 2), Vector2i(1, 2)])
 	var dep := fab.poner_deposito(Vector2i(2, 2), 0)
 	fab.poner_estacion("camilla", Vector2i(3, -3), 0)
+	fab.poner_estacion("incubadora", Vector2i(5, -3), 0)
+	fab.poner_estacion("toma_agua", Vector2i(7, -3), 0)
+	fab.poner_brazo(Vector2i(5, -1), 0)
+	fab.poner_divisor(Vector2i(7, -1), 0)
+	var al := fab.poner_almacen(Vector2i(9, -1), 0)
+	for i in 30:
+		al.contenido.append("tubo_plasma")
+	fab.poner_maquina("sintetizador", Vector2i(4, 1), 0)
+	fab.poner_maquina("destilador", Vector2i(7, 1), 0)
+	fab.poner_maquina("impresora", Vector2i(4, 4), 0)
+	fab.poner_maquina("fusionador", Vector2i(7, 4), 0)
+
+func puede_guardar() -> bool:
+	var args := OS.get_cmdline_user_args()
+	return _demo == null and not ("--prueba_raton" in args or "--demo_piezas" in args or "--escaparate" in args)
+
+## Decisión del jugador al arrancar con partida guardada.
+func empezar(continuar: bool) -> void:
+	inicio_pendiente = false
+	if continuar and Guardado.cargar(self):
+		return
+	Guardado.borrar()
+	tutorial.siguiente()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and not inicio_pendiente and puede_guardar():
+		Guardado.guardar(self)
 
 ## Por dónde entran y salen los pacientes (en la demo de la camilla, cerca para el GIF).
 func puerta_pacientes() -> Vector3:
@@ -1041,6 +1096,7 @@ func _construir(c: Vector2i) -> void:
 		"generador": e = fab.poner_generador(herramienta[6], c, giro)
 	if e:
 		fab.dinero -= float(herramienta[3])
+		Sonido.tocar("construir")
 
 func coste_de(e: Fabrica.Entidad) -> float:
 	var extra := 0.0
@@ -1092,9 +1148,10 @@ static func kw_de(e) -> float:
 ## Quitar devuelve el 100 % (lo pidió Edu); lo que llevaba dentro se pierde salvo en cintas.
 func _quitar(c: Vector2i) -> void:
 	var e: Fabrica.Entidad = fab.celdas.get(c)
-	if e == null or e == _cepa or e == _muelle_carga or e is Fabrica.MuelleEnvio or e is Fabrica.Ascensor:
+	if e == null or e == _cepa or e == _muelle_carga or e is Fabrica.MuelleEnvio:
 		return
 	fab.dinero += coste_de(e)
+	Sonido.tocar("quitar")
 	# lo que tenía dentro vuelve a la mochila (B10)
 	var dentro: Array = []
 	if e is Fabrica.Cinta:
@@ -1222,8 +1279,8 @@ func bocas(entrada_o_entidad, origen := Vector2i.ZERO, g := 0) -> Array:
 		return r
 	var e: Fabrica.Entidad = entrada_o_entidad
 	if e is Fabrica.MaquinaSim:
-		for b in e.bocas:
-			r.append([b[0] - Fabrica.DIRS[e.giro], e.giro, false, b[1]])
+		for i in e.bocas.size():
+			r.append([e.bocas[i][0] - Fabrica.DIRS[e.giro], e.giro, false, e.filtro_boca(i)])
 		if not Fabrica.datos.recetas[e.receta].salidas.is_empty():
 			r.append([e.casilla_salida, e.giro, true])
 	elif e is Fabrica.Estacion or (e is Fabrica.Almacen and e.giro >= 0):

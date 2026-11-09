@@ -302,6 +302,7 @@ func _ready() -> void:
 		add_child(n)
 
 func _partida() -> void:
+	add_child(Sonido.new())
 	var juego := Juego.new()
 	juego.camara = camara
 	add_child(juego)

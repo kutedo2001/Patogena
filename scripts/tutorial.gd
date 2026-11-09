@@ -1,6 +1,6 @@
 class_name Tutorial
 extends Node3D
-## Tutorial con historia (P4.12): correos de Dirección que presentan el Proyecto Reinicio y
+## Tutorial con historia (P4.12, rehecho en V1.14): correos de LISA que presentan el plan y
 ## dan cada paso, una marca que flota sobre el objetivo en el mundo y una condición para pasar.
 ## El HUD muestra el correo y el paso actual; el juego se pausa mientras se lee un correo.
 
@@ -22,14 +22,16 @@ func _ready() -> void:
 		["CORREO_PACIENTE", "PASO_SANGRE", func(): return juego.fab.producido.get("tubo_sangre", 0) >= 1, func(): return _donde("camilla")],
 		["", "PASO_CENTRIFUGA", func(): return juego.hay("centrifuga"), func(): return Vector3(-2.5, 0, -2.5)],
 		["", "PASO_PLASMA", func(): return juego.fab.producido.get("tubo_plasma", 0) >= 1, func(): return _donde("centrifuga")],
-		["CORREO_BIORREACTOR", "PASO_BIORREACTOR", func(): return juego.hay("biorreactor"), func(): return Vector3(1.0, 0, -4.0)],
-		["", "PASO_VIAL", func(): return juego.fab.producido.get("vial_mutacion", 0) >= 1, func(): return _donde("biorreactor")],
-		["", "PASO_CEPA", func(): return juego.fab.mutaciones >= 1, func(): return Vector3(5.5, 0, -3.5)],
-		["CORREO_LIBERADO", "PASO_VENDER", func(): return juego.fab.ingresos > 0.0, func(): return Vector3(6.5, 0, 4.5)],
+		["CORREO_CEPAS", "PASO_ELEGIR_MEJORA", func(): return juego.fab.cepa_actual != "" or not juego.fab.cepa_hechas.is_empty(), func(): return _sala()],
+		["", "PASO_ENTREGAR", func(): return not juego.fab.cepa_hechas.is_empty(), func(): return _sala()],
 		["CORREO_AUTOMATIZAR", "PASO_MEJORA", func(): return _modo("maquina") or _modo("zombi"), func(): return _donde("camilla")],
 		["", "PASO_CINTA", func(): return _cintas() >= 3, func(): return null],
-		["", "PASO_ZOMBI", func(): return _modo("zombi"), func(): return Vector3(juego.ESPERA_ZOMBIS.x, 0, juego.ESPERA_ZOMBIS.y) if juego.zombis_libres > 0 else null],
-		["CORREO_ASCENSOR", "PASO_ASCENSOR", func(): return juego.ascensor.completadas >= 1, func(): return juego.vista.centro(juego.ascensor)],
+		["CORREO_ADN", "PASO_ADN", func(): return juego.fab.producido.get("tubo_adn", 0) >= 1, func(): return null],
+		["", "PASO_FIEBRE", func(): return "fiebre" in juego.fab.cepa_hechas, func(): return _sala()],
+		["CORREO_VIRIONES", "PASO_VIRIONES", func(): return juego.fab.producido.get("viriones", 0) >= 1, func(): return _donde("biorreactor")],
+		["", "PASO_FRIO", func(): return "frio" in juego.fab.cepa_hechas, func(): return _sala()],
+		["CORREO_VACUNAS", "PASO_VENDER", func(): return juego.fab.vacunas_vendidas >= 1, func(): return Vector3(6.0, 0, 6.0)],
+		["CORREO_LIBERADO", "PASO_ZOMBI", func(): return _modo("zombi"), func(): return Vector3(juego.ESPERA_ZOMBIS.x, 0, juego.ESPERA_ZOMBIS.y) if juego.zombis_libres > 0 else null],
 		["CORREO_FIN", "PASO_LIBRE", func(): return false, func(): return null],
 	]
 	_marca = Node3D.new()
@@ -46,7 +48,19 @@ func _ready() -> void:
 	if "--sin_tutorial" in OS.get_cmdline_user_args():
 		i = pasos.size() - 1
 		return
-	siguiente.call_deferred()
+	if not juego.inicio_pendiente:
+		siguiente.call_deferred()
+
+## Al cargar una partida: sigue en el paso guardado sin volver a enseñar el correo.
+func saltar_a(n: int) -> void:
+	i = clampi(n, 0, pasos.size() - 1)
+	leyendo = false
+
+func _sala():
+	for e in juego.fab.entidades:
+		if e is Fabrica.SalaCepas:
+			return juego.vista.centro(e)
+	return null
 
 func _donde(t: String):
 	for e in juego.fab.entidades:
@@ -81,7 +95,7 @@ func siguiente() -> void:
 		leyendo = true
 		juego.velocidad = 0.0
 		juego.cancelar()
-		if pasos[i][0] == "CORREO_BIORREACTOR":
+		if pasos[i][0] == "CORREO_ADN":
 			juego.fab.dinero += 300.0      # «Hemos ingresado fondos para la primera adquisición»
 		correo.emit(tr(pasos[i][0] + "_T"), tr(pasos[i][0]))
 

@@ -61,6 +61,27 @@ func luz(pos: Vector3) -> void:
 	mi.position = pos
 	add_child(mi)
 
+var _giratorio: Node3D
+var _barra_n: Node3D
+var _van: Node3D
+var _torre_p := {}
+
+## Modelo detallado de estaciones/ (V1.11): sustituye a las formas grises.
+func modelo(nombre: String) -> Node3D:
+	var m: Node3D = load("res://assets/modelos/estaciones/%s.glb" % nombre).instantiate()
+	Materiales.ajustar(m)
+	add_child(m)
+	return m
+
+func _luz_torre(m: Node3D) -> void:
+	for n in ["baliza_v", "baliza_a", "baliza_r"]:
+		var mi := m.find_child(n, true, false) as MeshInstance3D
+		if mi:
+			var mt := mat(Color(0.1, 0.1, 0.1), 0.3, 0.0)
+			mt.emission_enabled = true
+			mi.material_override = mt
+			_torre_p[n] = mt
+
 static func crear(e: Fabrica.Entidad, pos: Vector3) -> Node3D:
 	if e is Fabrica.Estacion:
 		return EstacionVista.crear_estacion(e, pos, null)
@@ -69,39 +90,18 @@ static func crear(e: Fabrica.Entidad, pos: Vector3) -> Node3D:
 	p.rotation.y = VistaFabrica.giro_y(maxi(e.giro, 0))
 	if e is Fabrica.Brazo:
 		p.tipo = "brazo"
-		p.cilindro(0.18, 0.08, Vector3(0, 0.04, 0), C_GRAFITO)
-		p.cilindro(0.12, 0.25, Vector3(0, 0.2, 0), C_CHASIS)
-		var h := Node3D.new()
-		h.name = "hombro"
-		h.position = Vector3(0, 0.34, 0)
-		p.add_child(h)
-		var b := Node3D.new()
-		b.name = "brazo"
-		h.add_child(b)
-		p.caja(Vector3(0.5, 0.07, 0.08), Vector3(0.22, 0.05, 0), C_AMARILLO, b)
-		var pinza := Node3D.new()
-		pinza.name = "pinza"
-		pinza.position = Vector3(0.45, 0, 0)
-		b.add_child(pinza)
-		p.caja(Vector3(0.08, 0.16, 0.12), Vector3(0, -0.02, 0), C_GRAFITO, pinza)
-		p._brazo = h
-		p.luz(Vector3(0.1, 0.18, 0.1))
+		var m := p.modelo("brazo")
+		p._brazo = m.find_child("hombro", true, false)
+		p._luz_torre(m)
 	elif e is Fabrica.Divisor:
 		p.tipo = "divisor"
-		p.caja(Vector3(0.96, 0.26, 0.96), Vector3(0, 0.13, 0), C_GRAFITO)
-		p.caja(Vector3(0.9, 0.04, 0.9), Vector3(0, 0.28, 0), Color(0.2, 0.22, 0.24))
-		for g in [0, 1, 3]:
-			var a := Node3D.new()
-			a.rotation.y = -g * PI * 0.5
-			p.add_child(a)
-			p.caja(Vector3(0.18, 0.02, 0.06), Vector3(0.3, 0.31, 0), C_AMARILLO, a)
-		p.luz(Vector3(-0.4, 0.32, 0.4))
+		var m := p.modelo("divisor")
+		p._giratorio = m.find_child("gira_paleta", true, false)
+		p._luz_torre(m)
 	elif e is Fabrica.Almacen:
 		p.tipo = "almacen"
-		p.caja(Vector3(0.9, 0.1, 0.9), Vector3(0, 0.05, 0), C_MADERA)
-		p.caja(Vector3(0.84, 0.6, 0.84), Vector3(0, 0.4, 0), C_CHASIS)
-		p.caja(Vector3(0.86, 0.06, 0.86), Vector3(0, 0.72, 0), C_ACENTO)
-		p._barra = p.caja(Vector3(0.05, 0.5, 0.02), Vector3(0.43, 0.4, 0), Color(0.3, 1.0, 0.45))
+		var m := p.modelo("muelle_carga" if e.carga else "almacen")
+		p._barra_n = m.find_child("barra", true, false)
 	elif e is Fabrica.Extractor:
 		p.tipo = "extractor"
 		p.caja(Vector3(0.7, 0.5, 0.5), Vector3(0, 0.25, 0.0), C_CHASIS)
@@ -110,40 +110,13 @@ static func crear(e: Fabrica.Entidad, pos: Vector3) -> Node3D:
 		p.caja(Vector3(0.24, 0.12, 0.3), Vector3(0.42, 0.3, 0), C_GRAFITO)
 		p.luz(Vector3(0.25, 0.56, 0.18))
 	elif e is Fabrica.MuelleEnvio:
-		# hub de envío 2×2: andén con franjas, rampa y furgoneta que sale cargada
 		p.tipo = "muelle"
-		p.caja(Vector3(1.96, 0.25, 1.96), Vector3(0, 0.125, 0), C_GRAFITO)
-		for k in 7:
-			p.caja(Vector3(1.96, 0.005, 0.12), Vector3(0, 0.255, -0.84 + k * 0.28), C_AMARILLO)
-		p.caja(Vector3(0.5, 0.5, 0.5), Vector3(-0.6, 0.5, -0.6), C_CHASIS)        # caseta
-		p.caja(Vector3(0.52, 0.06, 0.52), Vector3(-0.6, 0.78, -0.6), C_ACENTO)
-		var van := Node3D.new()
-		van.name = "van"
-		p.add_child(van)
-		p.caja(Vector3(1.2, 0.55, 0.6), Vector3(0.2, 0.55, 0.45), Color(0.93, 0.94, 0.93), van)
-		p.caja(Vector3(0.35, 0.42, 0.58), Vector3(0.95, 0.48, 0.45), Color(0.93, 0.94, 0.93), van)
-		p.caja(Vector3(0.05, 0.22, 0.5), Vector3(1.13, 0.58, 0.45), Color(0.2, 0.3, 0.35), van)
-		p.caja(Vector3(1.22, 0.1, 0.62), Vector3(0.2, 0.62, 0.45), C_MARCA_P, van)
-		for x in [-0.25, 0.85]:
-			for z in [0.15, 0.75]:
-				p.cilindro(0.11, 0.08, Vector3(x, 0.36, z), Color(0.08, 0.08, 0.09), van).rotation.x = PI * 0.5
-		p.luz(Vector3(-0.85, 0.85, -0.85))
-	elif e is Fabrica.Ascensor:
-		# ascensor de pedidos 2×2: base con tolva, torre de guías y cápsula que sube al completar
-		p.tipo = "ascensor"
-		p.caja(Vector3(1.96, 0.3, 1.96), Vector3(0, 0.15, 0), C_GRAFITO)
-		p.caja(Vector3(1.6, 0.06, 1.6), Vector3(0, 0.33, 0), C_AMARILLO)
-		for x in [-0.8, 0.8]:
-			for z in [-0.8, 0.8]:
-				p.caja(Vector3(0.12, 4.0, 0.12), Vector3(x, 2.3, z), C_CHASIS)
-		p.caja(Vector3(1.8, 0.1, 1.8), Vector3(0, 4.3, 0), C_ACENTO)
-		var cap := Node3D.new()
-		cap.name = "capsula"
-		p.add_child(cap)
-		p.cilindro(0.55, 0.9, Vector3(0, 0.85, 0), Color(0.93, 0.94, 0.93), cap)
-		p.cilindro(0.57, 0.12, Vector3(0, 1.1, 0), C_MARCA_P, cap)
-		p.cilindro(0.3, 0.3, Vector3(0, 1.45, 0), C_GRAFITO, cap)
-		p.luz(Vector3(0.9, 0.4, 0.9))
+		var m := p.modelo("hub")
+		var van := m.find_child("van", true, false)
+		if van:
+			van.name = "van"
+			p._van = van
+		p._luz_torre(m)
 	elif e is Fabrica.Fuente:
 		p.tipo = "fuente"
 		p.caja(Vector3(0.8, 0.8, 0.8), Vector3(0, 0.4, 0), C_GRAFITO)
@@ -153,6 +126,18 @@ func actualizar(e: Fabrica.Entidad, t: float) -> void:
 	if e is Fabrica.Brazo and _brazo:
 		_brazo.rotation.y = PI * (1.0 - e.fase())
 		_brazo.rotation.y = lerpf(PI, 0.0, e.fase())
+	if not _torre_p.is_empty():
+		var activo2 := true
+		for n in _torre_p:
+			var on: bool = (n == "baliza_v") == activo2
+			var c: Color = {"baliza_v": Color(0.2, 0.9, 0.35), "baliza_a": Color(1.0, 0.65, 0.08), "baliza_r": Color(0.95, 0.12, 0.1)}[n]
+			_torre_p[n].albedo_color = c * (1.0 if on else 0.25)
+			_torre_p[n].emission = c
+			_torre_p[n].emission_energy_multiplier = 3.0 if on else 0.0
+	if _giratorio and e is Fabrica.Divisor:
+		_giratorio.rotation.y = -float(e.turno) * TAU / 3.0
+	if _barra_n and e is Fabrica.Almacen:
+		_barra_n.scale = Vector3(1, clampf(float(e.contenido.size()) / float(e.capacidad), 0.02, 1.0), 1)
 	if _luz:
 		var activo := true
 		if e is Fabrica.Extractor:
@@ -164,19 +149,17 @@ func actualizar(e: Fabrica.Entidad, t: float) -> void:
 		_barra.scale.y = maxf(f, 0.02)
 		_barra.position.y = 0.15 + 0.25 * _barra.scale.y
 	if tipo == "muelle":
-		var van: Node3D = get_node_or_null("van")
+		var van: Node3D = _van if _van else get_node_or_null("van")
 		if van:
 			# sale al completar un viaje: avanza y vuelve (se mide con el número de viajes)
 			if e.viajes != _viajes_vistos:
 				_viajes_vistos = e.viajes
+				Sonido.tocar("furgoneta", 0.7)
 				_t_viaje = 0.0
 			_t_viaje += get_process_delta_time()
 			var k := clampf(_t_viaje / 3.0, 0.0, 1.0)
 			var fuera := sin(k * PI)
-			van.position.x = fuera * 6.0
+			if not van.has_meta("x0"):
+				van.set_meta("x0", van.position.x)
+			van.position.x = float(van.get_meta("x0")) + fuera * 6.0
 			van.visible = fuera < 0.95
-	if tipo == "ascensor":
-		var cap: Node3D = get_node_or_null("capsula")
-		if cap:
-			var sube: float = e.subiendo
-			cap.position.y = sin((1.0 - sube / 6.0) * PI) * 8.0 if sube > 0.0 else 0.0

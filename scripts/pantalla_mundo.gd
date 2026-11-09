@@ -22,11 +22,43 @@ const REGIONES := [0.62, 0.41, 0.18, 0.09, 0.05, 0.03, 0.02, 0.01, 0.0, 0.0, 0.0
 
 var propagacion := 0.032
 var real := false          # con partida: los focos y las regiones salen de la propagación
+var mundo: Mundo           # con partida (V1.10): regiones reales
+var _hist_inf: Array[float] = []
+var _hist_cura: Array[float] = []
+var _t_hist := 0.0
+
+## Focos y barras: de las regiones del mundo si hay partida; si no, los de muestra.
+func _focos() -> Array:
+	if mundo == null:
+		return FOCOS
+	var r: Array = []
+	for g in mundo.regiones:
+		var k := (float(g.i) + float(g.z)) / float(g.pob)
+		if k > 0.00001:
+			r.append([float(g.x), float(g.y), clampf(0.15 + sqrt(k) * 1.2, 0.0, 1.0)])
+	return r
+
+func _barras() -> Array:
+	if mundo == null:
+		return REGIONES
+	var r: Array = []
+	for g in mundo.regiones:
+		r.append((float(g.i) + float(g.z)) / float(g.pob))
+	return r
 var cura := 0.12
 var _t := 0.0
 
 func _process(dt: float) -> void:
 	_t += dt
+	if mundo != null:
+		_t_hist += dt
+		if _t_hist > 2.0 or _hist_inf.is_empty():
+			_t_hist = 0.0
+			_hist_inf.append(mundo.fraccion_infectada())
+			_hist_cura.append(mundo.cura)
+			if _hist_inf.size() > 120:
+				_hist_inf.pop_front()
+				_hist_cura.pop_front()
 	queue_redraw()
 
 func _draw() -> void:
@@ -74,8 +106,9 @@ func _draw() -> void:
 	# barras por región
 	var yr := yc + 34 * u
 	var alto_b := 9.0 * u
-	for i in REGIONES.size():
-		var v: float = REGIONES[i] * (clampf(propagacion * 8.0, 0.0, 1.0) if real else 1.0)
+	var barras := _barras()
+	for i in barras.size():
+		var v: float = barras[i] if mundo != null else barras[i] * (clampf(propagacion * 8.0, 0.0, 1.0) if real else 1.0)
 		var yy := yr + i * (alto_b + 5 * u)
 		draw_circle(Vector2(cx + 6 * u, yy + alto_b / 2), 3 * u, ZOMBI if v > 0.0 else SANO)
 		var rr := Rect2(cx + 16 * u, yy, cw - 66 * u, alto_b)
@@ -88,10 +121,17 @@ func _draw() -> void:
 	draw_rect(gr, Color(REJILLA, 0.6), false, 1.0)
 	var pts := PackedVector2Array()
 	var pts_c := PackedVector2Array()
-	for k in 48:
-		var tt := k / 47.0
-		pts.append(gr.position + Vector2(gr.size.x * tt, gr.size.y * (1.0 - pow(tt, 3.2) * 0.85 - 0.05)))
-		pts_c.append(gr.position + Vector2(gr.size.x * tt, gr.size.y * (1.0 - tt * 0.3 - 0.05)))
+	if mundo != null and _hist_inf.size() >= 2:
+		var n := _hist_inf.size()
+		for k in n:
+			var tt := k / float(n - 1)
+			pts.append(gr.position + Vector2(gr.size.x * tt, gr.size.y * (1.0 - _hist_inf[k] * 0.9 - 0.05)))
+			pts_c.append(gr.position + Vector2(gr.size.x * tt, gr.size.y * (1.0 - _hist_cura[k] * 0.9 - 0.05)))
+	else:
+		for k in 48:
+			var tt := k / 47.0
+			pts.append(gr.position + Vector2(gr.size.x * tt, gr.size.y * (1.0 - pow(tt, 3.2) * 0.85 - 0.05)))
+			pts_c.append(gr.position + Vector2(gr.size.x * tt, gr.size.y * (1.0 - tt * 0.3 - 0.05)))
 	draw_polyline(pts_c, CURA, 2.0 * u, true)
 	draw_polyline(pts, ZOMBI, 2.5 * u, true)
 	draw_circle(pts[pts.size() - 1], 4 * u * (0.8 + 0.4 * parp), ZOMBI)
@@ -103,13 +143,16 @@ func _mapa(area: Rect2, u: float) -> void:
 	var o := area.position + (area.size - Vector2(cols, filas) * paso) * 0.5 + Vector2(paso, paso) * 0.5
 	var crece := 1.0 + 0.06 * sin(_t * 0.7)
 	var k_real := clampf(propagacion * 25.0, 0.0, 1.0) if real else 1.0
+	if mundo != null:
+		k_real = 1.0
+	var focos := _focos()
 	for yy in filas:
 		var fila: String = MapaHUD.MAPA[yy]
 		for xx in cols:
 			if fila[xx] != "X":
 				continue
 			var c := SANO
-			for f in FOCOS:
+			for f in focos:
 				var d := Vector2(xx, yy * 1.15).distance_to(Vector2(f[0], f[1] * 1.15))
 				var radio: float = (0.8 + f[2] * 5.0) * crece * k_real
 				if radio <= 0.05:
@@ -118,19 +161,23 @@ func _mapa(area: Rect2, u: float) -> void:
 					c = c.lerp(ZOMBI, clampf((radio - d) / 1.6, 0.0, 1.0))
 			draw_circle(o + Vector2(xx, yy) * paso, paso * 0.36, c)
 	# pulsos en los focos
-	for i in FOCOS.size():
-		var f: Array = FOCOS[i]
-		if k_real <= 0.0 or (real and i > 0 and k_real < 0.5):
+	for i in focos.size():
+		var f: Array = focos[i]
+		if k_real <= 0.0 or (mundo == null and real and i > 0 and k_real < 0.5):
 			continue
 		var pc := o + Vector2(f[0], f[1]) * paso
 		var k := fmod(_t * 0.6 + i * 0.27, 1.0)
 		draw_arc(pc, paso * (1.0 + k * (3.0 + f[2] * 5.0)), 0, TAU, 32, Color(ZOMBI, 0.8 * (1.0 - k)), 1.5 * u, true)
 	# rutas aéreas: arco discontinuo y un avión (punto) recorriéndolo
-	if k_real < 0.3:
+	if k_real < 0.3 or focos.size() < 2:
 		return
-	for i in RUTAS.size():
-		var a: Array = FOCOS[RUTAS[i][0]]
-		var b: Array = FOCOS[RUTAS[i][1]]
+	var rutas: Array = RUTAS if mundo == null else []
+	if mundo != null:
+		for i in range(1, mini(focos.size(), 5)):
+			rutas.append([0, i])
+	for i in rutas.size():
+		var a: Array = focos[rutas[i][0]]
+		var b: Array = focos[rutas[i][1]]
 		var pa := o + Vector2(a[0], a[1]) * paso
 		var pb := o + Vector2(b[0], b[1]) * paso
 		var medio := (pa + pb) * 0.5 + Vector2(0, -pa.distance_to(pb) * 0.3)

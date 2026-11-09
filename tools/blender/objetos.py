@@ -88,7 +88,7 @@ def eppendorf(raiz_nombre="tubo_adn", padre=None, pos=(0, 0, 0), color=None, abi
     torneado("cuerpo", [(0, t + 0.0005), (0.0018, 0.0015), (R * 0.62 - t, H * 0.38), (R - t, H * 0.48), (R - t, H),
                         (R + 0.0012, H), (R + 0.0012, H - 0.003), (R, H - 0.003)] + list(reversed(perfil_ext)),
              pp, lados=36, padre=r)
-    m = mat("liq_adn", color=(0.05, 0.75, 0.12), rug=0.1, emision=(0.1, 1.0, 0.2), fuerza=2.5)
+    m = mat("liq_" + raiz_nombre, color=tuple(c * 0.75 for c in color), rug=0.1, emision=color, fuerza=2.5)
     hf = H * 0.62
     torneado("liquido_adn", [(0, t + 0.0007), (0.0016, 0.0017), (R * 0.62 - t - 0.0003, H * 0.38),
                               (R - t - 0.0003, H * 0.48), (R - t - 0.0003, hf + 0.002), (0, hf)], m, lados=28, padre=r)
@@ -117,7 +117,7 @@ def vial(raiz_nombre="vial_mutacion", padre=None, pos=(0, 0, 0), color=None):
            (rc + 0.0015, H + 0.008 + hc), (rc + 0.0015, H + 0.0105 + hc)]
     inn = [(rc - t, H + 0.0105 + hc), (rc - t, H + 0.007), (R - t, H - 0.0005), (R - t, t + 0.002), (R * 0.9 - t, t), (0, t)]
     torneado("vidrio", [(0, 0)] + ext + inn, vidrio(), lados=48, padre=r)
-    m = mat("liq_mutacion", color=color, rug=0.1, emision=color, fuerza=0.9)
+    m = mat("liq_" + raiz_nombre, color=color, rug=0.1, emision=color, fuerza=0.9)
     hf = H * 0.78
     torneado("liquido", [(0, t + 0.0003), (R * 0.9 - t - 0.0003, t + 0.0003), (R - t - 0.0003, t + 0.0023),
                          (R - t - 0.0003, hf + 0.0025), (R * 0.7, hf + 0.0005), (0, hf)], m, lados=40, padre=r)
@@ -230,7 +230,7 @@ def frasco_reactivo(raiz_nombre="frasco_reactivo", padre=None, pos=(0, 0, 0), co
     ext = [(R * 0.9, 0), (R, 0.004), (R, H), (R * 0.92, H + 0.008), (rc + 0.002, H + 0.018), (rc, H + 0.026)]
     inn = [(rc - t, H + 0.026), (rc - t + 0.002, H + 0.018), (R * 0.92 - t, H + 0.007), (R - t, H - 0.001), (R - t, t + 0.004), (R * 0.9 - t, t), (0, t)]
     torneado("vidrio", [(0, 0)] + ext + inn, vidrio(), lados=48, padre=r)
-    m = mat("liq_reactivo", color=color, rug=0.15, emision=color, fuerza=0.25)
+    m = mat("liq_" + raiz_nombre, color=color, rug=0.15, emision=color, fuerza=0.25)
     hf = H * lleno
     torneado("liquido", [(0, t + 0.0003), (R * 0.9 - t - 0.0003, t + 0.0003), (R - t - 0.0003, t + 0.0043),
                          (R - t - 0.0003, hf + 0.0025), (R * 0.7, hf + 0.0006), (0, hf)], m, lados=40, padre=r)
@@ -250,7 +250,8 @@ def frasco_reactivo(raiz_nombre="frasco_reactivo", padre=None, pos=(0, 0, 0), co
 
 
 # ---------------------------------------------------------------- bolsa de suero
-def bolsa_suero(raiz_nombre="bolsa_suero", padre=None, pos=(0, 0, 0), lleno=1.0):
+def bolsa_suero(raiz_nombre="bolsa_suero", padre=None, pos=(0, 0, 0), lleno=1.0, color=(0.95, 0.85, 0.5), alfa=0.75,
+                nombre_liq="liq_suero"):
     """Bolsa de suero de 500 ml: plástico flexible con soldadura perimetral, ojal para colgar, graduación,
     líquido ámbar claro y dos puertos abajo con tapón. El nodo «llenado» (líquido) escala en Z al llenarse."""
     r = vacio(raiz_nombre, pos, padre)
@@ -259,7 +260,7 @@ def bolsa_suero(raiz_nombre="bolsa_suero", padre=None, pos=(0, 0, 0), lleno=1.0)
     Z0 = 0.03                     # la bolsa empieza encima de los puertos
     caja("soldadura", (W + 0.006, 0.0016, H + 0.01), (0, 0, Z0 + H / 2), pl, bisel=0.002, padre=r)
     caja("cuerpo", (W, D, H), (0, 0, Z0 + H / 2), pl, bisel=0.0075, segmentos=5, padre=r)
-    suero = mat("liq_suero", color=(0.95, 0.85, 0.5), rug=0.15, alfa=0.75)
+    suero = mat(nombre_liq, color=color, rug=0.15, alfa=alfa)
     liq = caja("llenado", (W - 0.006, D - 0.004, H - 0.01), (0, 0, (H - 0.01) / 2), suero, bisel=0.006, segmentos=4, padre=r)
     # origen del líquido en el fondo de la bolsa para que crezca hacia arriba
     liq.location = (0, 0, Z0 + 0.004)
@@ -439,7 +440,13 @@ def main():
                        ("vector", lambda: vector("vector")),
                        ("neurotoxina", lambda: ampolla("neurotoxina")),
                        ("capside", lambda: capside("capside")),
-                       ("nucleo_zombi", lambda: nucleo("nucleo_zombi"))):
+                       ("nucleo_zombi", lambda: nucleo("nucleo_zombi")),
+                       # V1.13: productos intermedios
+                       ("hematies", lambda: bolsa_suero("hematies", color=(0.28, 0.0, 0.02), alfa=0.95, nombre_liq="liq_hematies")),
+                       ("plaquetas", lambda: bolsa_suero("plaquetas", color=(0.98, 0.78, 0.3), alfa=0.85, nombre_liq="liq_plaquetas")),
+                       ("arn", lambda: eppendorf("arn", color=(0.2, 0.45, 1.0))),
+                       ("medio_cultivo", lambda: frasco_reactivo("medio_cultivo", color=(0.95, 0.35, 0.45), lleno=0.75)),
+                       ("viriones", lambda: vial("viriones", color=(0.35, 0.95, 0.15)))):
         limpiar(); comun._mats.clear()
         fn()
         exportar(os.path.join(salida, nombre + ".glb"))

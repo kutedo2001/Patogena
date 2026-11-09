@@ -16,6 +16,8 @@ var _producto_nombre := ""
 var _placa: MeshInstance3D
 var _agua: MeshInstance3D
 var _modo := ""
+var _placa_n: Node3D
+var _agua_n: Node3D
 
 static func crear_estacion(e: Fabrica.Estacion, pos: Vector3, j: Juego) -> EstacionVista:
 	var v := EstacionVista.new()
@@ -31,18 +33,17 @@ func _montar() -> void:
 		"camilla":
 			_montar_camilla()
 			return
-		"incubadora":
-			caja(Vector3(0.8, 0.9, 0.7), Vector3(0, 0.45, 0), C_CHASIS)
-			caja(Vector3(0.6, 0.5, 0.02), Vector3(0, 0.5, -0.36), Color(0.2, 0.3, 0.32))
-			caja(Vector3(0.82, 0.06, 0.72), Vector3(0, 0.92, 0), C_ACENTO)
-			_placa = cilindro(0.16, 0.03, Vector3(0, 0.45, -0.2), Color(0.55, 0.85, 0.35))
-		"toma_agua":
-			cilindro(0.05, 1.2, Vector3(-0.3, 0.6, 0), Color(0.55, 0.6, 0.62))
-			caja(Vector3(0.4, 0.05, 0.08), Vector3(-0.12, 1.15, 0), Color(0.55, 0.6, 0.62))
-			cilindro(0.03, 0.12, Vector3(0.05, 1.08, 0), C_GRAFITO)
-			caja(Vector3(0.5, 0.06, 0.5), Vector3(0.05, 0.03, 0), C_GRAFITO)
-			cilindro(0.13, 0.3, Vector3(0.05, 0.21, 0), Color(0.85, 0.92, 0.95, 1.0))
-			_agua = cilindro(0.12, 0.28, Vector3(0.05, 0.21, 0), Color(0.45, 0.7, 1.0))
+		"incubadora", "toma_agua":
+			_modelo = load("res://assets/modelos/estaciones/%s.glb" % tipo).instantiate()
+			Materiales.ajustar(_modelo)
+			add_child(_modelo)
+			_luz = mat(Color(0.3, 1.0, 0.45), 0.3, 2.0)
+			var bz := _modelo.find_child("baliza", true, false) as MeshInstance3D
+			if bz:
+				bz.material_override = _luz
+			_placa_n = _modelo.find_child("placa", true, false)
+			_agua_n = _modelo.find_child("agua", true, false)
+			return
 	luz(Vector3(0.38, 0.62 if tipo != "toma_agua" else 0.25, 0.3))
 
 func _maquina_visual() -> void:
@@ -52,11 +53,14 @@ func _maquina_visual() -> void:
 		"camilla":
 			_montar_extractor()
 		"incubadora":
-			caja(Vector3(0.5, 0.25, 0.4), Vector3(0, 1.08, 0), C_GRAFITO, _maquina)
-			caja(Vector3(0.06, 0.4, 0.06), Vector3(0.2, 1.3, 0), C_AMARILLO, _maquina)
+			_maquina.add_child(_cargar("recolector"))
 		"toma_agua":
-			caja(Vector3(0.3, 0.35, 0.3), Vector3(-0.3, 0.18, 0.3), C_ACENTO, _maquina)
-			cilindro(0.08, 0.06, Vector3(-0.3, 0.38, 0.3), C_GRAFITO, _maquina)
+			_maquina.add_child(_cargar("bomba"))
+
+func _cargar(n: String) -> Node3D:
+	var m: Node3D = load("res://assets/modelos/estaciones/%s.glb" % n).instantiate()
+	Materiales.ajustar(m)
+	return m
 
 func actualizar(e: Fabrica.Entidad, t: float) -> void:
 	if not is_inside_tree():
@@ -78,6 +82,12 @@ func actualizar(e: Fabrica.Entidad, t: float) -> void:
 			else (Color(1.0, 0.7, 0.1) if est.listo != "" or not est.lista_para_trabajar() else Color(0.35, 0.6, 1.0))
 		_luz.emission = c
 		_luz.albedo_color = c
+	if _placa_n:
+		var k := clampf(est.crecimiento / maxf(est._crece(), 0.01), 0.05, 1.0)
+		_placa_n.scale = Vector3(k, 1, k)
+	if _agua_n:
+		var k3 := est.progreso / est.duracion() if est.listo == "" else 1.0
+		_agua_n.scale = Vector3(1, maxf(k3, 0.02), 1)
 	if _placa:
 		var k := clampf(est.crecimiento / maxf(est._crece(), 0.01), 0.05, 1.0)
 		_placa.scale = Vector3(k, 1, k)
@@ -102,7 +112,7 @@ func _producto_encima(o: String) -> void:
 		_producto = load("res://assets/modelos/objetos/%s.glb" % b).instantiate()
 		Materiales.ajustar(_producto)
 		_producto.scale = Vector3.ONE * (1.0 if tipo == "camilla" else 2.0)
-		_producto.position = Vector3(0.18, 0.3, 0.2) if tipo == "camilla" else Vector3(0.38, 0.97, 0.15)
+		_producto.position = Vector3(0.18, 0.3, 0.2) if tipo == "camilla" else Vector3(0.38, 0.12, 0.0)
 		add_child(_producto)
 
 ## Pacientes: entran andando por la puerta en los últimos segundos de la espera y se tumban; con la
@@ -113,6 +123,7 @@ func _pacientes(est: Fabrica.Estacion, _t: float) -> void:
 	var dt := get_process_delta_time() * juego.velocidad
 	if est.atendidos > _atendidos:
 		_atendidos = est.atendidos
+		Sonido.tocar("tubo_lleno", 0.7)
 		if _paciente:
 			_incorporado = _paciente
 			_incorporado.estilo = "incorporado"
@@ -215,6 +226,9 @@ func _montar_camilla() -> void:
 	_algodon = kit.find_child("algodon", true, false)
 	_tirita = kit.find_child("tirita", true, false)
 	for n in [_kit, _kit_tapa, _torniquete, _algodon, _tirita]:
+		n.owner = null
+		for h in n.find_children("*", "", true, false):
+			h.owner = null
 		n.reparent(self)
 	kit.queue_free()
 	_gota = _particulas_gota()
@@ -330,6 +344,7 @@ func _extraccion(est: Fabrica.Estacion) -> void:
 			_gota.position = pinchazo
 			_gota.restart()
 			_gota.emitting = true
+			Sonido.tocar("pinchazo", 0.8)
 	else:
 		_pinchado = false
 	if est.listo != "" or (k == 0.0 and _producto_nombre != ""):

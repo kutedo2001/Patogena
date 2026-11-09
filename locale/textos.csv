@@ -32,9 +32,9 @@ MAQ_MEZCLADORA,Mezcladora MX-3,Mixer MX-3
 MAQ_ENVASADORA,Envasadora EV-12,Filler EV-12
 MAQ_CINTA_MK1,Cinta transportadora Mk1,Conveyor belt Mk1
 MAQ_CINTA_MK2,Cinta transportadora Mk2,Conveyor belt Mk2
-MAQ_SINTETIZADOR,Sintetizador de proteínas,Protein synthesizer
+MAQ_SINTETIZADOR,Sintetizador de péptidos,Peptide synthesizer
 MAQ_DESTILADOR,Destilador,Distiller
-DESC_CENTRIFUGA,Separa el plasma de la sangre donada. Las muestras se tratan con el máximo respeto.,Separates plasma from donated blood. Samples are treated with the utmost respect.
+DESC_CENTRIFUGA,"Separa la sangre: plasma, hematíes o plaquetas según la receta.","Separates blood: plasma, red cells or platelets depending on the recipe."
 HUD_TRABAJANDO,TRABAJANDO,RUNNING
 HUD_RECETA,Receta,Recipe
 HUD_RITMO,Ritmo,Rate
@@ -61,10 +61,10 @@ MAQ_CAMARA_CEPA,Cámara de cepa,Strain chamber
 DESC_EXTRACTOR_SANGRE,Se coloca sobre un donante. Extrae una muestra cada 4 s con el consentimiento que firmó en recepción.,"Placed on a donor. Draws a sample every 4 s, as consented at reception."
 DESC_RECOLECTOR,Se coloca sobre una incubadora. Recoge una placa de cultivo cada 5 s.,Placed on an incubator. Harvests a culture plate every 5 s.
 DESC_BOMBA,Se coloca sobre una toma de agua. Llena una garrafa cada 3 s.,Placed on a water intake. Fills a jug every 3 s.
-DESC_SECUENCIADOR,Lee el ADN viral de los cultivos. No pregunta de dónde vienen.,Reads viral DNA from cultures. Asks no questions.
-DESC_MEZCLADORA,Mezcla agua y reactivo para hacer suero. Dos bolsas por tanda.,Mixes water and reagent into serum. Two bags per batch.
-DESC_BIORREACTOR,Cultiva la mutación elegida y la envasa en un vial. Elige la mutación en su panel.,Grows the chosen mutation into a vial. Pick the mutation in its panel.
-DESC_ENVASADORA,Mete el vial de una mutación y 2 sueros: salen 4 cajas de «vacunas» con esa mutación dentro.,Load a mutation vial and 2 serums: out come 4 boxes of «vaccines» with that mutation inside.
+DESC_SECUENCIADOR,Del cultivo saca ADN o ARN según la receta.,Gets DNA or RNA from culture depending on the recipe.
+DESC_MEZCLADORA,Suero (reactivo + agua) o medio de cultivo (plasma + agua).,Saline (reagent + water) or culture medium (plasma + water).
+DESC_BIORREACTOR,Cultiva sin parar: viriones (ADN + medio de cultivo) o vectores (hematíes + ADN).,Grows nonstop: virions (DNA + culture medium) or vectors (red cells + DNA).
+DESC_ENVASADORA,Viriones + 2 sueros → 4 cajas de vacunas.,Virions + 2 saline → 4 vaccine boxes.
 DESC_CINTA,Arrastra para tender la cinta. Los objetos van en el sentido en que la dibujas.,Drag to lay belt. Items travel the way you draw it.
 DESC_BRAZO,Coge de detrás y deja delante. Gíralo con R.,"Picks from behind, drops in front. Rotate with R."
 DESC_DIVISOR,"Reparte por turnos hacia delante, izquierda y derecha.","Alternates output forward, left and right."
@@ -99,12 +99,12 @@ CONSEJO_VACUNAS,Suero (agua + reactivo del terminal) y ADN → envasadora → mu
 HUD_MANOS,En las manos,In hand
 HUD_AYUDA_MANOS,"Clic en una máquina, cinta o el muelle para dejarlo. F para tirarlo.","Click a machine, belt or the dock to drop it. F to discard."
 HUD_ZOMBIS,Zombis disponibles: %d,Zombies available: %d
-HUD_PREMIOS,LISA consigue fondos con cada hito: 500 € · 1.000 € · 800 €,"LISA raises funds with each milestone: €500 · €1,000 · €800"
+HUD_PREMIOS,LISA consigue inversores con cada mejora: 400 € · 1.200 € · 3.000 € · 8.000 € según el nivel.,"LISA finds investors with every upgrade: €400 · €1,200 · €3,000 · €8,000 depending on the level."
 HUD_AYUDA_MAQUINA2,Trabaja sola con lo que le llegue por cinta o lo que le dejes. Flecha verde: entra · naranja: sale.,Works on its own with what arrives by belt or what you drop in. Green arrow: in · orange: out.
 HUD_ASIGNAR_ZOMBI,Poner un zombi a trabajar,Put a zombie to work
 HUD_COMPRA,COMPRA LO QUE LE DEJES,BUYS WHAT YOU DROP OFF
 CONS_MUELLE,Hub de envío,Shipping hub
-AYUDA_MUELLE,"Compra lo que le lleves (a mano o por cinta). Las vacunas llevan dentro la mutación del vial: al venderlas, la propagas por el mundo.",Buys what you bring (by hand or belt). Vaccines carry the vial's mutation: selling them spreads it worldwide.
+AYUDA_MUELLE,Compra lo que le lleves (cinta o a mano). Las vacunas propagan la cepa en la región de destino.,Buys whatever you bring (belt or by hand). Vaccines spread the strain in the destination region.
 EST_CAMILLA,Camilla de extracción,Extraction bed
 EST_INCUBADORA,Incubadora de cultivos,Culture incubator
 EST_TOMA_AGUA,Toma de agua,Water intake
@@ -145,12 +145,8 @@ CORREO_PACIENTE_T,Sobre los donantes,About the donors
 CORREO_PACIENTE,Ha puesto un anuncio: «Análisis gratuito y bocadillo». Funciona. Los voluntarios entrarán por la puerta oeste. Sáqueles una muestra y déjelos marchar; los necesitamos vivos y con ganas de volver.,You placed an ad: «Free check-up and a sandwich». It works. Volunteers will come in through the west door. Take a sample and let them go; we need them alive and willing to return.
 CORREO_BIORREACTOR_T,El plasma no es el producto,Plasma is not the product
 CORREO_BIORREACTOR,El plasma es materia prima. El biorreactor lo convierte en una mutación del producto. He encontrado 300 € en una cuenta que usted había olvidado; ya están en los fondos. Elija la mutación en su panel (clic derecho). La tos es un buen comienzo: discreta y sociable.,Plasma is raw material. The bioreactor turns it into a mutation of the product. I found €300 in an account you had forgotten; it is now in the funds. Pick the mutation in its panel (right-click). A cough is a good start: discreet and sociable.
-CORREO_LIBERADO_T,Primera mutación registrada,First mutation registered
-CORREO_LIBERADO,"La cámara de cepa ha registrado la mutación. Enhorabuena: ha creado algo nuevo. El monitor de la pared mostrará su difusión cuando empiece a vender.
-
-Necesita liquidez: el muelle de envío compra lo que le deje. Más adelante podrá vender su producto como «vacuna». La gente hace cola para las vacunas.","The strain chamber has registered the mutation. Congratulations: you have created something new. The wall monitor will show its spread once you start selling.
-
-You need cash: the shipping dock buys what you leave there. Later you will be able to sell your product as a «vaccine». People queue up for vaccines."
+CORREO_LIBERADO_T,Las primeras vacunas han llegado,The first vaccines have arrived
+CORREO_LIBERADO,"Las primeras vacunas ya están en el mercado. El monitor de la pared muestra la difusión por regiones. Algunos voluntarios vuelven… distintos. No hablan, no cobran y no se cansan: mano de obra ideal. Póngalos a manejar las máquinas de extracción.","The first vaccines are on the market. The wall monitor shows the spread by region. Some volunteers come back… different. They don't talk, don't get paid and don't get tired: ideal labour. Put them in charge of the extraction machines."
 CORREO_AUTOMATIZAR_T,Sobre su productividad,About your productivity
 CORREO_AUTOMATIZAR,"Su productividad manual es encomiable y completamente insuficiente. Abra el panel de la camilla (clic derecho) e instale un extractor. Después tienda cintas: arrastre con la herramienta de cinta desde la flecha naranja hasta la flecha verde de la siguiente máquina.
 
@@ -158,7 +154,7 @@ Algunos voluntarios volverán… distintos. No se asuste: trabajan gratis.","You
 
 Some volunteers will come back… different. Do not be alarmed: they work for free."
 CORREO_FIN_T,Ya es usted una empresa,You are now a company
-CORREO_FIN,"Proveedores satisfechos. Tiene nuevas máquinas: con la envasadora podrá meter cada mutación en cajas de «vacunas». El hub de envío las paga bien y, de paso, las distribuye por el mundo. El monitor de la pared le enseñará el resultado. Compre parcelas (clic en el terreno oscuro) cuando se le quede pequeño el sótano.","Suppliers satisfied. You have new machines: with the filler you can pack each mutation into «vaccine» boxes. The shipping hub pays well for them and, incidentally, distributes them around the world. The wall monitor will show you the result. Buy plots (click the dark ground) when the basement gets too small."
+CORREO_FIN,"El resto depende de usted. Complete el árbol de la cepa: transmisión para que llegue a todas partes, síntomas para que convierta en zombis y resistencias para frenar la cura que investigan los países ricos. Si la cura llega al 100 %, se acabó. Con el 90 % del mundo zombi, ganamos. Compre parcelas cuando se le quede pequeño el sótano.","The rest is up to you. Complete the strain tree: transmission so it reaches everywhere, symptoms so it turns people into zombies, and resistances to slow the cure the rich countries are researching. If the cure reaches 100%, it's over. With 90% of the world zombified, we win. Buy plots when the basement gets too small."
 PASO_MOVER,Muévete por el laboratorio con WASD o haciendo clic en el suelo.,Move around the lab with WASD or by clicking the floor.
 PASO_CAMILLA,Construye una camilla: Extracción → 1 y clic en el suelo (la flecha amarilla marca un buen sitio).,Build an extraction bed: Extraction → 1 and click the floor (the yellow arrow marks a good spot).
 PASO_SANGRE,Haz clic en la camilla: el científico irá y le sacará sangre cuando el paciente se tumbe.,Click the bed: the scientist goes and draws blood once the patient lies down.
@@ -167,11 +163,11 @@ PASO_PLASMA,"Con la sangre en la mano, haz clic en la centrífuga para meterla. 
 PASO_BIORREACTOR,Construye un biorreactor (Producto → 1).,Build a bioreactor (Product → 1).
 PASO_VIAL,Clic en la centrífuga para recoger 2 plasmas y clic en el biorreactor para meterlos.,Click the centrifuge to collect 2 plasma and click the bioreactor to load them.
 PASO_CEPA,Clic en el biorreactor para recoger el vial y clic en la cámara de cepa para inyectarlo.,Click the bioreactor to collect the vial and click the strain chamber to inject it.
-PASO_VENDER,"Con algo en la mano (plasma, ADN o vacunas), clic en el muelle de envío para venderlo.","With something in hand (plasma, DNA or vaccines), click the shipping dock to sell it."
+PASO_VENDER,Lleva cajas de vacunas al hub de envío (clic derecho en él para elegir el destino).,Bring vaccine boxes to the shipping hub (right-click it to choose the destination).
 PASO_MEJORA,Clic derecho en la camilla para abrir su panel e instala el extractor automático.,Right-click the bed to open its panel and install the automatic extractor.
 PASO_CINTA,"Tiende una cinta (Logística → 1, arrastrando) de la flecha naranja de la camilla a la verde de la centrífuga.","Lay a belt (Logistics → 1, drag) from the bed's orange arrow to the centrifuge's green arrow."
-PASO_ZOMBI,"Cuando llegue un zombi, clic derecho en la camilla y ponlo a trabajar.","When a zombie arrives, right-click the bed and put it to work."
-PASO_LIBRE,Cumple los objetivos trimestrales y automatiza todo lo que puedas.,Meet the quarterly targets and automate all you can.
+PASO_ZOMBI,"Cuando llegue un zombi, clic derecho en una camilla con extractor y ponlo a trabajar.","When a zombie arrives, right-click a bed with an extractor and put it to work."
+PASO_LIBRE,Completa el árbol de la cepa y llega al 90 % de zombis antes que la cura.,Complete the strain tree and reach 90% zombies before the cure.
 OBJ_TUBO_SANGRE,Tubo de sangre,Blood tube
 OBJ_TUBO_PLASMA,Tubo de plasma,Plasma tube
 OBJ_PLACA_PETRI,Placa de cultivo,Culture plate
@@ -258,3 +254,120 @@ DESC_CAPSULA,Retiene a un paciente y le saca sangre sin parar (1 l/s) mientras l
 CONS_GRANJA,Granja de humanos,Human farm
 DESC_GRANJA,Cuatro cápsulas en hilera con colector común: 4 l/s de sangre y cuatro bolsas de suero cada 20 s.,Four capsules in a row with a shared manifold: 4 l/s of blood and four saline bags every 20 s.
 OBJ_SANGRE_L,Sangre (líquida),Blood (liquid)
+CORREO_CEPAS_T,La sala de cepas,The strain room
+CORREO_CEPAS,"Esa sala acristalada del norte es el corazón de la empresa: la cámara con nuestra cepa viva y la mesa de ingeniería genética. Allí se decide en qué se convierte el virus. Clic derecho en la sala y abra el árbol: elija una mejora, la sala le pedirá un lote de productos y, al entregarlo, la cepa cambia y yo consigo planos de máquinas nuevas. Empiece por la Tos: solo pide plasma.","That glass room to the north is the heart of the company: the chamber with our live strain and the genetic engineering bench. That is where we decide what the virus becomes. Right-click the room and open the tree: pick an upgrade, the room asks for a batch of products and, once delivered, the strain changes and I get blueprints for new machines. Start with Cough: it only needs plasma."
+PASO_ELEGIR_MEJORA,"Clic derecho en la sala de cepas, abre el árbol y empieza la mejora «Tos».","Right-click the strain room, open the tree and start the «Cough» upgrade."
+PASO_ENTREGAR,Lleva 10 plasmas a la sala de cepas (a mano con clic o por cinta).,Bring 10 plasma to the strain room (by hand with a click or by belt).
+CORREO_ADN_T,Una cadena no basta,One chain is not enough
+CORREO_ADN,"La Tos nos ha dado planos: incubadora, secuenciador, toma de agua y mezcladora. Cada materia prima da varios productos según la receta que elija en cada máquina: la sangre da plasma, hematíes o plaquetas; el cultivo da ADN o ARN. La siguiente mejora, Fiebre, pide plasma y ADN. Monte la incubadora y el secuenciador.","Cough got us blueprints: incubator, sequencer, water tap and mixer. Each raw material gives several products depending on the recipe you pick in each machine: blood gives plasma, red cells or platelets; culture gives DNA or RNA. The next upgrade, Fever, asks for plasma and DNA. Set up the incubator and the sequencer."
+PASO_ADN,Construye una incubadora y un secuenciador y saca el primer ADN.,Build an incubator and a sequencer and make your first DNA.
+PASO_FIEBRE,Completa la mejora «Fiebre» en la sala de cepas (20 plasma y 10 ADN).,Complete the «Fever» upgrade in the strain room (20 plasma and 10 DNA).
+CORREO_VIRIONES_T,Cultivar el virus,Growing the virus
+CORREO_VIRIONES,Ya tiene biorreactor. Fabrica sin parar lo que le diga: viriones (ADN + medio de cultivo) o vectores (hematíes + ADN). El medio de cultivo sale de la mezcladora con plasma y agua. Haga viriones: los necesitamos para todo lo que viene.,"You now have a bioreactor. It makes whatever you tell it, nonstop: virions (DNA + culture medium) or vectors (red cells + DNA). Culture medium comes from the mixer with plasma and water. Make virions: we need them for everything that follows."
+PASO_VIRIONES,Biorreactor con la receta «viriones»: ADN por una boca y medio de cultivo (mezcladora: plasma + agua) por la otra.,Bioreactor on the «virions» recipe: DNA in one port and culture medium (mixer: plasma + water) in the other.
+PASO_FRIO,Completa la mejora «Resistencia al frío» (10 viriones y 20 sueros). Desbloquea la envasadora.,Complete the «Cold resistance» upgrade (10 virions and 20 saline). It unlocks the filler.
+CORREO_VACUNAS_T,Nuestro producto estrella,Our flagship product
+CORREO_VACUNAS,"La envasadora mete viriones y suero en cajas que pone «vacuna». El hub de envío las vende bien y elige usted a qué región van. Cada caja vendida lleva nuestra cepa, con todas sus mejoras. Técnicamente es una vacuna. Técnicamente.","The filler packs virions and saline into boxes labelled «vaccine». The shipping hub sells them well, and you choose which region they go to. Every box sold carries our strain, with all its upgrades. Technically it is a vaccine. Technically."
+CONS_SALA_CEPAS,Sala de cepas,Strain room
+DESC_SALA_CEPAS,Cámara con la cepa viva y mesa de ingeniería genética. Elige una mejora en el árbol y entrega lo que pide (cinta o a mano): cambia la cepa y desbloquea máquinas.,Chamber with the live strain and genetic engineering bench. Pick an upgrade in the tree and deliver what it asks for (belt or by hand): it changes the strain and unlocks machines.
+HUD_CEPA,Cepa,Strain
+HUD_MEJORAS,Mejoras de la cepa: %d/%d,Strain upgrades: %d/%d
+HUD_ELIGE_MEJORA,Elige una mejora en la sala de cepas (clic derecho en ella → árbol).,Pick an upgrade in the strain room (right-click it → tree).
+HUD_ABRIR_CEPAS,Abrir el árbol de la cepa,Open the strain tree
+HUD_ESTADO_MUNDO,Infectados %s %%  ·  Zombis %s %%  ·  Cura %d %%,Infected %s%%  ·  Zombies %s%%  ·  Cure %d%%
+HUD_MEJORA_HECHA,Mejora aplicada a la cepa.,Upgrade applied to the strain.
+HUD_MEJORA_CURSO,En curso: lleva a la sala lo que pide.,In progress: bring the room what it asks for.
+HUD_EMPEZAR_MEJORA,Empezar esta mejora,Start this upgrade
+HUD_MEJORA_BLOQUEADA,Antes hay que completar la mejora anterior de esta rama.,The previous upgrade in this branch must be completed first.
+HUD_ELEGIR_RECETA,Receta (fabrica sin parar la elegida),Recipe (it makes the chosen one nonstop)
+HUD_DESTINO,Destino de las vacunas,Vaccine destination
+HUD_REGION_INFO,%d millones · clima %s · %d %% infectado,%d million · %s climate · %d%% infected
+RAMA_TRANSMISION,Transmisión,Transmission
+RAMA_SINTOMAS,Síntomas,Symptoms
+RAMA_RESISTENCIAS,Resistencias,Resistances
+ANUNCIO_MEJORA_T,Nueva mejora: %s,New upgrade: %s
+ANUNCIO_DESBLOQUEA,Desbloquea: %s,Unlocks: %s
+FINAL_GANA_T,El mundo es nuestro,The world is ours
+FINAL_GANA,"El 90 % de la población ya no necesita vacunas, ni médicos, ni nada. LISA ha preparado un comunicado de prensa. No hay nadie para leerlo.","90% of the population no longer needs vaccines, doctors or anything. LISA has prepared a press release. There is no one left to read it."
+FINAL_PIERDE_T,Han encontrado la cura,They found the cure
+FINAL_PIERDE,Los países ricos han distribuido una cura. Patógena S.A. ha sido nacionalizada y usted tiene una cita con un tribunal internacional. LISA ha borrado su historial. Y el de usted.,The rich countries have distributed a cure. Patógena S.A. has been nationalised and you have an appointment with an international court. LISA has wiped her records. And yours.
+FINAL_TIEMPO,Día %d · %d mejoras de la cepa,Day %d · %d strain upgrades
+FINAL_SEGUIR,Seguir jugando,Keep playing
+CLIMA_FRIO,frío,cold
+CLIMA_CALIDO,cálido,hot
+CLIMA_HUMEDO,húmedo,humid
+CLIMA_TEMPLADO,templado,temperate
+REG_NORTEAMERICA,Norteamérica,North America
+REG_SUDAMERICA,Sudamérica,South America
+REG_EUROPA_OCC,Europa occ.,W. Europe
+REG_EUROPA_ESTE,Europa del Este,E. Europe
+REG_NORTE_AFRICA,Norte de África,North Africa
+REG_AFRICA_SUB,África subsah.,Sub-Saharan Africa
+REG_ORIENTE_MEDIO,Oriente Medio,Middle East
+REG_INDIA,India,India
+REG_CHINA,China,China
+REG_SUDESTE_ASIATICO,Sudeste asiático,Southeast Asia
+REG_JAPON_COREA,Japón y Corea,Japan & Korea
+REG_OCEANIA,Oceanía,Oceania
+OBJ_HEMATIES,Hematíes,Red cells
+OBJ_PLAQUETAS,Plaquetas,Platelets
+OBJ_ARN,ARN,RNA
+OBJ_MEDIO_CULTIVO,Medio de cultivo,Culture medium
+OBJ_VIRIONES,Viriones,Virions
+DESC_SINTETIZADOR,2 plasmas + ARN → proteína vírica.,2 plasma + RNA → viral protein.
+DESC_DESTILADOR,2 sueros + proteína → neurotoxina.,2 saline + protein → neurotoxin.
+MAQ_IMPRESORA,Impresora molecular,Molecular printer
+DESC_IMPRESORA,2 proteínas + vector → cápside.,2 proteins + vector → capsid.
+MAQ_FUSIONADOR,Fusionador genético,Genetic fuser
+DESC_FUSIONADOR,"Cápside + neurotoxina + 2 vectores → núcleo zombi. 3×3, tres bocas.","Capsid + neurotoxin + 2 vectors → zombie core. 3×3, three ports."
+MEJ_TOS,Tos,Cough
+DESC_MEJ_TOS,"Contagio por el aire al toser. Poco, pero es un comienzo.","Airborne spread when coughing. Not much, but it's a start."
+MEJ_ESTORNUDOS,Estornudos,Sneezing
+DESC_MEJ_ESTORNUDOS,"Más gotitas, más lejos.","More droplets, further away."
+MEJ_AGUA,Transmisión por agua,Waterborne
+DESC_MEJ_AGUA,Se contagia en el agua; prospera en regiones húmedas.,Spreads through water; thrives in humid regions.
+MEJ_RATAS,Ratas,Rats
+DESC_MEJ_RATAS,Las ratas llevan la cepa a las ciudades.,Rats carry the strain into cities.
+MEJ_MOSQUITOS,Mosquitos,Mosquitoes
+DESC_MEJ_MOSQUITOS,Contagio por picadura; prospera en regiones cálidas.,Spread by bites; thrives in hot regions.
+MEJ_AVES,Aves migratorias,Migratory birds
+DESC_MEJ_AVES,Cruza fronteras volando; llega al frío.,Crosses borders by air; reaches the cold.
+MEJ_GANADO,Ganado,Livestock
+DESC_MEJ_GANADO,La cadena alimentaria hace el resto.,The food chain does the rest.
+MEJ_AEROSOL,Aerosol total,Total aerosol
+DESC_MEJ_AEROSOL,Contagio masivo por el aire.,Massive airborne spread.
+MEJ_FIEBRE,Fiebre,Fever
+DESC_MEJ_FIEBRE,Síntoma leve. Se nota un poco más.,Mild symptom. Slightly more noticeable.
+MEJ_NAUSEAS,Náuseas,Nausea
+DESC_MEJ_NAUSEAS,Vómitos que contagian. Bonito.,Contagious vomiting. Lovely.
+MEJ_INSOMNIO,Insomnio,Insomnia
+DESC_MEJ_INSOMNIO,Los infectados ya no duermen: se mueven más.,The infected stop sleeping: they move around more.
+MEJ_MORDISCO,Mordisco,Bite
+DESC_MEJ_MORDISCO,Empiezan a morder: los infectados se convierten en zombis.,They start biting: the infected turn into zombies.
+MEJ_HAMBRE,Hambre voraz,Ravenous hunger
+DESC_MEJ_HAMBRE,Convierte en zombis más deprisa.,Turns people into zombies faster.
+MEJ_RABIA,Rabia,Rage
+DESC_MEJ_RABIA,Zombis agresivos que contagian más.,Aggressive zombies that spread more.
+MEJ_NECROSIS,Necrosis,Necrosis
+DESC_MEJ_NECROSIS,La carne se pudre; nada los para.,The flesh rots; nothing stops them.
+MEJ_ZOMBI_TOTAL,Zombi total,Total zombie
+DESC_MEJ_ZOMBI_TOTAL,Todo infectado acaba zombi en poco tiempo.,Every infected person ends up a zombie in no time.
+MEJ_FRIO,Resistencia al frío,Cold resistance
+DESC_MEJ_FRIO,Sobrevive en regiones frías.,Survives in cold regions.
+MEJ_CALOR,Resistencia al calor,Heat resistance
+DESC_MEJ_CALOR,Sobrevive en regiones cálidas.,Survives in hot regions.
+MEJ_HUMEDAD,Resistencia a la humedad,Humidity resistance
+DESC_MEJ_HUMEDAD,Sobrevive en regiones húmedas y frena algo la cura.,Survives in humid regions and slows the cure a little.
+MEJ_FARMACOS1,Fármacos I,Drugs I
+DESC_MEJ_FARMACOS1,Resiste los antivirales: frena la cura.,Resists antivirals: slows the cure.
+MEJ_FARMACOS2,Fármacos II,Drugs II
+DESC_MEJ_FARMACOS2,Resiste los tratamientos experimentales.,Resists experimental treatments.
+MEJ_CAMUFLAJE,Camuflaje genético,Genetic camouflage
+DESC_MEJ_CAMUFLAJE,Se esconde de los análisis: cuesta más detectarlo.,Hides from tests: harder to detect.
+MEJ_BUNKER,Genoma búnker,Bunker genome
+DESC_MEJ_BUNKER,Muy difícil de atacar: frena mucho la cura.,Very hard to target: slows the cure a lot.
+MEJ_MUTACION_GENETICA,Mutación constante,Constant mutation
+DESC_MEJ_MUTACION_GENETICA,Cambia más deprisa de lo que investigan.,Changes faster than they can research.
+MENU_HAY_PARTIDA,Hay una partida guardada. Se guarda sola cada minuto y al salir.,There is a saved game. It saves itself every minute and when you quit.
+MENU_CONTINUAR,Continuar la partida,Continue the game
+MENU_NUEVA,Empezar de cero,Start from scratch

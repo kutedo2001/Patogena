@@ -40,3 +40,4 @@ func _process(dt: float) -> void:
 		_ui.propagacion = juego.propagacion
 		_ui.cura = juego.cura
 		_ui.real = true
+		_ui.mundo = juego.mundo

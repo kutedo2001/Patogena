@@ -77,8 +77,11 @@ func _ready() -> void:
 	_anclar.call_deferred(pi, Control.PRESET_BOTTOM_LEFT)
 	if juego:
 		juego.anuncio.connect(mostrar_anuncio)
+		juego.final.connect(mostrar_final)
+		if juego.inicio_pendiente:
+			_preguntar_continuar.call_deferred()
 		juego.tutorial.correo.connect(_mostrar_correo)
-		juego.aviso.connect(func(k: String): _avisos.push_front(tr(k)); _avisos.resize(mini(_avisos.size(), 3)))
+		juego.aviso.connect(func(k: String): _avisos.push_front(tr(k)); _avisos.resize(mini(_avisos.size(), 3)); if k.begins_with("AVISO_NO") or k == "AVISO_SIN_DINERO": Sonido.tocar("error"))
 	_refrescar(true)
 
 var _correo: Control
@@ -87,6 +90,7 @@ var _anuncio_t := 0.0
 
 ## Anuncio grande arriba en el centro para los momentos importantes (mutación, hito, venta…).
 func mostrar_anuncio(titulo: String, texto: String) -> void:
+	Sonido.tocar("anuncio")
 	if _anuncio:
 		_anuncio.queue_free()
 	_anuncio = _carcasa(_raiz, 14)
@@ -151,13 +155,13 @@ func _boton(padre: Control, icono: String, tapa: Color, lado: int, activo: bool,
 	var b := _pulsador(padre, icono, tapa, lado, activo)
 	b.mouse_filter = Control.MOUSE_FILTER_STOP
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	b.gui_input.connect(func(ev): if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT: accion.call())
+	b.gui_input.connect(func(ev): if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT: Sonido.tocar("pulsador"); accion.call())
 	return b
 
 func _clic(c: Control, accion: Callable) -> void:
 	c.mouse_filter = Control.MOUSE_FILTER_STOP
 	c.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	c.gui_input.connect(func(ev): if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT: accion.call())
+	c.gui_input.connect(func(ev): if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT: Sonido.tocar("clic"); accion.call())
 
 ## Hace arrastrable una bandeja: data = {"de": "manos" | entidad, "objeto": nombre}.
 func _arrastrable(c: Control, data: Dictionary, icono: String) -> void:
@@ -278,31 +282,28 @@ func _refrescar(forzar := false) -> void:
 		return
 	var f := juego.fab
 	# objetivo
-	var fo := str([juego.hito(0), juego.hito(1), juego.hito(2), juego.tutorial.paso_actual()])
+	var fo := str([juego.progreso_cepa(), f.cepa_actual, f.cepa_hechas.size(), juego.tutorial.paso_actual()])
 	if forzar or _firmas.get("obj") != fo:
 		_firmas["obj"] = fo
 		_vaciar(_obj_caja)
-		_franja(_obj_caja, tr("HUD_OBJETIVO"), "hitos")
-		_texto(_obj_caja, tr("HUD_FASE_1"), 15, F_BOLD)
+		_franja(_obj_caja, tr("HUD_CEPA"), "hitos")
+		_texto(_obj_caja, tr("HUD_MEJORAS") % [f.cepa_hechas.size(), Fabrica.datos.cepa.mejoras.size()], 15, F_BOLD)
 		var pant := _pantalla(_obj_caja, 10)
-		var lista := _columna(pant, 10)
-		var iconos := ["tubo_plasma", "vial_mutacion", "ascensor"]
-		for i in Juego.HITOS.size():
-			var hv := juego.hito(i)
-			var fila := _fila(lista, 10)
-			_bandeja(fila, iconos[i], 34)
-			var c := _columna(fila, 4)
-			c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			var arriba := _fila(c, 6)
-			var hecho := hv.x >= hv.y
-			var l := _texto(arriba, tr(Juego.HITOS[i][2]), 12, F_MED, P_TENUE if hecho else P_TINTA)
-			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			if hecho:
-				arriba.add_child(IconoHUD.new("check", C_OK, 16))
-			else:
-				_texto(arriba, "%d/%d" % [hv.x, hv.y], 13, F_BOLD, P_TINTA)
-			_barra(c, float(hv.x) / hv.y, C_OK if hecho else P_TINTA, 6)
+		var lista := _columna(pant, 8)
+		if f.cepa_actual == "":
+			var l0 := _texto(lista, tr("HUD_ELIGE_MEJORA"), 12, F_SEMI, P_TINTA)
+			l0.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		else:
+			var m := Fabrica.mejora(f.cepa_actual)
+			_texto(lista, tr("MEJ_" + str(m.id).to_upper()), 13, F_BOLD, P_TINTA)
+			for o in m.pide:
+				var fila := _fila(lista, 10)
+				_bandeja(fila, o, 30)
+				var c := _columna(fila, 3)
+				c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				var hecho := mini(int(f.cepa_entregado.get(o, 0)), int(m.pide[o]))
+				_texto(c, "%s  %d/%d" % [tr("OBJ_" + str(o).to_upper()), hecho, int(m.pide[o])], 11, F_SEMI, P_TINTA)
+				_barra(c, float(hecho) / float(m.pide[o]), C_OK if hecho >= int(m.pide[o]) else P_TINTA, 5)
 		var pc := PanelContainer.new()
 		var pcs := StyleBoxFlat.new()
 		pcs.bg_color = Color(0.98, 0.86, 0.36, 0.35)
@@ -333,9 +334,9 @@ func _refrescar(forzar := false) -> void:
 	elif sel is Fabrica.Estacion:
 		fm = "%s|%s|%s|%d|%d" % [sel.get_instance_id(), sel.modo, sel.listo, juego.zombis_libres, int(juego.fab.dinero >= 250)]
 	elif sel is Fabrica.MuelleEnvio:
-		fm = "muelle|%s" % str(juego.fab.vendido)
-	elif sel is Fabrica.Ascensor:
-		fm = "asc|%d|%s|%s" % [sel.fase, str(sel.entregado), str(sel.subiendo > 0.0)]
+		fm = "muelle|%s|%s" % [str(juego.fab.vendido), sel.destino]
+	elif sel is Fabrica.SalaCepas:
+		fm = "cepas|%s|%s|%d" % [juego.fab.cepa_actual, str(juego.fab.cepa_entregado), juego.fab.cepa_hechas.size()]
 	if sel == null and juego.parcela_sel.x >= 0:
 		fm = "parcela|%s|%d" % [juego.parcela_sel, int(juego.fab.dinero >= juego.precio_parcela(juego.parcela_sel))]
 	if forzar or _firmas.get("maq") != fm:
@@ -395,10 +396,10 @@ func _panel_seleccion(sel) -> void:
 		_panel_estacion(sel)
 		return
 	if sel is Fabrica.MuelleEnvio:
-		_panel_muelle()
+		_panel_muelle(sel)
 		return
-	if sel is Fabrica.Ascensor:
-		_panel_ascensor(sel)
+	if sel is Fabrica.SalaCepas:
+		_panel_sala_cepas()
 		return
 	if sel is Fabrica.SalaEspera:
 		_panel_sala()
@@ -462,12 +463,10 @@ func _panel_seleccion(sel) -> void:
 		_bandeja(rf, "cepa_icono", 46)
 	for o in r.salidas:
 		_bandeja(rf, o, 46, int(r.salidas[o]))
-	if r.has("mutacion"):
-		_texto(_maq_caja, tr("MUT_" + str(r.mutacion).to_upper()), 13, F_BOLD, Color(0.2, 0.5, 0.15))
-	# recetas para elegir (biorreactor)
+	# recetas para elegir: la máquina fabrica sin parar la que elijas (V1.13)
 	var recetas: Array = Fabrica.datos.maquinas[sel.tipo].recetas
 	if recetas.size() > 1:
-		_texto(_maq_caja, tr("HUD_ELEGIR_MUTACION").to_upper(), 10, F_BOLD, C_TENUE_OSC)
+		_texto(_maq_caja, tr("HUD_ELEGIR_RECETA").to_upper(), 10, F_BOLD, C_TENUE_OSC)
 		var grid := GridContainer.new()
 		grid.columns = 2
 		grid.add_theme_constant_override("h_separation", 6)
@@ -475,7 +474,7 @@ func _panel_seleccion(sel) -> void:
 		_maq_caja.add_child(grid)
 		for rid in recetas:
 			var rr: Dictionary = Fabrica.datos.recetas[rid]
-			var hecha: bool = rr.get("mutacion", "") in juego.fab.mutaciones_hechas
+			var hecha := false
 			var b := PanelContainer.new()
 			var bs := StyleBoxFlat.new()
 			bs.bg_color = C_ACENTO if rid == sel.receta else (C_CARCASA_OSC if not hecha else Color(0.75, 0.85, 0.7))
@@ -494,7 +493,15 @@ func _panel_seleccion(sel) -> void:
 					t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 					t.custom_minimum_size = Vector2(18, 18)
 					bf.add_child(t)
-			var lt := _texto(bf, tr("MUT_" + str(rr.mutacion).to_upper()), 11, F_BOLD, Color.WHITE if rid == sel.receta else C_GRAFITO)
+			var flecha := IconoHUD.new("flecha", C_GRAFITO, 10)
+			bf.add_child(flecha)
+			for o in rr.salidas:
+				var t2 := TextureRect.new()
+				t2.texture = _icono(o)
+				t2.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				t2.custom_minimum_size = Vector2(22, 22)
+				bf.add_child(t2)
+			var lt := _texto(bf, tr("OBJ_" + str(rr.salidas.keys()[0]).to_upper()), 11, F_BOLD, Color.WHITE if rid == sel.receta else C_GRAFITO)
 			lt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			if hecha:
 				bf.add_child(IconoHUD.new("check", Color(0.2, 0.55, 0.2), 12))
@@ -612,43 +619,6 @@ func _panel_generador(g: Fabrica.Generador) -> void:
 		_texto(pe, tr("HUD_COMBUSTIBLE") % g.combustible, 11, F_SEMI, P_TENUE)
 	_texto(_maq_caja, tr("AYUDA_" + g.tipo.to_upper()), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-func _panel_ascensor(a: Fabrica.Ascensor) -> void:
-	_maq_panel.visible = true
-	var cab := _fila(_maq_caja, 12)
-	_bandeja(cab, "ascensor", 64)
-	var cc := _columna(cab, 4)
-	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cc.alignment = BoxContainer.ALIGNMENT_CENTER
-	_texto(cc, tr("CONS_ASCENSOR"), 17, F_BOLD)
-	_texto(cc, (tr("HUD_FASE_ASC") % (a.fase + 1)).to_upper(), 11, F_BOLD, Color(0.15, 0.6, 0.3))
-	var p := a.pide()
-	if p.is_empty():
-		_texto(_maq_caja, tr("ANUNCIO_FASE_PRONTO"), 13, F_SEMI)
-		return
-	_franja(_maq_caja, tr("HUD_PIDE"))
-	var pe := _pantalla(_maq_caja, 10)
-	var lista := _columna(pe, 8)
-	for o in p:
-		var f := _fila(lista, 10)
-		_bandeja(f, o, 40)
-		var c := _columna(f, 4)
-		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var hecho := int(a.entregado.get(o, 0))
-		_texto(c, "%s  %d/%d" % [tr("OBJ_" + str(o).to_upper()), hecho, int(p[o])], 13, F_BOLD, P_TINTA)
-		_barra(c, float(hecho) / float(p[o]), P_TINTA, 6)
-	var des: Array = Fabrica.datos.fases[a.fase].desbloquea
-	var fd := _fila(_maq_caja, 6)
-	_texto(fd, tr("HUD_DESBLOQUEA").to_upper(), 10, F_BOLD, C_TENUE_OSC)
-	for id in des:
-		var ic: String = id
-		for cat in Juego.CATALOGO:
-			for en in Juego.CATALOGO[cat]:
-				if en[0] == id:
-					ic = en[1]
-		var b := _bandeja(fd, ic, 34)
-		b.tooltip_text = tr("DESC_" + str(id).to_upper())
-	_texto(_maq_caja, tr("DESC_ASCENSOR"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-
 func _panel_parcela(pc: Vector2i) -> void:
 	_maq_panel.visible = true
 	var cab := _fila(_maq_caja, 12)
@@ -661,13 +631,13 @@ func _panel_parcela(pc: Vector2i) -> void:
 	if not juego.comprable(pc):
 		_texto(_maq_caja, tr("HUD_PARCELA_LEJOS"), 12, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		return
-	if juego.ascensor.completadas < juego.fase_parcela(pc):
+	if juego.fab.cepa_hechas.size() < juego.fase_parcela(pc):
 		_texto(_maq_caja, tr("HUD_PARCELA_FASE2"), 12, F_MED, C_TENUE_OSC)
 		return
 	var precio := juego.precio_parcela(pc)
 	_accion(_maq_caja, tr("HUD_COMPRAR_PARCELA"), "%s €" % _miles(precio), juego.fab.dinero >= precio, func(): juego.comprar_parcela(pc); juego.parcela_sel = Vector2i(-1, -1))
 
-func _panel_muelle() -> void:
+func _panel_muelle(mu: Fabrica.MuelleEnvio) -> void:
 	_maq_panel.visible = true
 	var cab := _fila(_maq_caja, 12)
 	_bandeja(cab, "caja_vacunas", 64)
@@ -684,7 +654,198 @@ func _panel_muelle() -> void:
 		var l := _texto(f, "%d €" % int(Fabrica.datos.ventas[o]), 15, F_BOLD, C_AMBAR)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_texto(f, "× %d" % int(juego.fab.vendido.get(o, 0)), 13, F_SEMI, P_TENUE)
+	# destino de las vacunas: allí se infecta
+	_franja(_maq_caja, tr("HUD_DESTINO"))
+	var rej := GridContainer.new()
+	rej.columns = 3
+	rej.add_theme_constant_override("h_separation", 4)
+	rej.add_theme_constant_override("v_separation", 4)
+	_maq_caja.add_child(rej)
+	for r in juego.mundo.regiones:
+		var id: String = r.id
+		var b := Button.new()
+		b.text = tr("REG_" + id.to_upper())
+		b.toggle_mode = true
+		b.button_pressed = mu.destino == id
+		b.add_theme_font_override("font", F_SEMI)
+		b.add_theme_font_size_override("font_size", 10)
+		b.custom_minimum_size = Vector2(0, 26)
+		b.tooltip_text = tr("HUD_REGION_INFO") % [int(r.pob), tr("CLIMA_" + str(r.clima).to_upper()), int(100.0 * (r.i + r.z) / r.pob)]
+		b.pressed.connect(func(): mu.destino = id; _firmas.erase("maq"))
+		rej.add_child(b)
 	_texto(_maq_caja, tr("AYUDA_MUELLE"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+## Sala de cepas: resumen en el panel y botón que abre el árbol de mejoras (tipo Plague Inc).
+func _panel_sala_cepas() -> void:
+	_maq_panel.visible = true
+	var cab := _fila(_maq_caja, 12)
+	_bandeja(cab, "sala_cepas", 64)
+	var cc := _columna(cab, 4)
+	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cc.alignment = BoxContainer.ALIGNMENT_CENTER
+	_texto(cc, tr("CONS_SALA_CEPAS"), 17, F_BOLD)
+	var f := juego.fab
+	_texto(cc, (tr("HUD_MEJORAS") % [f.cepa_hechas.size(), Fabrica.datos.cepa.mejoras.size()]).to_upper(), 11, F_BOLD, Color(0.15, 0.6, 0.3))
+	if f.cepa_actual != "":
+		var m := Fabrica.mejora(f.cepa_actual)
+		_franja(_maq_caja, tr("HUD_PIDE") + " · " + tr("MEJ_" + str(m.id).to_upper()))
+		var pe := _pantalla(_maq_caja, 8)
+		var lista := _columna(pe, 6)
+		for o in m.pide:
+			var fi := _fila(lista, 10)
+			_bandeja(fi, o, 34)
+			var c := _columna(fi, 3)
+			c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var hecho := mini(int(f.cepa_entregado.get(o, 0)), int(m.pide[o]))
+			_texto(c, "%s  %d/%d" % [tr("OBJ_" + str(o).to_upper()), hecho, int(m.pide[o])], 12, F_BOLD, P_TINTA)
+			_barra(c, float(hecho) / float(m.pide[o]), P_TINTA, 6)
+	_accion(_maq_caja, tr("HUD_ABRIR_CEPAS"), "", true, func(): abrir_cepas())
+	_texto(_maq_caja, tr("DESC_SALA_CEPAS"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+## Árbol de mejoras a pantalla completa: tres ramas en columnas, cuatro niveles; cada mejora con su
+## estado (hecha, en curso, disponible, bloqueada), lo que pide, lo que hace y lo que desbloquea.
+var _cepas_modal: Control
+var _cepas_sel := ""
+func abrir_cepas() -> void:
+	if _cepas_modal:
+		_cepas_modal.queue_free()
+	var f := juego.fab
+	if _cepas_sel == "":
+		_cepas_sel = f.cepa_actual
+	var fondo := ColorRect.new()
+	fondo.color = Color(0.02, 0.04, 0.05, 0.82)
+	fondo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fondo.mouse_filter = Control.MOUSE_FILTER_STOP
+	_raiz.add_child(fondo)
+	_cepas_modal = fondo
+	var marco := _carcasa(fondo, 18)
+	marco.custom_minimum_size = Vector2(1180, 640)
+	marco.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	marco.grow_vertical = Control.GROW_DIRECTION_BOTH
+	marco.set_anchors_and_offsets_preset.call_deferred(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	var raiz := _columna(marco, 10)
+	var cab := _fila(raiz, 10)
+	_bandeja(cab, "sala_cepas", 48)
+	var tt := _columna(cab, 2)
+	tt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_texto(tt, tr("CONS_SALA_CEPAS"), 20, F_BOLD)
+	var m := juego.mundo
+	_texto(tt, tr("HUD_ESTADO_MUNDO") % [String.num(m.fraccion_infectada() * 100.0, 2).replace(".", ","),
+		String.num(m.fraccion_zombi() * 100.0, 2).replace(".", ","), int(m.cura * 100.0)], 12, F_SEMI, C_TENUE_OSC)
+	_boton(cab, "quitar", C_ROJO, 40, true, func(): cerrar_cepas())
+	var cuerpo := _fila(raiz, 14)
+	cuerpo.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	for rama in ["transmision", "sintomas", "resistencias"]:
+		var col := _columna(cuerpo, 6)
+		col.custom_minimum_size = Vector2(250, 0)
+		_franja(col, tr("RAMA_" + rama.to_upper()))
+		for mj in Fabrica.datos.cepa.mejoras:
+			if mj.rama != rama:
+				continue
+			var id: String = mj.id
+			var estado := "bloqueada"
+			if id in f.cepa_hechas:
+				estado = "hecha"
+			elif id == f.cepa_actual:
+				estado = "curso"
+			elif f.mejora_disponible(id):
+				estado = "libre"
+			var b := PanelContainer.new()
+			var bs := StyleBoxFlat.new()
+			bs.bg_color = {"hecha": Color(0.25, 0.62, 0.42), "curso": C_AMBAR, "libre": C_ACENTO, "bloqueada": C_CARCASA_OSC}[estado]
+			bs.set_corner_radius_all(5)
+			bs.border_width_bottom = 3
+			bs.border_color = bs.bg_color.darkened(0.3)
+			if id == _cepas_sel:
+				bs.border_width_left = 3; bs.border_width_right = 3; bs.border_width_top = 3
+				bs.border_color = C_TINTA_OSC
+			bs.content_margin_left = 10; bs.content_margin_right = 10; bs.content_margin_top = 4; bs.content_margin_bottom = 4
+			b.add_theme_stylebox_override("panel", bs)
+			col.add_child(b)
+			var fb := _fila(b, 6)
+			_texto(fb, "%s  ·  %s" % ["I".repeat(int(mj.nivel)), tr("MEJ_" + id.to_upper())], 12, F_BOLD,
+				Color.WHITE if estado != "bloqueada" else C_TENUE_OSC).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if estado == "hecha":
+				fb.add_child(IconoHUD.new("check", Color.WHITE, 14))
+			_clic(b, func(): _cepas_sel = id; abrir_cepas())
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# detalle de la seleccionada
+	var det := _pantalla(cuerpo, 10)
+	det.custom_minimum_size = Vector2(330, 0)
+	var dc := _columna(det, 8)
+	if _cepas_sel == "":
+		_texto(dc, tr("HUD_ELIGE_MEJORA"), 13, F_SEMI, P_TINTA).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		return
+	var sel := Fabrica.mejora(_cepas_sel)
+	_texto(dc, tr("MEJ_" + _cepas_sel.to_upper()), 18, F_BOLD, P_TINTA)
+	_texto(dc, tr("DESC_MEJ_" + _cepas_sel.to_upper()), 12, F_MED, P_TENUE).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_texto(dc, tr("HUD_PIDE").to_upper(), 10, F_BOLD, P_TENUE)
+	for o in sel.pide:
+		var fi := _fila(dc, 8)
+		_bandeja(fi, o, 30)
+		var hecho := mini(int(f.cepa_entregado.get(o, 0)), int(sel.pide[o])) if f.cepa_actual == _cepas_sel else 0
+		_texto(fi, "%s  %d/%d" % [tr("OBJ_" + str(o).to_upper()), hecho, int(sel.pide[o])], 12, F_SEMI, P_TINTA)
+	if not sel.desbloquea.is_empty():
+		_texto(dc, tr("HUD_DESBLOQUEA").to_upper(), 10, F_BOLD, P_TENUE)
+		var fd := _fila(dc, 4)
+		for id in sel.desbloquea:
+			var ic: String = id
+			for cat in Juego.CATALOGO:
+				for en in Juego.CATALOGO[cat]:
+					if en[0] == id:
+						ic = en[1]
+			_bandeja(fd, ic, 34).tooltip_text = tr("DESC_" + str(id).to_upper())
+	if _cepas_sel in f.cepa_hechas:
+		_texto(dc, tr("HUD_MEJORA_HECHA"), 13, F_BOLD, C_OK)
+	elif _cepas_sel == f.cepa_actual:
+		_texto(dc, tr("HUD_MEJORA_CURSO"), 12, F_SEMI, C_AMBAR).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	elif f.mejora_disponible(_cepas_sel):
+		var id2 := _cepas_sel
+		_accion(dc, tr("HUD_EMPEZAR_MEJORA"), "", true, func(): juego.elegir_mejora(id2); abrir_cepas())
+	else:
+		_texto(dc, tr("HUD_MEJORA_BLOQUEADA"), 12, F_SEMI, P_TENUE).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+func cerrar_cepas() -> void:
+	if _cepas_modal:
+		_cepas_modal.queue_free()
+		_cepas_modal = null
+
+## Al arrancar con partida guardada: continuar o empezar de cero.
+func _preguntar_continuar() -> void:
+	var fondo := ColorRect.new()
+	fondo.color = Color(0.02, 0.04, 0.05, 0.75)
+	fondo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fondo.mouse_filter = Control.MOUSE_FILTER_STOP
+	_raiz.add_child(fondo)
+	var marco := _carcasa(fondo, 18)
+	marco.custom_minimum_size = Vector2(520, 0)
+	marco.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	marco.grow_vertical = Control.GROW_DIRECTION_BOTH
+	marco.set_anchors_and_offsets_preset.call_deferred(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	var c := _columna(marco, 12)
+	_texto(c, tr("JUEGO_TITULO"), 26, F_BOLD)
+	_texto(c, tr("MENU_HAY_PARTIDA"), 13, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_accion(c, tr("MENU_CONTINUAR"), "", true, func(): fondo.queue_free(); juego.empezar(true))
+	_accion(c, tr("MENU_NUEVA"), "", true, func(): fondo.queue_free(); juego.empezar(false))
+
+## Pantalla final: victoria (90 % zombi) o derrota (cura al 100 %).
+func mostrar_final(ganado: bool) -> void:
+	juego.velocidad = 0.0
+	var fondo := ColorRect.new()
+	fondo.color = Color(0.02, 0.04, 0.05, 0.85)
+	fondo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fondo.mouse_filter = Control.MOUSE_FILTER_STOP
+	_raiz.add_child(fondo)
+	var marco := _carcasa(fondo, 18)
+	marco.custom_minimum_size = Vector2(640, 0)
+	marco.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	marco.grow_vertical = Control.GROW_DIRECTION_BOTH
+	marco.set_anchors_and_offsets_preset.call_deferred(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	var c := _columna(marco, 12)
+	_texto(c, tr("FINAL_GANA_T" if ganado else "FINAL_PIERDE_T"), 26, F_BOLD, C_ZOMBI.darkened(0.3) if ganado else C_ROJO)
+	_texto(c, tr("FINAL_GANA" if ganado else "FINAL_PIERDE"), 14, F_MED).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_texto(c, tr("FINAL_TIEMPO") % [juego.dia(), juego.fab.cepa_hechas.size()], 12, F_SEMI, C_TENUE_OSC)
+	_accion(c, tr("FINAL_SEGUIR"), "", true, func(): fondo.queue_free(); juego.velocidad = 1.0)
 
 ## Botón de acción grande del panel (pulsador + texto + precio).
 func _accion(padre: Control, texto: String, precio: String, activo: bool, accion: Callable) -> void:
@@ -901,9 +1062,9 @@ func _ficha_mundo() -> void:
 	elif e is Fabrica.MuelleEnvio:
 		t = tr("CONS_MUELLE")
 		d = tr("AYUDA_MUELLE")
-	elif e is Fabrica.Ascensor:
-		t = tr("CONS_ASCENSOR")
-		d = tr("DESC_ASCENSOR")
+	elif e is Fabrica.SalaCepas:
+		t = tr("CONS_SALA_CEPAS")
+		d = tr("DESC_SALA_CEPAS")
 	elif e is Fabrica.Almacen:
 		t = tr("CONS_ALMACEN")
 		d = tr("DESC_ALMACEN") + "  (%d)" % e.contenido.size()

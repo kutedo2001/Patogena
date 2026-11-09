@@ -32,68 +32,50 @@ func _simular(f: Fabrica, segundos: float) -> void:
 	for i in int(segundos / Fabrica.PASO):
 		f.paso()
 
-## Las dos cadenas de la pantalla objetivo, con fuentes en lugar de extractores.
+## La cadena profunda de las vacunas (V1.13): cultivo → ADN → biorreactor (viriones, con medio de
+## cultivo) → envasadora (con suero) → cajas. Recetas elegibles que fabrican sin parar.
 func _cadenas() -> void:
-	print("Cadenas de la pantalla objetivo (5 min de juego):")
-	var f := montar_cadenas()
-	var cf: Fabrica.MaquinaSim = f.celdas[Vector2i(-9, -4)]
-	var br: Fabrica.MaquinaSim = f.celdas[Vector2i(-6, -5)]
-	var cepa: Fabrica.MaquinaSim = f.celdas[Vector2i(0, -5)]
-	var sq: Fabrica.MaquinaSim = f.celdas[Vector2i(-5, 0)]
+	print("Cadena profunda de vacunas (5 min de juego):")
+	var f := Fabrica.new()
+	f.poner_fuente(Vector2i(-2, 1), 0, "placa_petri", 2.0)
+	f.poner_cinta(Vector2i(-1, 1), 0)
+	var sq := f.poner_maquina("secuenciador", Vector2i(0, 0))
+	f.poner_cinta(Vector2i(2, 1), 3)
+	f.poner_linea([Vector2i(2, 0), Vector2i(3, 0)], 1, 0)
+	f.poner_fuente(Vector2i(3, 2), 3, "medio_cultivo", 3.0)
+	f.poner_cinta(Vector2i(3, 1), 0)
+	var br := f.poner_maquina("biorreactor", Vector2i(4, 0))
+	f.poner_cinta(Vector2i(6, 1), 3)
+	f.poner_linea([Vector2i(6, 0), Vector2i(7, 0)], 1, 0)
+	f.poner_fuente(Vector2i(7, 2), 3, "bolsa_suero", 2.0)
+	f.poner_cinta(Vector2i(7, 1), 0)
+	var ev := f.poner_maquina("envasadora", Vector2i(8, 0))
+	var palet := f.poner_almacen(Vector2i(10, 1))
+	comprobar(sq != null and br != null and ev != null and palet != null, "todo se coloca sin solaparse")
 	var malo := Fabrica.new()
 	malo.poner_fuente(Vector2i(-1, 0), 0, "garrafa_agua", 1.0)
 	var mz2 := malo.poner_maquina("mezcladora", Vector2i(0, 0))
 	for i in 100: malo.paso()
 	comprobar(mz2.entrada.is_empty(), "la mezcladora no acepta agua por la boca del reactivo")
-	var mz: Fabrica.MaquinaSim = f.celdas[Vector2i(-5, 3)]
-	var ev: Fabrica.MaquinaSim = f.celdas[Vector2i(0, 0)]
-	var palet: Fabrica.Almacen = f.celdas[Vector2i(7, 1)]
-	comprobar(cf != null and br != null and cepa != null and sq != null and mz != null and ev != null and palet != null, "todo se coloca sin solaparse")
 	var t0 := Time.get_ticks_msec()
-	var primera := -1.0
-	for i in int(300.0 / Fabrica.PASO):
-		f.paso()
-		if primera < 0.0 and f.mutaciones > 0:
-			primera = f.tiempo
+	_simular(f, 300.0)
 	var ms := Time.get_ticks_msec() - t0
 	print("    producido: ", f.producido)
-	print("    primera mutación a los %.1f s · palé con %d cajas · %d ms reales (×%d)" % [primera, palet.contenido.size(), ms, int(300000.0 / maxf(ms, 1))])
-	comprobar(f.producido.get("tubo_plasma", 0) > 0, "las centrífugas hacen plasma")
-	comprobar(f.mutaciones >= 1, "la cámara de cepa recibe al menos una mutación")
-	comprobar(f.producido.get("tubo_adn", 0) > 0 and f.producido.get("bolsa_suero", 0) > 0, "secuenciador y mezcladora producen")
-	comprobar(palet.contenido.size() >= 30 and palet.contenido[0] == "caja_vacunas:tos", "las cajas de vacunas llevan la mutación y llegan al palé sin atascos (≥30)")
-	comprobar(ms < 3000, "5 min de juego se simulan en menos de 3 s (×100)")
-
-## Las dos cadenas de la pantalla objetivo con fuentes en lugar de extractores (también la usa la vista esquemática).
-static func montar_cadenas() -> Fabrica:
-	var f := Fabrica.new()
-	# cepa: sangre → centrífuga → plasma → biorreactor → vial → cámara de cepa
-	f.poner_fuente(Vector2i(-13, -4), 0, "tubo_sangre", 1.5)
-	f.poner_linea([Vector2i(-12, -4), Vector2i(-11, -4), Vector2i(-10, -4)])
-	f.poner_maquina("centrifuga", Vector2i(-9, -4))
-	f.poner_linea([Vector2i(-8, -4), Vector2i(-7, -4)])
-	f.poner_maquina("biorreactor", Vector2i(-6, -5))
-	f.poner_linea([Vector2i(-4, -4), Vector2i(-3, -4), Vector2i(-2, -4), Vector2i(-1, -4)])
-	f.poner_maquina("camara_cepa", Vector2i(0, -5))
-	# vacunas: cultivo → secuenciador → ADN; agua + reactivo → mezcladora → suero; → envasadora
-	f.poner_fuente(Vector2i(-12, 1), 0, "placa_petri", 2.0)
-	f.poner_linea([Vector2i(-11, 1), Vector2i(-10, 1), Vector2i(-9, 1), Vector2i(-8, 1), Vector2i(-7, 1), Vector2i(-6, 1)])
-	f.poner_maquina("secuenciador", Vector2i(-5, 0))
-	f.poner_linea([Vector2i(-3, 1), Vector2i(-3, 0)], 1, 3)
-	f.poner_almacen(Vector2i(-3, -1))                                   # el ADN se guarda (irá a mutaciones)
-	f.poner_fuente(Vector2i(-2, 0), 0, "vial_mutacion:tos", 4.0)      # viales con mutación para las vacunas
-	f.poner_cinta(Vector2i(-1, 0), 0)
-	f.poner_fuente(Vector2i(-12, 4), 0, "garrafa_agua", 3.0)
-	f.poner_linea([Vector2i(-11, 4), Vector2i(-10, 4), Vector2i(-9, 4), Vector2i(-8, 4), Vector2i(-7, 4)])
-	f.poner_cinta(Vector2i(-6, 4), 0)
-	f.poner_fuente(Vector2i(-8, 2), 1, "frasco_reactivo", 3.0)       # el reactivo entra por la otra casilla de la cara
-	f.poner_linea([Vector2i(-8, 3), Vector2i(-7, 3), Vector2i(-6, 3)], 1, 0)
-	f.poner_maquina("mezcladora", Vector2i(-5, 3))
-	f.poner_linea([Vector2i(-3, 3), Vector2i(-2, 3), Vector2i(-1, 3), Vector2i(-1, 2), Vector2i(-1, 1)], 1, 0)   # suero a su boca
-	f.poner_maquina("envasadora", Vector2i(0, 0))
-	f.poner_linea([Vector2i(2, 1), Vector2i(3, 1), Vector2i(4, 1), Vector2i(5, 1), Vector2i(6, 1)])
-	f.poner_almacen(Vector2i(7, 1))
-	return f
+	comprobar(f.producido.get("viriones", 0) >= 25, "el biorreactor cultiva viriones sin parar (%d)" % f.producido.get("viriones", 0))
+	comprobar(palet.contenido.size() >= 40 and palet.contenido[0] == "caja_vacunas", "llegan cajas de vacunas al palé sin atascos (%d)" % palet.contenido.size())
+	comprobar(ms < 3000, "5 min de juego se simulan en menos de 3 s (%d ms)" % ms)
+	# la misma centrífuga cambia de producto: hematíes y plaquetas
+	var g := Fabrica.new()
+	g.poner_fuente(Vector2i(0, 0), 0, "tubo_sangre", 1.0)
+	g.poner_cinta(Vector2i(1, 0), 0)
+	var cf := g.poner_maquina("centrifuga", Vector2i(2, 0))
+	cf.poner_receta("hematies")
+	var al := g.poner_almacen(Vector2i(3, 0))
+	_simular(g, 30.0)
+	comprobar(al.contenido.count("hematies") >= 5, "la centrífuga con la receta de hematíes los hace (%d)" % al.contenido.count("hematies"))
+	cf.poner_receta("plaquetas")
+	_simular(g, 30.0)
+	comprobar(al.contenido.count("plaquetas") >= 3, "y cambiada a plaquetas, plaquetas (%d)" % al.contenido.count("plaquetas"))
 
 ## Un brazo saca de una cinta a una máquina, un divisor reparte en tres y un almacén guarda y saca.
 func _brazo_divisor_almacen() -> void:
@@ -135,20 +117,44 @@ func _bloqueo() -> void:
 	var q := f.quitar(Vector2i(2, 0))
 	comprobar(q == cf and not f.celdas.has(Vector2i(2, 0)), "quitar libera las casillas")
 
-## El ascensor acepta solo lo que pide la fase y la completa; el hub vende vacunas con mutación.
+## La sala de cepas acepta solo lo que pide la mejora elegida y la completa; el hub vende vacunas.
 func _ascensor_y_hub() -> void:
-	print("Ascensor de pedidos y hub:")
+	print("Sala de cepas, hub y mundo:")
 	var f := Fabrica.new()
-	var a := f.poner_ascensor(Vector2i(0, 0))
-	f.poner_fuente(Vector2i(-2, 0), 0, "tubo_plasma", 0.3)
-	f.poner_cinta(Vector2i(-1, 0), 0)
-	comprobar(not a.aceptar(f, "tubo_sangre", 0, Vector2i(0, 0)), "el ascensor no acepta lo que no pide")
-	_simular(f, 40.0)
-	comprobar(a.completadas == 1 and a.fase == 1, "30 plasmas completan la fase 1")
+	var sala := f.poner_sala_cepas(Vector2i(0, 0))
+	comprobar(not f.mejora_disponible("estornudos"), "estornudos pide antes la tos")
+	comprobar(not sala.aceptar(f, "tubo_plasma", 0, Vector2i(0, 0)), "sin mejora elegida no acepta nada")
+	f.elegir_mejora("tos")
+	comprobar(not sala.aceptar(f, "tubo_sangre", 0, Vector2i(0, 0)), "no acepta lo que no pide")
+	f.poner_fuente(Vector2i(-2, 1), 0, "tubo_plasma", 0.3)
+	f.poner_cinta(Vector2i(-1, 1), 0)
+	_simular(f, 16.0)
+	comprobar("tos" in f.cepa_hechas and f.cepa_actual == "", "10 plasmas completan la tos")
+	comprobar(f.mejora_disponible("estornudos"), "y ya se puede elegir estornudos")
+	f.elegir_mejora("fiebre")
+	for i in 5:
+		sala.aceptar(f, "tubo_plasma", 0, Vector2i(0, 0))
+	f.elegir_mejora("frio")
+	comprobar(f.cepa_entregado.is_empty(), "cambiar a una mejora que no pide plasma no guarda el plasma")
 	var h := f.poner_muelle_envio(Vector2i(5, 5))
+	h.destino = "india"
 	for i in 10:
-		h.aceptar(f, "caja_vacunas:tos", 0, Vector2i(5, 5))
-	comprobar(f.vendidas_con.get("tos", 0) == 10 and h.viajes == 1, "10 vacunas de tos vendidas, una furgoneta sale (%d €)" % int(f.ingresos))
+		h.aceptar(f, "caja_vacunas", 0, Vector2i(5, 5))
+	comprobar(f.vacunas_vendidas == 10 and f.vendidas_destino.get("india", 0) == 10 and h.viajes == 1, "10 vacunas a la India, una furgoneta sale (%d €)" % int(f.ingresos))
+	# mundo
+	var m := Mundo.new()
+	m.sembrar("europa_occ", 1.0)
+	m.efectos = Mundo.efectos_de(["tos"])
+	for i in 600:
+		m.paso(1.0)
+	comprobar(m.total("i") > 1.0, "la cepa se contagia sola (%.2f millones en 10 min)" % m.total("i"))
+	comprobar(m.detectado and m.cura > 0.0, "la detectan y empieza la cura (%.3f)" % m.cura)
+	comprobar(m.region("europa_este").i > 0.0, "salta a otras regiones por los viajes")
+	var z0 := m.total("z")
+	m.efectos = Mundo.efectos_de(["tos", "fiebre", "nauseas", "insomnio", "mordisco"])
+	for i in 60:
+		m.paso(1.0)
+	comprobar(z0 == 0.0 and m.total("z") > 0.0, "con el mordisco aparecen zombis")
 
 ## V1.8: sala de espera, campañas y energía.
 func _pacientes_y_energia() -> void:

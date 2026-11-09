@@ -9,11 +9,14 @@ const MODELO_MAQUINA := {
 	"centrifuga": "res://assets/modelos/maquinas/centrifuga.glb", "secuenciador": "res://assets/modelos/maquinas/secuenciador.glb",
 	"mezcladora": "res://assets/modelos/maquinas/mezcladora.glb", "envasadora": "res://assets/modelos/maquinas/envasadora.glb",
 	"biorreactor": "res://assets/modelos/maquinas/biorreactor.glb", "camara_cepa": "res://assets/modelos/maquinas/camara_cepa.glb",
-	"centrifuga_ind": "res://assets/modelos/estaciones/centrifuga_ind.glb"}
+	"centrifuga_ind": "res://assets/modelos/estaciones/centrifuga_ind.glb",
+	"sintetizador": "res://assets/modelos/maquinas/sintetizador.glb", "destilador": "res://assets/modelos/maquinas/destilador.glb",
+	"impresora": "res://assets/modelos/maquinas/impresora.glb", "fusionador": "res://assets/modelos/maquinas/fusionador.glb"}
 const PANTALLA := {"centrifuga": PantallaMaquina.Tipo.CENTRIFUGA, "secuenciador": PantallaMaquina.Tipo.SECUENCIADOR,
 	"mezcladora": PantallaMaquina.Tipo.MEZCLADORA, "envasadora": PantallaMaquina.Tipo.ENVASADORA,
 	"biorreactor": PantallaMaquina.Tipo.BIORREACTOR, "camara_cepa": PantallaMaquina.Tipo.CEPA,
-	"centrifuga_ind": PantallaMaquina.Tipo.CENTRIFUGA}
+	"centrifuga_ind": PantallaMaquina.Tipo.CENTRIFUGA, "sintetizador": PantallaMaquina.Tipo.SECUENCIADOR,
+	"destilador": PantallaMaquina.Tipo.BIORREACTOR, "impresora": PantallaMaquina.Tipo.ENVASADORA, "fusionador": PantallaMaquina.Tipo.CEPA}
 
 var fab: Fabrica
 var juego: Juego
@@ -98,6 +101,8 @@ func _crear(e: Fabrica.Entidad) -> Node3D:
 		return m
 	if e is Fabrica.Estacion:
 		return EstacionVista.crear_estacion(e, centro(e), juego)
+	if e is Fabrica.SalaCepas:
+		return _crear_sala_cepas(e)
 	if e is Fabrica.SalaEspera or e is Fabrica.Generador or e is Fabrica.Capsula or e is Fabrica.Deposito:
 		var pv := PiezaVista.crear_pieza(e, centro(e), juego)
 		if e is Fabrica.SalaEspera:
@@ -240,7 +245,7 @@ func _objetos_en_cintas() -> void:
 			var n2 := _objeto(e.mano)
 			var v: Node3D = _vis.get(e)
 			if v:
-				var pinza: Node3D = v.get_node_or_null("hombro/brazo/pinza")
+				var pinza: Node3D = v.find_child("pinza", true, false)
 				if pinza:
 					n2.global_position = pinza.global_position + Vector3(0, -0.12, 0)
 	for b in _objetos:
@@ -258,8 +263,99 @@ func _estados() -> void:
 			if m.estado != est:
 				m.estado = est
 			m.ciclo = e.duracion()
+		elif e is Fabrica.SalaCepas:
+			var mc := v.get_node("camara") as Maquina
+			var ec: int = Maquina.Estado.TRABAJANDO if fab.cepa_actual != "" else Maquina.Estado.SIN_MATERIAL
+			if mc.estado != ec:
+				mc.estado = ec
 		elif v.has_method("actualizar"):
 			v.actualizar(e, _tiempo)
+
+## Sala de cepas: la cámara con la cepa viva en el centro, mampara de vidrio alrededor y la mesa
+## de ingeniería genética al lado (V1.14).
+func _crear_sala_cepas(e: Fabrica.SalaCepas) -> Node3D:
+	var r := Node3D.new()
+	r.position = centro(e)
+	var m := Maquina.new()
+	m.name = "camara"
+	m.modelo = load(MODELO_MAQUINA["camara_cepa"])
+	m.tipo_pantalla = PantallaMaquina.Tipo.CEPA
+	m.ciclo = 8.0
+	m.estado = Maquina.Estado.SIN_MATERIAL
+	m.position = Vector3(0.5, 0, 0)
+	r.add_child(m)
+	var mesa: Node3D = load("res://assets/modelos/estaciones/mesa_genetica.glb").instantiate()
+	Materiales.ajustar(mesa)
+	mesa.position = Vector3(-1.5, 0, 0)
+	r.add_child(mesa)
+	var pan := mesa.find_child("pantalla", true, false) as MeshInstance3D
+	if pan:
+		var vp := SubViewport.new()
+		vp.size = Vector2i(768, 330)
+		vp.disable_3d = true
+		vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		var ui := PantallaCepa.new()
+		ui.juego = juego
+		ui.size = Vector2(vp.size)
+		vp.add_child(ui)
+		r.add_child(vp)
+		var mt := StandardMaterial3D.new()
+		mt.albedo_texture = vp.get_texture()
+		mt.emission_enabled = true
+		mt.emission_texture = vp.get_texture()
+		mt.emission_energy_multiplier = 1.3
+		mt.roughness = 0.25
+		pan.material_override = mt
+	_mamparas(r)
+	return r
+
+## Mampara de vidrio con perfiles alrededor de la sala de cepas (hueco de entrada al oeste) y suelo propio.
+func _mamparas(r: Node3D) -> void:
+	var suelo := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(3.96, 2.96)
+	suelo.mesh = pm
+	suelo.material_override = Provisional.mat(Color(0.2, 0.32, 0.33), 0.5)
+	suelo.position.y = 0.006
+	r.add_child(suelo)
+	var vidrio := StandardMaterial3D.new()
+	vidrio.albedo_color = Color(0.6, 0.85, 0.9, 0.16)
+	vidrio.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	vidrio.roughness = 0.05
+	vidrio.metallic_specular = 0.8
+	var perfil := Provisional.mat(Color(0.25, 0.28, 0.29), 0.4)
+	var tramos := [[Vector3(0, 0, -1.48), Vector3(3.96, 0, 0)], [Vector3(1.98, 0, 0), Vector3(0, 0, 2.96)],
+		[Vector3(-1.98, 0, -0.95), Vector3(0, 0, 1.06)], [Vector3(-1.98, 0, 0.95), Vector3(0, 0, 1.06)]]
+	for t in tramos:
+		var c: Vector3 = t[0]
+		var l: Vector3 = t[1]
+		var largo := maxf(l.x, l.z)
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(largo if l.x > 0 else 0.02, 0.9, largo if l.z > 0 else 0.02)
+		mi.mesh = bm
+		mi.material_override = vidrio
+		mi.position = c + Vector3(0, 0.5, 0)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		r.add_child(mi)
+		for y in [0.05, 0.95]:
+			var pf := MeshInstance3D.new()
+			var pb := BoxMesh.new()
+			pb.size = Vector3(largo if l.x > 0 else 0.04, 0.04, largo if l.z > 0 else 0.04)
+			pf.mesh = pb
+			pf.material_override = perfil
+			pf.position = c + Vector3(0, y, 0)
+			r.add_child(pf)
+		var n := int(largo / 0.98)
+		for k in n + 1:
+			var po := MeshInstance3D.new()
+			var pbm := BoxMesh.new()
+			pbm.size = Vector3(0.04, 0.94, 0.04)
+			po.mesh = pbm
+			po.material_override = perfil
+			var off := -largo * 0.5 + largo * k / maxf(n, 1)
+			po.position = c + (Vector3(off, 0.5, 0) if l.x > 0 else Vector3(0, 0.5, off))
+			r.add_child(po)
 
 func nodo_de(e: Fabrica.Entidad) -> Node3D:
 	return _vis.get(e)
