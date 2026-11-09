@@ -1,18 +1,33 @@
 class_name HUD
 extends CanvasLayer
-## HUD de la pantalla objetivo (P3.8). Todo en paneles: ningún texto sobre el mundo.
-## Datos de muestra hasta que exista la simulación (P4); los textos van por tr().
+## HUD (P3.8, segunda versión): los paneles son piezas del laboratorio, con el mismo
+## lenguaje que las máquinas. Carcasa blanca biselada con tornillos y franja azul de
+## proceso; los datos van dentro de «pantallas» iguales a las de las máquinas (fondo verde
+## oscuro con rejilla, tinta verde clara); las casillas son bandejas hundidas y los botones
+## son pulsadores físicos. Datos de muestra hasta P4; textos por tr().
 
-const C_PANEL := Color(0.075, 0.09, 0.1, 0.9)
-const C_CASILLA := Color(0.13, 0.16, 0.18)        # = fondo de los iconos renderizados
-const C_BORDE := Color(1, 1, 1, 0.07)
-const C_TEXTO := Color(0.91, 0.93, 0.94)
-const C_TENUE := Color(0.55, 0.61, 0.64)
-const C_ACENTO := Color(0.25, 0.71, 0.66)         # verde clínico de la empresa
-const C_OK := Color(0.33, 0.8, 0.45)
-const C_AMBAR := Color(0.95, 0.7, 0.24)
-const C_ROJO := Color(0.9, 0.29, 0.3)
-const C_ZOMBI := Color(0.56, 0.84, 0.27)
+# colores en sRGB sacados de los materiales de las máquinas (comun.py) y de la sala
+const C_CARCASA := Color(0.93, 0.925, 0.9)
+const C_CARCASA_OSC := Color(0.8, 0.81, 0.8)
+const C_BISEL_LUZ := Color(1, 1, 1, 0.9)
+const C_BISEL_SOMBRA := Color(0.62, 0.63, 0.62)
+const C_GRAFITO := Color(0.25, 0.28, 0.29)
+const C_ACENTO := Color(0.4, 0.77, 0.9)          # franja azul de las máquinas de proceso
+const C_MARCA := Color(0.29, 0.58, 0.54)          # verde agua de la empresa (paredes, placa P)
+const C_AMARILLO := Color(0.98, 0.86, 0.36)
+const C_TINTA_OSC := Color(0.16, 0.19, 0.2)       # texto serigrafiado sobre la carcasa
+const C_TENUE_OSC := Color(0.42, 0.46, 0.47)
+# pantallas (iguales que PantallaMaquina)
+const P_FONDO := Color(0.03, 0.075, 0.085)
+const P_REJILLA := Color(0.09, 0.2, 0.2)
+const P_TINTA := Color(0.6, 1.0, 0.88)
+const P_TENUE := Color(0.32, 0.62, 0.57)
+const C_OK := Color(0.3, 1.0, 0.45)
+const C_AMBAR := Color(1.0, 0.7, 0.1)
+const C_ROJO := Color(1.0, 0.24, 0.18)
+const C_ZOMBI := Color(0.55, 1.0, 0.25)
+const C_CURA := Color(0.45, 0.7, 1.0)
+const C_BANDEJA := Color(0.74, 0.76, 0.76)        # = fondo de los iconos renderizados
 
 const F_REG := preload("res://assets/fuentes/Inter-Regular.otf")
 const F_MED := preload("res://assets/fuentes/Inter-Medium.otf")
@@ -45,9 +60,7 @@ var propagacion := 0.032
 var cura := 0.12
 var dia := 47
 var minuto := 8 * 60 + 40
-var _seleccion := 0
 var _casillas: Array[Panel] = []
-var _ficha: PanelContainer
 var _ficha_titulo: Label
 var _ficha_desc: Label
 var _ficha_coste: Label
@@ -56,21 +69,17 @@ var _lbl_dinero: Label
 var _lbl_hora: Label
 var _barra_prog: ProgressBar
 var _lbl_prog: Label
-var _mapa: MapaHUD
 var _teletipo: Label
-var _teletipo_caja: Control
 var _t := 0.0
 var _iconos := {}
 
 func _ready() -> void:
 	layer = 5
-	# idioma: castellano por defecto hasta que haya menú de opciones; «-- --idioma=en» para probar
-	var idioma := "es"
+	var idioma := "es"   # castellano por defecto hasta que haya menú de opciones
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--idioma="):
 			idioma = a.trim_prefix("--idioma=")
 	TranslationServer.set_locale(idioma)
-	# móvil: interfaz más grande (la pantalla es pequeña aunque tenga muchos píxeles)
 	var movil := OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios") or "--movil" in OS.get_cmdline_user_args()
 	if movil:
 		get_window().content_scale_factor = 1.3
@@ -86,43 +95,101 @@ func _ready() -> void:
 	_inventario(raiz)
 	_seleccionar(0)
 
-# ------------------------------------------------------------------ utilidades
+# ================================================================== piezas
 func _tema() -> Theme:
 	var t := Theme.new()
 	t.default_font = F_MED
 	t.default_font_size = 15
-	t.set_color("font_color", "Label", C_TEXTO)
+	t.set_color("font_color", "Label", C_TINTA_OSC)
 	var fondo := StyleBoxFlat.new()
-	fondo.bg_color = Color(1, 1, 1, 0.08)
-	fondo.set_corner_radius_all(3)
+	fondo.bg_color = P_REJILLA
 	var lleno := StyleBoxFlat.new()
-	lleno.bg_color = C_ACENTO
-	lleno.set_corner_radius_all(3)
+	lleno.bg_color = P_TINTA
 	t.set_stylebox("background", "ProgressBar", fondo)
 	t.set_stylebox("fill", "ProgressBar", lleno)
 	return t
 
-func _caja(c := C_PANEL, radio := 8, borde := true) -> StyleBoxFlat:
+## Carcasa blanca biselada (luz arriba-izquierda, sombra abajo-derecha) con tornillos.
+func _estilo_carcasa(radio := 10) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
-	s.bg_color = c
+	s.bg_color = C_CARCASA
 	s.set_corner_radius_all(radio)
-	if borde:
-		s.border_color = C_BORDE
-		s.set_border_width_all(1)
-	s.shadow_color = Color(0, 0, 0, 0.25)
-	s.shadow_size = 6
-	s.shadow_offset = Vector2(0, 2)
+	s.border_width_top = 2
+	s.border_width_left = 2
+	s.border_width_bottom = 3
+	s.border_width_right = 3
+	s.border_color = C_BISEL_SOMBRA
+	s.border_blend = true
+	s.shadow_color = Color(0, 0, 0, 0.35)
+	s.shadow_size = 8
+	s.shadow_offset = Vector2(2, 4)
 	return s
 
-func _panel(padre: Control, margen := 14) -> PanelContainer:
+func _carcasa(padre: Control, margen := 14, tornillos := true) -> PanelContainer:
 	var p := PanelContainer.new()
-	var s := _caja()
+	var s := _estilo_carcasa()
 	s.set_content_margin_all(margen)
 	p.add_theme_stylebox_override("panel", s)
 	padre.add_child(p)
+	if tornillos:
+		var tr_ := TornillosHUD.new()
+		tr_.margen = margen
+		p.add_child(tr_)
 	return p
 
-func _texto(padre: Control, t: String, tam := 15, fuente: Font = F_MED, color := C_TEXTO) -> Label:
+## Franja azul de proceso con título serigrafiado en blanco (como la franja de las máquinas).
+func _franja(padre: Control, titulo: String, icono := "") -> HBoxContainer:
+	var f := PanelContainer.new()
+	var s := StyleBoxFlat.new()
+	s.bg_color = C_ACENTO
+	s.set_corner_radius_all(4)
+	s.border_width_bottom = 2
+	s.border_color = C_ACENTO.darkened(0.25)
+	s.content_margin_left = 10; s.content_margin_right = 10; s.content_margin_top = 4; s.content_margin_bottom = 4
+	f.add_theme_stylebox_override("panel", s)
+	padre.add_child(f)
+	var h := _fila(f, 8)
+	if icono != "":
+		h.add_child(IconoHUD.new(icono, Color.WHITE, 14))
+	var l := _texto(h, titulo, 12, F_BOLD, Color.WHITE)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return h
+
+## Pantalla: igual que las de las máquinas (fondo verde oscuro, rejilla, marco negro).
+func _pantalla(padre: Control, margen := 10) -> PanelContainer:
+	var p := PanelContainer.new()
+	var s := StyleBoxFlat.new()
+	s.bg_color = P_FONDO
+	s.set_corner_radius_all(5)
+	s.border_color = Color(0.06, 0.07, 0.075)
+	s.set_border_width_all(3)
+	s.set_content_margin_all(margen)
+	p.add_theme_stylebox_override("panel", s)
+	padre.add_child(p)
+	var r := RejillaHUD.new()
+	p.add_child(r)
+	return p
+
+## Bandeja hundida para un icono (sombra arriba, luz abajo: al revés que la carcasa).
+func _estilo_bandeja(resaltada := false) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = C_BANDEJA
+	s.set_corner_radius_all(6)
+	s.border_width_top = 3
+	s.border_width_left = 2
+	s.border_width_bottom = 1
+	s.border_width_right = 1
+	s.border_color = Color(0.5, 0.52, 0.52)
+	s.border_blend = true
+	if resaltada:
+		s.border_color = C_ACENTO
+		s.set_border_width_all(3)
+		s.border_blend = false
+		s.shadow_color = Color(C_ACENTO, 0.5)
+		s.shadow_size = 6
+	return s
+
+func _texto(padre: Control, t: String, tam := 15, fuente: Font = F_MED, color := C_TINTA_OSC) -> Label:
 	var l := Label.new()
 	l.text = t
 	l.add_theme_font_override("font", fuente)
@@ -135,7 +202,6 @@ func _texto(padre: Control, t: String, tam := 15, fuente: Font = F_MED, color :=
 func _fila(padre: Control, sep := 8) -> HBoxContainer:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", sep)
-	h.alignment = BoxContainer.ALIGNMENT_BEGIN
 	padre.add_child(h)
 	return h
 
@@ -145,40 +211,48 @@ func _columna(padre: Control, sep := 6) -> VBoxContainer:
 	padre.add_child(v)
 	return v
 
+func _hueco(padre: Control) -> void:
+	var c := Control.new()
+	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	padre.add_child(c)
+
 func _icono(nombre: String) -> Texture2D:
 	if not _iconos.has(nombre):
 		var r := "res://assets/iconos/%s.png" % nombre
 		_iconos[nombre] = load(r) if ResourceLoader.exists(r) else null
 	return _iconos[nombre]
 
-## Icono renderizado del objeto/máquina en una casilla redondeada.
-func _casilla_icono(padre: Control, nombre: String, lado := 48, cantidad := -1) -> Panel:
+func _bandeja(padre: Control, nombre: String, lado := 48, cantidad := -1) -> Panel:
 	var p := Panel.new()
 	p.custom_minimum_size = Vector2(lado, lado)
-	var s := _caja(C_CASILLA, 6)
-	s.shadow_size = 0
-	p.add_theme_stylebox_override("panel", s)
+	p.add_theme_stylebox_override("panel", _estilo_bandeja())
 	padre.add_child(p)
 	var tex := _icono(nombre) if nombre != "" else null
 	if tex:
-		var tr_ := TextureRect.new()
-		tr_.texture = tex
-		tr_.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tr_.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tr_.set_anchors_preset(Control.PRESET_FULL_RECT)
-		tr_.offset_left = 3; tr_.offset_top = 3; tr_.offset_right = -3; tr_.offset_bottom = -3
-		tr_.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		p.add_child(tr_)
+		var t := TextureRect.new()
+		t.texture = tex
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 4)
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		p.add_child(t)
 	if cantidad >= 0 and nombre != "":
-		var l := _texto(p, str(cantidad), maxi(11, lado / 4), F_BOLD)
-		l.add_theme_constant_override("outline_size", 4)
-		l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-		l.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		l.offset_left = -40; l.offset_top = -22; l.offset_right = -5; l.offset_bottom = -2
+		# contador como una pegatina de existencias: pastilla oscura con cifra
+		var c := PanelContainer.new()
+		var cs := StyleBoxFlat.new()
+		cs.bg_color = Color(0.1, 0.12, 0.13, 0.92)
+		cs.set_corner_radius_all(4)
+		cs.content_margin_left = 4; cs.content_margin_right = 4
+		c.add_theme_stylebox_override("panel", cs)
+		p.add_child(c)
+		_texto(c, str(cantidad), maxi(11, lado / 5), F_BOLD, P_TINTA)
+		c.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 3)
+		c.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		c.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	return p
 
-func _barra(padre: Control, valor: float, color := C_ACENTO, alto := 6, ancho := 0) -> ProgressBar:
+func _barra(padre: Control, valor: float, color := P_TINTA, alto := 6, ancho := 0) -> ProgressBar:
 	var b := ProgressBar.new()
 	b.show_percentage = false
 	b.max_value = 1.0
@@ -187,17 +261,45 @@ func _barra(padre: Control, valor: float, color := C_ACENTO, alto := 6, ancho :=
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var f := StyleBoxFlat.new()
 	f.bg_color = color
-	f.set_corner_radius_all(3)
 	b.add_theme_stylebox_override("fill", f)
 	padre.add_child(b)
 	return b
 
-func _separador(padre: Control, vertical := true) -> void:
-	var c := ColorRect.new()
-	c.color = Color(1, 1, 1, 0.08)
-	c.custom_minimum_size = Vector2(1, 28) if vertical else Vector2(0, 1)
-	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	padre.add_child(c)
+## Pulsador físico: aro gris y tapa de color (como los botones de las consolas de máquina).
+func _pulsador(padre: Control, icono: String, tapa: Color, lado := 34, activo := false) -> Panel:
+	var b := Panel.new()
+	b.custom_minimum_size = Vector2(lado, lado)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var s := StyleBoxFlat.new()
+	s.bg_color = tapa if activo else tapa.lerp(C_CARCASA_OSC, 0.3)
+	s.set_corner_radius_all(lado / 2)
+	s.border_color = Color(0.45, 0.48, 0.5)
+	s.set_border_width_all(3)
+	s.border_width_bottom = 5
+	s.shadow_color = Color(tapa, 0.6) if activo else Color(0, 0, 0, 0.2)
+	s.shadow_size = 6 if activo else 2
+	b.add_theme_stylebox_override("panel", s)
+	padre.add_child(b)
+	var ic := IconoHUD.new(icono, Color.WHITE if activo else C_GRAFITO, lado * 0.42)
+	ic.position = Vector2(lado * 0.29, lado * 0.24)
+	b.add_child(ic)
+	var brillo := IconoHUD.new("punto", Color(1, 1, 1, 0.35), lado * 0.22)
+	brillo.position = Vector2(lado * 0.16, lado * 0.1)
+	b.add_child(brillo)
+	return b
+
+func _tecla(padre: Control, t: String, sobre_pantalla := false) -> void:
+	var k := PanelContainer.new()
+	var ks := StyleBoxFlat.new()
+	ks.bg_color = Color(0, 0, 0, 0)
+	ks.border_color = Color(P_TENUE, 0.8) if sobre_pantalla else Color(C_TENUE_OSC, 0.7)
+	ks.set_border_width_all(1)
+	ks.set_corner_radius_all(3)
+	ks.content_margin_left = 4; ks.content_margin_right = 4
+	k.add_theme_stylebox_override("panel", ks)
+	k.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	padre.add_child(k)
+	_texto(k, t, 10, F_BOLD, P_TENUE if sobre_pantalla else C_TENUE_OSC)
 
 func _miles(n: float) -> String:
 	var s := str(int(round(n)))
@@ -207,374 +309,341 @@ func _miles(n: float) -> String:
 		s = s.left(s.length() - 3)
 	return s + r
 
-# ------------------------------------------------------------------ barra superior
+func _anclar(c: Control, preset: Control.LayoutPreset) -> void:
+	c.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE, 16)
+
+# ================================================================== barra superior
+## Consola larga de carcasa blanca; cada dato es un visor (pantalla pequeña) con su
+## etiqueta serigrafiada encima, como el panel de instrumentos de una máquina.
 func _barra_superior(raiz: Control) -> void:
 	var barra := PanelContainer.new()
-	var s := _caja(Color(0.06, 0.075, 0.085, 0.94), 0, false)
-	s.border_color = Color(0.25, 0.71, 0.66, 0.5)
-	s.border_width_bottom = 2
-	s.content_margin_left = 18; s.content_margin_right = 18; s.content_margin_top = 6; s.content_margin_bottom = 6
+	var s := _estilo_carcasa(0)
+	s.corner_radius_bottom_left = 12
+	s.corner_radius_bottom_right = 12
+	s.border_width_top = 0
+	s.content_margin_left = 16; s.content_margin_right = 16; s.content_margin_top = 6; s.content_margin_bottom = 10
 	barra.add_theme_stylebox_override("panel", s)
 	barra.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	barra.offset_bottom = 58
 	raiz.add_child(barra)
-	var h := _fila(barra, 22)
-	# marca
-	var marca := _fila(h, 10)
+	var v := _columna(barra, 6)
+	var h := _fila(v, 14)
+	# placa de la empresa
+	var placa := PanelContainer.new()
+	var ps := StyleBoxFlat.new()
+	ps.bg_color = C_MARCA
+	ps.set_corner_radius_all(6)
+	ps.border_width_bottom = 3
+	ps.border_color = C_MARCA.darkened(0.3)
+	ps.content_margin_left = 8; ps.content_margin_right = 12; ps.content_margin_top = 3; ps.content_margin_bottom = 3
+	placa.add_theme_stylebox_override("panel", ps)
+	placa.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(placa)
+	var pf := _fila(placa, 8)
 	var logo := Panel.new()
-	logo.custom_minimum_size = Vector2(34, 34)
+	logo.custom_minimum_size = Vector2(30, 30)
 	logo.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var ls := _caja(C_ACENTO, 7, false)
-	ls.shadow_size = 0
+	var ls := StyleBoxFlat.new()
+	ls.bg_color = Color.WHITE
+	ls.set_corner_radius_all(5)
 	logo.add_theme_stylebox_override("panel", ls)
-	marca.add_child(logo)
-	var p := _texto(logo, "P", 24, F_BOLD, Color(0.05, 0.12, 0.11))
+	pf.add_child(logo)
+	var p := _texto(logo, "P", 21, F_BOLD, C_MARCA)
 	p.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	p.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var nm := _columna(marca, -2)
-	_texto(nm, tr("HUD_EMPRESA"), 16, F_BOLD)
-	_texto(nm, tr("HUD_SEDE"), 12, F_REG, C_TENUE)
-	var hueco := Control.new()
-	hueco.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	h.add_child(hueco)
-	# fondos
-	var fd := _dato(h, "dinero", C_AMBAR, tr("HUD_FONDOS"))
-	_lbl_dinero = _texto(fd, "", 19, F_BOLD)
-	_texto(fd, "+340 " + tr("HUD_POR_MIN"), 13, F_SEMI, C_OK)
-	_separador(h)
-	# energía
-	var en := _dato(h, "energia", Color(1.0, 0.82, 0.3), tr("HUD_ENERGIA"))
-	_texto(en, "%s / %d kW" % [String.num(energia.x, 1).replace(".", ","), int(energia.y)], 17, F_SEMI)
-	_barra(en, energia.x / energia.y, C_AMBAR if energia.x / energia.y > 0.8 else C_ACENTO, 6, 70)
-	_separador(h)
-	# mundo: mini mapa + propagación
-	var mu := _fila(h, 10)
-	_mapa = MapaHUD.new()
-	_mapa.custom_minimum_size = Vector2(150, 46)
-	_mapa.infeccion = propagacion
-	mu.add_child(_mapa)
-	var mc := _columna(mu, -2)
-	var mf := _fila(mc, 6)
-	mf.add_child(IconoHUD.new("cepa", C_ZOMBI, 14))
-	_texto(mf, tr("HUD_PROPAGACION"), 12, F_MED, C_TENUE)
-	_texto(mc, "%s %%" % String.num(propagacion * 100.0, 1).replace(".", ","), 17, F_BOLD, C_ZOMBI)
-	_separador(h)
-	# cura
-	var cu := _dato(h, "cura", Color(0.55, 0.75, 1.0), tr("HUD_CURA"))
-	_texto(cu, "%d %%" % int(cura * 100), 17, F_SEMI)
-	_barra(cu, cura, Color(0.45, 0.65, 1.0), 6, 60)
-	_separador(h)
-	# fecha y velocidad
-	var fe := _dato(h, "fecha", C_TENUE, tr("HUD_DIA") % dia)
-	_lbl_hora = _texto(fe, "", 17, F_SEMI)
-	var vel := _fila(h, 4)
+	var nm := _columna(pf, -3)
+	_texto(nm, tr("HUD_EMPRESA"), 15, F_BOLD, Color.WHITE)
+	_texto(nm, tr("HUD_SEDE"), 11, F_MED, Color(1, 1, 1, 0.8))
+	_hueco(h)
+	# visores
+	var vd := _visor(h, tr("HUD_FONDOS"), "dinero", C_AMBAR)
+	_lbl_dinero = _texto(vd, "", 19, F_BOLD, P_TINTA)
+	_texto(vd, "+340" + tr("HUD_POR_MIN"), 12, F_SEMI, C_OK)
+	var ve := _visor(h, tr("HUD_ENERGIA"), "energia", C_AMARILLO)
+	_texto(ve, "%s/%d kW" % [String.num(energia.x, 1).replace(".", ","), int(energia.y)], 17, F_SEMI, P_TINTA)
+	_barra(ve, energia.x / energia.y, P_TINTA, 7, 60)
+	var vp := _visor(h, tr("HUD_PROPAGACION"), "cepa", C_ZOMBI)
+	_texto(vp, "%s %%" % String.num(propagacion * 100.0, 1).replace(".", ","), 17, F_BOLD, C_ZOMBI)
+	var vc := _visor(h, tr("HUD_CURA"), "cura", C_CURA)
+	_texto(vc, "%d %%" % int(cura * 100), 17, F_SEMI, C_CURA)
+	_barra(vc, cura, C_CURA, 7, 50)
+	var vf := _visor(h, tr("HUD_DIA") % dia, "fecha", P_TENUE)
+	_lbl_hora = _texto(vf, "", 17, F_SEMI, P_TINTA)
+	_hueco(h)
+	# pulsadores de velocidad y de pantallas
+	var vel := _fila(h, 6)
 	for i in 4:
-		var b := Panel.new()
-		b.custom_minimum_size = Vector2(30, 30)
-		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		var bs := _caja(C_ACENTO if i == 1 else Color(1, 1, 1, 0.06), 6, false)
-		bs.shadow_size = 0
-		b.add_theme_stylebox_override("panel", bs)
-		vel.add_child(b)
-		var ic := IconoHUD.new(["pausa", "play", "rapido", "rapido"][i], Color(0.05, 0.12, 0.11) if i == 1 else C_TEXTO, 14)
-		ic.position = Vector2(8, 8)
-		b.add_child(ic)
-		if i == 3:
-			var x3 := _texto(b, "3", 9, F_BOLD)
-			x3.position = Vector2(21, 15)
-	_separador(h)
-	# pantallas completas
-	var pant := _fila(h, 4)
+		_pulsador(vel, ["pausa", "play", "rapido", "rapido"][i], [C_AMBAR, C_OK, C_ACENTO, C_ACENTO][i], 32, i == 1)
+	var sep := ColorRect.new()
+	sep.color = C_BISEL_SOMBRA
+	sep.custom_minimum_size = Vector2(2, 34)
+	sep.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(sep)
+	var pant := _fila(h, 6)
 	for n in ["cepa", "mundo", "hitos", "produccion", "correo"]:
-		var b := Panel.new()
-		b.custom_minimum_size = Vector2(34, 34)
-		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		var bs := _caja(Color(1, 1, 1, 0.05), 6, false)
-		bs.shadow_size = 0
-		b.add_theme_stylebox_override("panel", bs)
-		pant.add_child(b)
-		var ic := IconoHUD.new(n, C_TEXTO, 18)
-		ic.position = Vector2(8, 8)
-		b.add_child(ic)
+		var b := _pulsador(pant, n, C_GRAFITO, 34)
 		if n == "correo":
-			var badge := Panel.new()
-			var bb := _caja(C_ROJO, 8, false)
-			bb.shadow_size = 0
-			badge.add_theme_stylebox_override("panel", bb)
-			badge.position = Vector2(20, -4)
-			badge.size = Vector2(17, 17)
-			b.add_child(badge)
-			var n2 := _texto(badge, "2", 11, F_BOLD)
+			var led := Panel.new()
+			var lsb := StyleBoxFlat.new()
+			lsb.bg_color = C_ROJO
+			lsb.set_corner_radius_all(8)
+			lsb.shadow_color = Color(C_ROJO, 0.7)
+			lsb.shadow_size = 4
+			led.add_theme_stylebox_override("panel", lsb)
+			led.position = Vector2(22, -4)
+			led.size = Vector2(16, 16)
+			b.add_child(led)
+			var n2 := _texto(led, "2", 10, F_BOLD, Color.WHITE)
 			n2.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			n2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	# teletipo bajo la barra
-	_teletipo_caja = Control.new()
-	_teletipo_caja.clip_contents = true
-	_teletipo_caja.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_teletipo_caja.offset_top = 58
-	_teletipo_caja.offset_bottom = 84
-	_teletipo_caja.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	raiz.add_child(_teletipo_caja)
-	var fondo := ColorRect.new()
-	fondo.color = Color(0.05, 0.06, 0.07, 0.72)
-	fondo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_teletipo_caja.add_child(fondo)
-	_teletipo = _texto(_teletipo_caja, "", 13, F_REG, Color(0.8, 0.84, 0.86))
-	_teletipo.position = Vector2(190, 3)
-	_teletipo.text = "      ●      ".join([tr("HUD_NOTICIA_1"), tr("HUD_NOTICIA_2"), tr("HUD_NOTICIA_3")])
-	var directo := PanelContainer.new()
-	var ds := _caja(C_ROJO, 0, false)
-	ds.shadow_size = 0
-	ds.content_margin_left = 12; ds.content_margin_right = 12
-	directo.add_theme_stylebox_override("panel", ds)
-	directo.position = Vector2(0, 0)
-	directo.size = Vector2(0, 26)
-	_teletipo_caja.add_child(directo)
-	var dl := _texto(directo, "●  " + tr("HUD_DIRECTO"), 12, F_BOLD)
-	dl.custom_minimum_size.y = 26
+	# teletipo: visor largo de leds dentro de la consola, con piloto rojo EN DIRECTO
+	var tt := _fila(v, 8)
+	var dir := _fila(tt, 6)
+	var piloto := IconoHUD.new("punto", C_ROJO, 12)
+	piloto.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	dir.add_child(piloto)
+	_texto(dir, tr("HUD_DIRECTO"), 11, F_BOLD, C_ROJO)
+	var visor := _pantalla(tt, 0)
+	visor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	visor.custom_minimum_size.y = 24
+	var clip := Control.new()
+	clip.clip_contents = true
+	clip.custom_minimum_size = Vector2(0, 18)
+	visor.add_child(clip)
+	_teletipo = _texto(clip, "      ◆      ".join([tr("HUD_NOTICIA_1"), tr("HUD_NOTICIA_2"), tr("HUD_NOTICIA_3")]), 13, F_SEMI, C_AMBAR)
+	_teletipo.position = Vector2(400, -1)
 
-## Grupo icono + (título pequeño encima, valores debajo). Devuelve la fila de valores.
-func _dato(padre: Control, icono: String, color: Color, titulo: String) -> HBoxContainer:
-	var g := _fila(padre, 10)
-	var ic := IconoHUD.new(icono, color, 22)
+## Visor: etiqueta serigrafiada en la carcasa + pantalla pequeña con icono. Devuelve la fila de valores.
+func _visor(padre: Control, titulo: String, icono: String, color: Color) -> HBoxContainer:
+	var c := _columna(padre, 2)
+	c.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_texto(c, titulo.to_upper(), 10, F_BOLD, C_TENUE_OSC)
+	var p := _pantalla(c, 0)
+	var m := MarginContainer.new()
+	m.add_theme_constant_override("margin_left", 8)
+	m.add_theme_constant_override("margin_right", 10)
+	m.add_theme_constant_override("margin_top", 2)
+	m.add_theme_constant_override("margin_bottom", 2)
+	p.add_child(m)
+	var h := _fila(m, 8)
+	var ic := IconoHUD.new(icono, color, 18)
 	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	g.add_child(ic)
-	var c := _columna(g, -2)
-	_texto(c, titulo, 12, F_MED, C_TENUE)
-	return _fila(c, 8)
+	h.add_child(ic)
+	return _fila(h, 8)
 
-# ------------------------------------------------------------------ objetivo
+# ================================================================== objetivo
 func _panel_objetivo(raiz: Control) -> void:
-	var p := _panel(raiz, 16)
-	p.position = Vector2(18, 100)
-	p.custom_minimum_size = Vector2(390, 0)
+	var p := _carcasa(raiz, 14)
+	p.position = Vector2(16, 112)
+	p.custom_minimum_size = Vector2(380, 0)
 	var v := _columna(p, 10)
-	var cab := _fila(v, 8)
-	cab.add_child(IconoHUD.new("hitos", C_ACENTO, 15))
-	_texto(cab, tr("HUD_OBJETIVO"), 12, F_BOLD, C_ACENTO)
-	_texto(v, tr("HUD_FASE"), 18, F_SEMI)
+	_franja(v, tr("HUD_OBJETIVO"), "hitos")
+	_texto(v, tr("HUD_FASE"), 17, F_BOLD)
+	var pant := _pantalla(v, 10)
+	var lista := _columna(pant, 10)
 	for o in [["tubo_plasma", "HUD_OBJ_PLASMA", 34, 50], ["caja_vacunas", "HUD_OBJ_VACUNAS", 20, 20], ["vial_mutacion", "HUD_OBJ_MUTACION", 0, 1]]:
-		var f := _fila(v, 12)
-		_casilla_icono(f, o[0], 44)
-		var c := _columna(f, 5)
+		var f := _fila(lista, 10)
+		_bandeja(f, o[0], 40)
+		var c := _columna(f, 4)
 		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var arriba := _fila(c, 6)
 		var hecho: bool = o[2] >= o[3]
-		var l := _texto(arriba, tr(o[1]), 14, F_MED, C_TENUE if hecho else C_TEXTO)
+		var l := _texto(arriba, tr(o[1]), 13, F_MED, P_TENUE if hecho else P_TINTA)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		if hecho:
 			arriba.add_child(IconoHUD.new("check", C_OK, 16))
 		else:
-			_texto(arriba, "%d / %d" % [o[2], o[3]], 14, F_BOLD)
-		_barra(c, float(o[2]) / o[3], C_OK if hecho else C_ACENTO, 5)
-	_separador(v, false)
+			_texto(arriba, "%d/%d" % [o[2], o[3]], 13, F_BOLD, P_TINTA)
+		_barra(c, float(o[2]) / o[3], C_OK if hecho else P_TINTA, 6)
 	var rec := _fila(v, 8)
-	rec.add_child(IconoHUD.new("flecha", C_TENUE, 13))
-	_texto(rec, tr("HUD_RECOMPENSA"), 13, F_REG, C_TENUE)
+	rec.add_child(IconoHUD.new("flecha", C_TENUE_OSC, 13))
+	_texto(rec, tr("HUD_RECOMPENSA"), 12, F_MED, C_TENUE_OSC)
 
-# ------------------------------------------------------------------ panel de máquina
+# ================================================================== panel de máquina
 func _panel_maquina(raiz: Control) -> void:
-	var p := _panel(raiz, 16)
+	var p := _carcasa(raiz, 14)
 	p.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	p.offset_left = -418
-	p.offset_right = -18
-	p.offset_top = 100
-	var v := _columna(p, 12)
+	p.offset_left = -414
+	p.offset_right = -16
+	p.offset_top = 112
+	var v := _columna(p, 10)
 	var cab := _fila(v, 12)
-	_casilla_icono(cab, "centrifuga", 64)
-	var cc := _columna(cab, 3)
+	_bandeja(cab, "centrifuga", 64)
+	var cc := _columna(cab, 4)
 	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_texto(cc, tr("MAQ_CENTRIFUGA"), 18, F_SEMI)
+	cc.alignment = BoxContainer.ALIGNMENT_CENTER
+	_texto(cc, tr("MAQ_CENTRIFUGA"), 17, F_BOLD)
 	var est := _fila(cc, 8)
-	var chip := PanelContainer.new()
-	var cs := _caja(Color(0.33, 0.8, 0.45, 0.16), 10, false)
-	cs.shadow_size = 0
-	cs.content_margin_left = 8; cs.content_margin_right = 10; cs.content_margin_top = 2; cs.content_margin_bottom = 2
-	chip.add_theme_stylebox_override("panel", cs)
-	est.add_child(chip)
-	var ch := _fila(chip, 5)
-	ch.add_child(IconoHUD.new("punto", C_OK, 10))
-	_texto(ch, tr("HUD_TRABAJANDO"), 11, F_BOLD, C_OK)
-	_texto(est, "#C-03", 12, F_MED, C_TENUE)
-	# receta
-	_texto(v, tr("HUD_RECETA").to_upper(), 11, F_BOLD, C_TENUE)
-	var rc := PanelContainer.new()
-	var rs := _caja(Color(1, 1, 1, 0.04), 8, false)
-	rs.shadow_size = 0
-	rs.set_content_margin_all(10)
-	rc.add_theme_stylebox_override("panel", rs)
-	v.add_child(rc)
+	# torre de luces en miniatura: verde encendida
+	var torre := _fila(est, 3)
+	for k in 3:
+		var col: Color = [C_OK, C_AMBAR, C_ROJO][k]
+		torre.add_child(IconoHUD.new("punto", col if k == 0 else col.lerp(C_CARCASA_OSC, 0.75), 12))
+	_texto(est, tr("HUD_TRABAJANDO"), 11, F_BOLD, Color(0.15, 0.6, 0.3))
+	_texto(est, "#C-03", 11, F_MED, C_TENUE_OSC)
+	_franja(v, tr("HUD_RECETA").to_upper())
+	var rc := _pantalla(v, 10)
 	var rf := _fila(rc, 10)
-	_casilla_icono(rf, "tubo_sangre", 52, 1)
+	_bandeja(rf, "tubo_sangre", 50, 1)
 	var mid := _columna(rf, 4)
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mid.alignment = BoxContainer.ALIGNMENT_CENTER
-	var fl := IconoHUD.new("flecha", C_TENUE, 18)
+	var fl := IconoHUD.new("flecha", P_TENUE, 18)
 	fl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	mid.add_child(fl)
-	_barra_prog = _barra(mid, 0.4, C_ACENTO, 6)
+	_barra_prog = _barra(mid, 0.4, P_TINTA, 8)
 	var tf := _fila(mid, 4)
 	tf.alignment = BoxContainer.ALIGNMENT_CENTER
-	tf.add_child(IconoHUD.new("reloj", C_TENUE, 12))
-	_lbl_prog = _texto(tf, "3,0 s", 12, F_MED, C_TENUE)
-	_casilla_icono(rf, "tubo_plasma", 52, 1)
-	# cifras
+	tf.add_child(IconoHUD.new("reloj", P_TENUE, 12))
+	_lbl_prog = _texto(tf, "3,0 s", 12, F_SEMI, P_TENUE)
+	_bandeja(rf, "tubo_plasma", 50, 1)
+	# cifras en una pantalla partida
 	var grid := GridContainer.new()
 	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 10)
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
 	v.add_child(grid)
-	for d in [["HUD_RITMO", "20 " + tr("HUD_POR_MIN"), "produccion", C_TEXTO], ["HUD_CONSUMO", "4,5 kW", "energia", Color(1.0, 0.82, 0.3)],
-			["HUD_EFICIENCIA", "100 %", "check", C_OK], ["HUD_PRODUCIDO", "1.284", "reloj", C_TEXTO]]:
-		var celda := PanelContainer.new()
-		var es := _caja(Color(1, 1, 1, 0.04), 8, false)
-		es.shadow_size = 0
-		es.set_content_margin_all(10)
-		celda.add_theme_stylebox_override("panel", es)
+	for d in [["HUD_RITMO", "20" + tr("HUD_POR_MIN"), "produccion", P_TINTA], ["HUD_CONSUMO", "4,5 kW", "energia", C_AMARILLO],
+			["HUD_EFICIENCIA", "100 %", "check", C_OK], ["HUD_PRODUCIDO", "1.284", "reloj", P_TINTA]]:
+		var celda := _pantalla(grid, 8)
 		celda.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(celda)
-		var cf := _fila(celda, 10)
-		cf.add_child(IconoHUD.new(d[2], d[3], 18))
+		var cf := _fila(celda, 8)
+		var ic := IconoHUD.new(d[2], d[3], 18)
+		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		cf.add_child(ic)
 		var cv := _columna(cf, -2)
-		_texto(cv, tr(d[0]), 11, F_MED, C_TENUE)
-		_texto(cv, d[1], 16, F_SEMI)
-	# almacenes de entrada y salida
+		_texto(cv, tr(d[0]), 10, F_SEMI, P_TENUE)
+		_texto(cv, d[1], 16, F_BOLD, P_TINTA)
+	# almacenes de entrada y salida: fila de huecos como una gradilla
 	for b in [["HUD_ENTRADA", "tubo_sangre", 6, 10], ["HUD_SALIDA", "tubo_plasma", 2, 10]]:
-		var f := _fila(v, 10)
-		var l := _texto(f, tr(b[0]), 13, F_MED, C_TENUE)
-		l.custom_minimum_size.x = 64
-		var huecos := _fila(f, 3)
+		var f := _fila(v, 8)
+		var l := _texto(f, tr(b[0]).to_upper(), 10, F_BOLD, C_TENUE_OSC)
+		l.custom_minimum_size.x = 58
+		var huecos := _fila(f, 2)
 		for i in b[3]:
-			var h := Panel.new()
-			h.custom_minimum_size = Vector2(20, 26)
-			var hs := _caja(C_CASILLA if i < b[2] else Color(1, 1, 1, 0.04), 3, false)
-			hs.shadow_size = 0
-			h.add_theme_stylebox_override("panel", hs)
-			huecos.add_child(h)
+			var hp := Panel.new()
+			hp.custom_minimum_size = Vector2(20, 28)
+			var hs := _estilo_bandeja()
+			hs.set_corner_radius_all(3)
+			if i >= b[2]:
+				hs.bg_color = C_CARCASA_OSC
+			hp.add_theme_stylebox_override("panel", hs)
+			huecos.add_child(hp)
 			if i < b[2]:
 				var t := TextureRect.new()
 				t.texture = _icono(b[1])
 				t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 				t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-				t.set_anchors_preset(Control.PRESET_FULL_RECT)
-				h.add_child(t)
-		_texto(f, "%d/%d" % [b[2], b[3]], 13, F_SEMI)
-	# acciones
+				t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 1)
+				hp.add_child(t)
+		_texto(f, "%d/%d" % [b[2], b[3]], 12, F_BOLD)
+	# pulsadores de acción
 	var acc := _fila(v, 8)
-	for a in [["mover", "HUD_MOVER", "M"], ["pausa", "HUD_PAUSAR", "P"], ["quitar", "HUD_QUITAR", "X"]]:
-		var bp := PanelContainer.new()
-		var bs := _caja(Color(0.9, 0.29, 0.3, 0.14) if a[0] == "quitar" else Color(1, 1, 1, 0.06), 7, false)
-		bs.shadow_size = 0
-		bs.content_margin_left = 10; bs.content_margin_right = 10; bs.content_margin_top = 7; bs.content_margin_bottom = 7
-		bp.add_theme_stylebox_override("panel", bs)
-		bp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		acc.add_child(bp)
-		var af := _fila(bp, 7)
-		af.alignment = BoxContainer.ALIGNMENT_CENTER
-		af.add_child(IconoHUD.new(a[0], C_ROJO if a[0] == "quitar" else C_TEXTO, 14))
-		_texto(af, tr(a[1]), 13, F_SEMI, C_ROJO if a[0] == "quitar" else C_TEXTO)
-		_tecla(af, a[2])
+	for a in [["mover", "HUD_MOVER", "M", C_ACENTO], ["pausa", "HUD_PAUSAR", "P", C_AMBAR], ["quitar", "HUD_QUITAR", "X", C_ROJO]]:
+		var c := _fila(acc, 6)
+		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_pulsador(c, a[0], a[3], 30, true)
+		var cv := _columna(c, 0)
+		_texto(cv, tr(a[1]), 12, F_BOLD)
+		_tecla(cv, a[2])
 
-func _tecla(padre: Control, t: String) -> void:
-	var k := PanelContainer.new()
-	var ks := StyleBoxFlat.new()
-	ks.bg_color = Color(0, 0, 0, 0)
-	ks.border_color = Color(1, 1, 1, 0.25)
-	ks.set_border_width_all(1)
-	ks.set_corner_radius_all(4)
-	ks.content_margin_left = 5; ks.content_margin_right = 5
-	k.add_theme_stylebox_override("panel", ks)
-	padre.add_child(k)
-	_texto(k, t, 11, F_BOLD, C_TENUE)
-
-# ------------------------------------------------------------------ construcción
+# ================================================================== construcción
 func _barra_construccion(raiz: Control) -> void:
 	var caja := VBoxContainer.new()
-	caja.add_theme_constant_override("separation", 6)
-	caja.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	caja.add_theme_constant_override("separation", 8)
+	raiz.add_child(caja)
 	caja.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	caja.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	caja.offset_bottom = -18
-	raiz.add_child(caja)
-	# ficha de la construcción seleccionada (encima de la barra)
-	_ficha = _panel(caja, 14)
-	_ficha.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_ficha.custom_minimum_size = Vector2(430, 0)
-	var fv := _columna(_ficha, 6)
+	# ficha: una pantalla con marco de carcasa, encima de la barra
+	var ficha := _carcasa(caja, 10)
+	ficha.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	ficha.custom_minimum_size = Vector2(440, 0)
+	var fp := _pantalla(ficha, 12)
+	var fv := _columna(fp, 6)
 	var ft := _fila(fv, 10)
-	_ficha_titulo = _texto(ft, "", 16, F_SEMI)
+	_ficha_titulo = _texto(ft, "", 16, F_BOLD, P_TINTA)
 	_ficha_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_ficha_coste = _texto(ft, "", 15, F_BOLD, C_AMBAR)
-	_ficha_desc = _texto(fv, "", 13, F_REG, C_TENUE)
+	_ficha_desc = _texto(fv, "", 12, F_MED, P_TENUE)
 	_ficha_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var fr := _fila(fv, 8)
-	_casilla_icono(fr, "tubo_sangre", 34)
-	fr.add_child(IconoHUD.new("flecha", C_TENUE, 14))
-	_casilla_icono(fr, "tubo_plasma", 34)
-	var hu := Control.new()
-	hu.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	fr.add_child(hu)
-	fr.add_child(IconoHUD.new("energia", Color(1.0, 0.82, 0.3), 14))
-	_ficha_kw = _texto(fr, "", 13, F_SEMI)
-	# pestañas de categoría + casillas
-	var barra := _panel(caja, 10)
+	_bandeja(fr, "tubo_sangre", 34)
+	var fl := IconoHUD.new("flecha", P_TENUE, 14)
+	fl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	fr.add_child(fl)
+	_bandeja(fr, "tubo_plasma", 34)
+	_hueco(fr)
+	var ek := IconoHUD.new("energia", C_AMARILLO, 14)
+	ek.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	fr.add_child(ek)
+	_ficha_kw = _texto(fr, "", 13, F_SEMI, P_TINTA)
+	# barra: carcasa con franja de pestañas y bandejas
+	var barra := _carcasa(caja, 12)
 	barra.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var bv := _columna(barra, 8)
 	var tabs := _fila(bv, 4)
 	for cat in CONSTRUCCIONES:
 		var t := PanelContainer.new()
 		var activa: bool = cat == "HUD_CAT_PROCESADO"
-		var ts := _caja(Color(0.25, 0.71, 0.66, 0.18) if activa else Color(0, 0, 0, 0), 6, false)
-		ts.shadow_size = 0
-		ts.content_margin_left = 10; ts.content_margin_right = 12; ts.content_margin_top = 4; ts.content_margin_bottom = 4
+		var ts := StyleBoxFlat.new()
+		ts.bg_color = C_ACENTO if activa else C_CARCASA_OSC
+		ts.set_corner_radius_all(5)
+		ts.border_width_bottom = 3
+		ts.border_color = (C_ACENTO if activa else C_CARCASA_OSC).darkened(0.25)
+		ts.content_margin_left = 8; ts.content_margin_right = 12; ts.content_margin_top = 3; ts.content_margin_bottom = 3
 		t.add_theme_stylebox_override("panel", ts)
 		tabs.add_child(t)
 		var tf := _fila(t, 6)
 		var ic: String = ICONO_CAT[cat]
 		if ic == "energia":
-			tf.add_child(IconoHUD.new("energia", Color(1.0, 0.82, 0.3), 16))
+			tf.add_child(IconoHUD.new("energia", Color.WHITE if activa else C_GRAFITO, 16))
 		else:
 			var tex := TextureRect.new()
 			tex.texture = _icono(ic)
 			tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			tex.custom_minimum_size = Vector2(20, 20)
+			tex.custom_minimum_size = Vector2(22, 22)
 			tf.add_child(tex)
-		_texto(tf, tr(cat), 13, F_SEMI, C_ACENTO if activa else C_TENUE)
+		_texto(tf, tr(cat), 12, F_BOLD, Color.WHITE if activa else C_GRAFITO)
 	var fila := _fila(bv, 6)
+	_franja_peligro(bv)
 	var lista: Array = CONSTRUCCIONES["HUD_CAT_PROCESADO"]
 	for i in lista.size():
 		var e: Array = lista[i]
-		var col := _columna(fila, 3)
-		var c := _casilla_icono(col, e[0], 76)
+		var col := _columna(fila, 4)
+		var c := _bandeja(col, e[0], 76)
 		c.mouse_filter = Control.MOUSE_FILTER_STOP
 		c.mouse_entered.connect(_seleccionar.bind(i))
 		_casillas.append(c)
-		var num := _texto(c, str(i + 1), 11, F_BOLD, C_TENUE)
+		# número de tecla grabado en la esquina
+		var num := _texto(c, str(i + 1), 11, F_BOLD, Color(0.3, 0.33, 0.34))
 		num.position = Vector2(6, 2)
 		if e[4]:
-			c.modulate = Color(0.45, 0.45, 0.45)
-			var cand := IconoHUD.new("candado", C_TEXTO, 18)
-			cand.position = Vector2(52, 4)
+			c.modulate = Color(0.6, 0.6, 0.6)
+			var cand := IconoHUD.new("candado", C_GRAFITO, 16)
+			cand.position = Vector2(54, 5)
 			c.add_child(cand)
-		var coste := _texto(col, "%s €" % _miles(e[2]), 12, F_SEMI, C_TENUE if e[4] else C_AMBAR)
-		coste.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		# precio en un visor diminuto bajo la bandeja
+		var pv := _pantalla(col, 0)
+		var pl := _texto(pv, "%s €" % _miles(e[2]), 12, F_BOLD, P_TENUE if e[4] else C_AMBAR)
+		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_anclar.call_deferred(caja, Control.PRESET_CENTER_BOTTOM)
+
+## Franja amarilla y negra como la del zócalo de las máquinas.
+func _franja_peligro(padre: Control) -> void:
+	var t := TextureRect.new()
+	t.texture = preload("res://assets/texturas/hud_peligro.png")
+	t.stretch_mode = TextureRect.STRETCH_TILE
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.custom_minimum_size = Vector2(0, 8)
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	padre.add_child(t)
 
 func _seleccionar(i: int) -> void:
 	var lista: Array = CONSTRUCCIONES["HUD_CAT_PROCESADO"]
 	if i < 0 or i >= lista.size():
 		return
-	_seleccion = i
 	for k in _casillas.size():
-		var s := _caja(C_CASILLA, 6)
-		s.shadow_size = 0
-		if k == i:
-			s.border_color = C_ACENTO
-			s.set_border_width_all(2)
-			s.shadow_color = Color(0.25, 0.71, 0.66, 0.35)
-			s.shadow_size = 8
-			s.shadow_offset = Vector2.ZERO
-		_casillas[k].add_theme_stylebox_override("panel", s)
+		_casillas[k].add_theme_stylebox_override("panel", _estilo_bandeja(k == i))
 	var e: Array = lista[i]
 	_ficha_titulo.text = tr(e[1])
 	_ficha_coste.text = "%s €" % _miles(e[2])
@@ -587,26 +656,19 @@ func _unhandled_input(ev: InputEvent) -> void:
 		if k >= KEY_1 and k <= KEY_9:
 			_seleccionar(k - KEY_1)
 
-# ------------------------------------------------------------------ inventario
+# ================================================================== inventario
 func _inventario(raiz: Control) -> void:
-	var p := _panel(raiz, 12)
+	var p := _carcasa(raiz, 12)
 	p.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_anclar.call_deferred(p, Control.PRESET_BOTTOM_LEFT)
 	var v := _columna(p, 8)
-	var cab := _fila(v, 8)
-	_texto(cab, tr("HUD_INVENTARIO").to_upper(), 11, F_BOLD, C_TENUE)
-	var hu := Control.new()
-	hu.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cab.add_child(hu)
-	_texto(cab, "32 / 40", 12, F_SEMI)
+	var cab := _franja(v, tr("HUD_INVENTARIO").to_upper())
+	_texto(cab, "32/40", 12, F_BOLD, Color.WHITE)
 	var f := _fila(v, 6)
 	for it in INVENTARIO:
-		_casilla_icono(f, it[0], 58, it[1])
+		_bandeja(f, it[0], 58, it[1])
+	_anclar.call_deferred(p, Control.PRESET_BOTTOM_LEFT)
 
-func _anclar(c: Control, preset: Control.LayoutPreset) -> void:
-	c.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE, 18)
-
-# ------------------------------------------------------------------ vivo
+# ================================================================== vivo
 func _process(dt: float) -> void:
 	_t += dt
 	dinero += 340.0 / 60.0 * dt
@@ -617,6 +679,5 @@ func _process(dt: float) -> void:
 	var fr := fmod(_t, ciclo) / ciclo
 	_barra_prog.value = fr
 	_lbl_prog.text = "%s s" % String.num(ciclo * (1.0 - fr), 1).replace(".", ",")
-	# teletipo
 	var ancho := _teletipo.get_minimum_size().x
-	_teletipo.position.x = 190.0 - fmod(_t * 60.0, ancho + 400.0) + 400.0
+	_teletipo.position.x = 400.0 - fmod(_t * 60.0, ancho + 800.0)

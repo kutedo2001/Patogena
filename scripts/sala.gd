@@ -5,6 +5,8 @@ extends Node3D
 
 @export var ancho := 24          # casillas en X
 @export var fondo := 16          # casillas en Z
+## ventanas que no se ponen en la pared del fondo (sitio para el monitor del mundo)
+@export var sin_ventana_fondo: Array[float] = [2.0, 6.0]
 const ALTO := 3.2
 const GROSOR := 0.3
 const ALTO_ZOCALO := 1.1
@@ -89,7 +91,10 @@ func _pared(centro: Vector3, largo: float, normal: Vector3, giro_y: float) -> vo
 	var n_v := int(largo / 4.0)
 	var huecos: Array = []
 	for i in n_v:
-		huecos.append(-largo / 2.0 + 2.0 + i * 4.0)
+		var hx := -largo / 2.0 + 2.0 + i * 4.0
+		if is_equal_approx(giro_y, 0.0) and sin_ventana_fondo.has(hx):
+			continue
+		huecos.append(hx)
 	# tiras de pared entre ventanas
 	var x := -l / 2.0
 	for hx in huecos:

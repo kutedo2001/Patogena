@@ -16,3 +16,5 @@ Lo que nota el jugador, por versión.
 - Interfaz: barra superior (fondos, energía, mapa de propagación, cura, día, velocidad, pantallas), objetivo trimestral, teletipo de noticias, panel de máquina, barra de construcción con fichas e inventario.
 - La máquina seleccionada se marca con un anillo y lo que vas a construir aparece como fantasma verde.
 - La sangre del suelo se ve también en la versión web.
+- La interfaz tiene el mismo estilo que las máquinas: carcasas blancas con tornillos, pantallas verdes y pulsadores.
+- Monitor grande en la pared con el mapa del mundo, la infección por región, la cura y rutas aéreas animadas.

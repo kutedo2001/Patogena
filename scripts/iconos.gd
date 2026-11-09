@@ -5,7 +5,7 @@ extends Node
 
 const LADO := 256
 ## fondo opaco del color de las casillas del HUD: con fondo transparente el vidrio desaparecía
-const FONDO := Color(0.13, 0.16, 0.18)
+const FONDO := Color(0.74, 0.76, 0.76)   # = bandeja del HUD
 const CARPETAS := ["res://assets/modelos/objetos", "res://assets/modelos/maquinas", "res://assets/modelos/cintas"]
 const SOLO := ["cinta_recta_mk1", "cinta_curva_mk1"]   # de las cintas basta una muestra
 

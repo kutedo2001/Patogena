@@ -16,3 +16,4 @@
 - Banco de espera y texturas de sangre: scripts propios.
 - Fuente Inter (Rasmus Andersson), SIL Open Font License 1.1 (assets/fuentes/LICENCIA_Inter_OFL.txt).
 - HUD, iconos vectoriales e iconos 3D renderizados: código propio (scripts/hud.gd, icono_hud.gd, mapa_hud.gd, iconos.gd).
+- Monitor del mundo: script propio (tools/blender/monitor_mundo.py, scripts/pantalla_mundo.gd).

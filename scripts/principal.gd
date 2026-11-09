@@ -191,6 +191,9 @@ func _process(dt: float) -> void:
 func _ready() -> void:
 	add_child(HUD.new())
 	_seleccion_y_fantasma()
+	var monitor := MonitorMundo.new()
+	monitor.position = Vector3(4.0, 0, -8.0)
+	add_child(monitor)
 	_igualar_renderizadores()
 	sala.camara = camara
 	for e in MAQUINAS:

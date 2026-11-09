@@ -38,3 +38,5 @@
 | 2026-11-09 | HUD construido por código (hud.gd) con fuente Inter (OFL), iconos vectoriales propios e iconos 3D renderizados desde los modelos sobre el color de la casilla | Iconos coherentes con el mundo; con fondo transparente el vidrio desaparecía |
 | 2026-11-09 | Idioma por defecto castellano hasta que haya menú de opciones; en móvil la interfaz se escala ×1,3 | La pantalla del móvil es pequeña aunque tenga muchos píxeles |
 | 2026-11-09 | Marcas de interfaz en el mundo sin texto: anillo de selección pulsante y fantasma verde translúcido con su huella | Regla 6 |
+| 2026-11-09 | HUD v2: paneles como piezas del laboratorio (carcasa blanca biselada con tornillos, franja azul de proceso, pantallas iguales que las de las máquinas, bandejas hundidas, pulsadores físicos, franja de peligro) | Edu: el HUD oscuro genérico no tenía el estilo del juego |
+| 2026-11-09 | El mapa del mundo pasa a un monitor grande en la pared del fondo (sin ventanas en ese tramo) y sale de la barra superior | Propuesta de Edu: se lee mucho mejor y es parte del laboratorio |
