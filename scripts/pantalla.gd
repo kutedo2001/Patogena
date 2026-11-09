@@ -6,8 +6,8 @@ extends Control
 ## Disposición común: cabecera (estado, reloj, eficiencia, logotipo) · cuerpo
 ## (gráfica y dato principal) · pie (entrada → progreso → salida, con existencias).
 
-enum Tipo { CENTRIFUGA, SECUENCIADOR, BIORREACTOR, MEZCLADORA }
-enum Icono { SANGRE, PLASMA, CULTIVO, ADN, VIAL, AGUA, REACTIVO, SUERO }
+enum Tipo { CENTRIFUGA, SECUENCIADOR, BIORREACTOR, MEZCLADORA, ENVASADORA, CEPA }
+enum Icono { SANGRE, PLASMA, CULTIVO, ADN, VIAL, AGUA, REACTIVO, SUERO, CAJA }
 
 const FONDO := Color(0.03, 0.075, 0.085)
 const REJILLA := Color(0.09, 0.2, 0.2)
@@ -18,13 +18,16 @@ const BASES := [Color(0.25, 0.95, 0.4), Color(0.3, 0.62, 1.0), Color(1.0, 0.82, 
 const C_ICONO := {
 	Icono.SANGRE: Color(0.8, 0.06, 0.08), Icono.PLASMA: Color(0.98, 0.72, 0.15),
 	Icono.CULTIVO: Color(0.85, 0.66, 0.3), Icono.ADN: Color(0.3, 1.0, 0.45), Icono.VIAL: Color(0.5, 0.95, 0.2),
-	Icono.AGUA: Color(0.5, 0.8, 1.0), Icono.REACTIVO: Color(0.55, 0.3, 1.0), Icono.SUERO: Color(0.98, 0.85, 0.45)}
+	Icono.AGUA: Color(0.5, 0.8, 1.0), Icono.REACTIVO: Color(0.55, 0.3, 1.0), Icono.SUERO: Color(0.98, 0.85, 0.45),
+	Icono.CAJA: Color(0.95, 0.95, 0.92)}
 # receta que enseña cada máquina: [entrada, salida]
 const RECETA := {
 	Tipo.CENTRIFUGA: [Icono.SANGRE, Icono.PLASMA],
 	Tipo.SECUENCIADOR: [Icono.CULTIVO, Icono.ADN],
 	Tipo.BIORREACTOR: [Icono.ADN, Icono.VIAL],
-	Tipo.MEZCLADORA: [Icono.AGUA, Icono.SUERO]}
+	Tipo.MEZCLADORA: [Icono.AGUA, Icono.SUERO],
+	Tipo.ENVASADORA: [Icono.ADN, Icono.CAJA],
+	Tipo.CEPA: [Icono.VIAL, Icono.VIAL]}
 
 var tipo: Tipo = Tipo.CENTRIFUGA
 var estado := 1            # Maquina.Estado (0 apagada, 1 trabaja, 2 sin material, 3 avería)
@@ -130,6 +133,14 @@ func _icono(ic: Icono, c: Vector2, h: float, contorno := false) -> void:
 			draw_circle(c + Vector2(0, -h * 0.44), h * 0.05, TINTA)
 			draw_line(c + Vector2(-w * 0.2, h * 0.28), c + Vector2(-w * 0.2, h * 0.48), TINTA, linea)
 			draw_line(c + Vector2(w * 0.2, h * 0.28), c + Vector2(w * 0.2, h * 0.48), TINTA, linea)
+		Icono.CAJA:
+			var w := h * 0.8
+			var cuerpo := Rect2(c + Vector2(-w / 2, -h * 0.3), Vector2(w, h * 0.6))
+			if not contorno:
+				draw_rect(cuerpo, col)
+				draw_rect(Rect2(c + Vector2(-h * 0.05, -h * 0.2), Vector2(h * 0.1, h * 0.4)), Color(0.15, 0.6, 0.45))
+				draw_rect(Rect2(c + Vector2(-h * 0.2, -h * 0.05), Vector2(h * 0.4, h * 0.1)), Color(0.15, 0.6, 0.45))
+			draw_rect(cuerpo, TINTA, false, linea)
 		Icono.VIAL:
 			var w := h * 0.5
 			var cuerpo := Rect2(c + Vector2(-w / 2, -h * 0.12), Vector2(w, h * 0.6))
@@ -168,8 +179,8 @@ func _pie(w: float, h: float) -> float:
 	_icono(r[0], Vector2(_px(14), y0 + hp / 2), ic, entradas == 0)
 	_txt(Vector2(_px(26), y0 + hp * 0.68), "×%d" % entradas, 13, TINTA if entradas > 0 else C_ESTADO[2])
 	var bx := _px(62)
-	if tipo == Tipo.MEZCLADORA:   # segunda entrada: reactivo
-		_icono(Icono.REACTIVO, Vector2(_px(64), y0 + hp / 2), ic, entradas == 0)
+	if tipo == Tipo.MEZCLADORA or tipo == Tipo.ENVASADORA:   # segunda entrada
+		_icono(Icono.REACTIVO if tipo == Tipo.MEZCLADORA else Icono.SUERO, Vector2(_px(64), y0 + hp / 2), ic, entradas == 0)
 		_txt(Vector2(_px(76), y0 + hp * 0.68), "×%d" % entradas, 13, TINTA if entradas > 0 else C_ESTADO[2])
 		bx = _px(112)
 	var bw := w - bx - _px(66)
@@ -238,6 +249,7 @@ func _draw() -> void:
 		Tipo.SECUENCIADOR: _secuenciador(cuerpo)
 		Tipo.BIORREACTOR: _biorreactor(cuerpo)
 		Tipo.MEZCLADORA: _mezcladora(cuerpo)
+		Tipo.ENVASADORA: _envasadora(cuerpo)
 
 func _centrifuga(b: Rect2) -> void:
 	# rotor visto desde arriba con 6 cestillos
@@ -398,3 +410,36 @@ func _mezcladora(b: Rect2) -> void:
 		draw_rect(br, TINTA, false, _px(1.2))
 	if fase > 0.85 and fase < 0.95:
 		draw_rect(Rect2(x0 + _px(2), b.end.y - _px(40), _px(60), _px(4)), Color(1.0, 0.35, 0.1))
+
+func _envasadora(b: Rect2) -> void:
+	# caja vista desde arriba con 6 huecos que se llenan, tapa y etiqueta
+	var p := progreso
+	var cw := b.size.y * 1.1
+	var caja := Rect2(b.position + Vector2(_px(10), _px(4)), Vector2(cw, b.size.y - _px(8)))
+	var entra := 1.0 - smoothstep(0.0, 0.2, p)
+	var sale := smoothstep(0.85, 1.0, p)
+	caja.position.x += (sale * 0.25 - entra * 0.25) * caja.size.x
+	draw_rect(caja, Color(0.82, 0.84, 0.8, 0.9 * (1.0 - sale * 0.7)))
+	draw_rect(caja, TINTA, false, _px(1.5))
+	var n := int(clampf((p - 0.22) / 0.38, 0.0, 1.0) * 6.0 + 0.15)
+	for i in 6:
+		var cx := caja.position.x + caja.size.x * (0.2 + 0.3 * (i % 3))
+		var cy := caja.position.y + caja.size.y * (0.3 + 0.4 * (i / 3))
+		var rr := caja.size.y * 0.14
+		if i < n:
+			draw_circle(Vector2(cx, cy), rr, Color(0.85, 0.92, 0.95))
+			draw_circle(Vector2(cx, cy), rr * 0.55, Color(0.95, 0.75, 0.3))
+		else:
+			draw_arc(Vector2(cx, cy), rr, 0, TAU, 16, TENUE, _px(1.2))
+	var cierre := smoothstep(0.6, 0.72, p)
+	if cierre > 0.0:
+		draw_rect(Rect2(caja.position, Vector2(caja.size.x, caja.size.y * cierre)), Color(0.92, 0.92, 0.88))
+		draw_rect(Rect2(caja.position, Vector2(caja.size.x, caja.size.y * cierre)), TINTA, false, _px(1.2))
+	if p > 0.79:
+		draw_rect(Rect2(caja.get_center() - Vector2(_px(14), _px(8)), Vector2(_px(28), _px(16))), Color(0.3, 0.9, 0.45))
+	# datos
+	var x0 := b.position.x + cw * 1.3 + _px(24)
+	_txt(Vector2(x0, b.position.y + _px(24)), "%d/6" % mini(n, 6), 26, TINTA)
+	_icono(Icono.CAJA, Vector2(x0 + _px(8), b.position.y + _px(40)), _px(14))
+	_txt(Vector2(x0 + _px(20), b.position.y + _px(44)), "%d/h" % int(velocidad * 900), 12, TENUE)
+	_barra(Rect2(x0, b.end.y - _px(14), b.end.x - x0 - _px(4), _px(8)), p, TINTA)

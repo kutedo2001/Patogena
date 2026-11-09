@@ -57,6 +57,18 @@ var _sellar_y0: Array[float] = []
 var _mat_resistencia: Array[StandardMaterial3D] = []
 var _agujas: Array[Node3D] = []
 var _nivel_vaso: Node3D
+# envasadora: caja por la cinta, viales que aparecen, tapa, etiqueta y brazo SCARA
+var _mover_caja: Node3D
+var _caja_x0 := 0.0
+var _aparecer: Array[Node3D] = []
+var _tapa_caja: Node3D
+var _etiquetar: Node3D
+var _etiquetar_y0 := 0.0
+var _etiqueta_caja: Node3D
+var _hombro: Node3D
+var _pinza: Node3D
+var _pinza_y0 := 0.0
+var _vial_pinza: Node3D
 var _tapa_ang := 0.0
 var _mat_pantalla: StandardMaterial3D
 var _ui: PantallaMaquina
@@ -116,6 +128,24 @@ func _ready() -> void:
 				(mi as MeshInstance3D).material_override = c
 				_mat_resistencia.append(c)
 	_nivel_vaso = _buscar("nivel_vaso")
+	_mover_caja = _buscar("mover_caja")
+	if _mover_caja:
+		_caja_x0 = _mover_caja.position.x
+		for i in 12:
+			var a := _buscar("aparecer_%d" % i)
+			if a == null:
+				break
+			_aparecer.append(a)
+		_tapa_caja = _buscar("tapa_caja")
+		_etiquetar = _buscar("etiquetar")
+		if _etiquetar:
+			_etiquetar_y0 = _etiquetar.position.y
+		_etiqueta_caja = _buscar("etiqueta_caja")
+		_hombro = _buscar("brazo_hombro")
+		_pinza = _buscar("brazo_pinza")
+		if _pinza:
+			_pinza_y0 = _pinza.position.y
+		_vial_pinza = _buscar("vial_en_pinza")
 	_bandeja = _buscar("bandeja")
 	_boquilla = _buscar("boquilla")
 	_gota = _buscar("gota")
@@ -218,6 +248,8 @@ func _process(dt: float) -> void:
 	if not _llenados.is_empty():
 		_dosificar(dt, trabaja)
 	_procesos_por_fases(trabaja)
+	if _mover_caja:
+		_envasar(trabaja)
 	if _tapa:
 		# la tapa se abre cuando la máquina espera material (se ve el rotor vacío esperando)
 		var objetivo := deg_to_rad(68.0) if estado == Estado.SIN_MATERIAL else 0.0
@@ -328,3 +360,41 @@ func _procesos_por_fases(trabaja: bool) -> void:
 		m.emission_energy_multiplier = 5.0 * golpe
 	for a in _agujas:
 		a.rotation.y = deg_to_rad(-40.0 + 70.0 * _vel_giro + sin(_t * 7.0) * 4.0 * _vel_giro)
+
+## Envasadora: 0–0,2 la caja entra por la cinta · 0,22–0,6 el brazo lleva 6 viales ·
+## 0,6–0,72 se cierra la tapa · 0,72–0,85 etiqueta · 0,85–1 la caja sale.
+const ANG_COGER := 140.0
+const ANG_DEJAR := 282.5
+func _envasar(trabaja: bool) -> void:
+	var p := _progreso
+	var x := _caja_x0
+	if p < 0.2:
+		x = _caja_x0 - 0.62 * (1.0 - smoothstep(0.0, 0.2, p))
+	elif p > 0.85:
+		x = _caja_x0 + 0.75 * smoothstep(0.85, 1.0, p)
+	_mover_caja.position.x = x
+	var n := _aparecer.size()
+	var t := clampf((p - 0.22) / 0.38, 0.0, 1.0) * n      # vial en curso (0..n)
+	for i in n:
+		_aparecer[i].visible = p > 0.05 and t >= i + 0.85
+	if _tapa_caja:
+		_tapa_caja.rotation.x = deg_to_rad(-115.0) * (1.0 - smoothstep(0.6, 0.72, p))
+	var golpe := 0.0
+	if p > 0.72 and p < 0.85:
+		golpe = sin((p - 0.72) / 0.13 * PI)
+	if _etiquetar:
+		_etiquetar.position.y = _etiquetar_y0 - 0.12 * golpe
+	if _etiqueta_caja:
+		_etiqueta_caja.visible = p > 0.79
+	if _hombro and _pinza:
+		var u := t - floorf(t)                    # dentro de cada viaje: 0 coger, 0,5 dejar
+		var ida := 0.5 - 0.5 * cos(u * TAU)       # 0 en el carrusel, 1 en la caja
+		var en_ciclo := p > 0.22 and p < 0.6 and trabaja
+		var ang := ANG_COGER if not en_ciclo else lerpf(ANG_COGER, ANG_DEJAR, ida)
+		_hombro.rotation.y = deg_to_rad(ang)
+		var baja := 0.0
+		if en_ciclo:
+			baja = clampf(1.0 - minf(absf(u - 0.0), absf(u - 1.0)) * 10.0, 0.0, 1.0) + clampf(1.0 - absf(u - 0.5) * 10.0, 0.0, 1.0)
+		_pinza.position.y = _pinza_y0 - 0.07 * baja
+		if _vial_pinza:
+			_vial_pinza.visible = en_ciclo and u > 0.05 and u < 0.5

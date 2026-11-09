@@ -13,6 +13,8 @@ func _ready() -> void:
 			_ruta = a.trim_prefix("--captura=")
 		elif a.begins_with("--secuencia="):
 			_secuencia = int(a.trim_prefix("--secuencia="))
+		elif a.begins_with("--escala_tiempo="):
+			Engine.time_scale = float(a.trim_prefix("--escala_tiempo="))
 		elif a.begins_with("--esperar="):
 			_esperar = int(a.trim_prefix("--esperar="))
 	set_process(_ruta != "")

@@ -9,3 +9,4 @@
 - Secuenciador detallado: script propio (tools/blender/secuenciador.py).
 - Biorreactor detallado: script propio (tools/blender/biorreactor.py).
 - Mezcladora detallada y objetos del lote 2: scripts propios (tools/blender/mezcladora.py, tools/blender/objetos.py).
+- Envasadora detallada: script propio (tools/blender/envasadora.py).

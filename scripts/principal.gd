@@ -6,6 +6,12 @@ extends Node3D
 @onready var sala: Node3D = $Sala
 @onready var camara: Node3D = $RigCamara
 
+## Duración del ciclo animado por tipo de máquina (para que los procesos se lean; la receta real la fijará P4).
+const CICLO_VISUAL := {
+	PantallaMaquina.Tipo.CENTRIFUGA: 3.0, PantallaMaquina.Tipo.SECUENCIADOR: 6.0, PantallaMaquina.Tipo.BIORREACTOR: 9.0,
+	PantallaMaquina.Tipo.MEZCLADORA: 7.0, PantallaMaquina.Tipo.ENVASADORA: 12.0,
+}
+
 const MAQUINAS := [
 	# [modelo, centro en metros (x, z), giro en grados, estado]
 	["res://assets/modelos/maquinas/centrifuga.glb", Vector2(-4.5, -2.5), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.CENTRIFUGA],
@@ -15,6 +21,7 @@ const MAQUINAS := [
 	["res://assets/modelos/maquinas/biorreactor.glb", Vector2(1.0, -3.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.BIORREACTOR],
 	["res://assets/modelos/maquinas/biorreactor.glb", Vector2(4.0, -3.0), 0.0, Maquina.Estado.AVERIA, PantallaMaquina.Tipo.BIORREACTOR],
 	["res://assets/modelos/maquinas/mezcladora.glb", Vector2(2.0, 1.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.MEZCLADORA],
+	["res://assets/modelos/maquinas/envasadora.glb", Vector2(5.0, 1.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.ENVASADORA],
 ]
 
 ## Los productos se dibujan a 2,5× su tamaño real para que se lean con la cámara del juego.
@@ -42,6 +49,7 @@ func _ready() -> void:
 		m.rotation_degrees.y = e[2]
 		m.estado = e[3]
 		m.tipo_pantalla = e[4]
+		m.ciclo = CICLO_VISUAL.get(e[4], 3.0)
 		add_child(m)
 	for o in OBJETOS:
 		var n: Node3D = load(o[0]).instantiate()

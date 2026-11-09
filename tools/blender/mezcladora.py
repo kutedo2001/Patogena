@@ -144,7 +144,7 @@ cilindro("grifo", 0.02, 0.06, (GX + 0.0, GY, ZM + 0.64), inox, lados=16, padre=r
 tubo_curvo("tubo_agua", [(GX, GY, ZM + 0.62), (GX + 0.05, GY - 0.05, ZM + 0.56), (VX - 0.15, VY - 0.08, Z1 + 0.12), (VX - 0.12, VY - 0.08, Z1 + 0.06)],
            0.014, inox, padre=r)
 cilindro("caño_agua", 0.016, 0.05, (VX - 0.12, VY - 0.08, Z1 + 0.04), inox, lados=12, padre=r)
-cilindro("chorro_agua", 0.008, Z1 - Z0 - 0.2, (VX - 0.12, VY - 0.08, (Z1 + Z0 + 0.25) / 2), mat("chorro_agua_m", color=C_AGUA, rug=0.1, alfa=0.7), lados=10, padre=r)
+cilindro("chorro_agua", 0.016, Z1 - Z0 - 0.2, (VX - 0.12, VY - 0.08, (Z1 + Z0 + 0.25) / 2), mat("chorro_agua_m", color=(0.4, 0.7, 1.0), rug=0.1, emision=(0.4, 0.7, 1.0), fuerza=0.6, alfa=0.8), lados=10, padre=r)
 
 # ------------------------------------------------------------ dispensador de reactivo: frasco con bomba peristáltica
 RX, RY = -0.62, 0.45
@@ -166,7 +166,7 @@ silic = mat("silicona", color=(0.9, 0.85, 0.75), rug=0.4, alfa=0.85)
 tubo_curvo("tubo_reac_in", [(RX - 0.05, RY, ZM + 0.27), (RX - 0.03, RY - 0.05, ZM + 0.32), (RX + 0.06, RY - 0.12, ZM + 0.16)], 0.007, silic, padre=r)
 tubo_curvo("tubo_reac", [(RX + 0.14, RY - 0.12, ZM + 0.14), (RX + 0.25, RY - 0.05, ZM + 0.5), (VX - 0.12, VY + 0.14, Z1 + 0.12), (VX - 0.1, VY + 0.12, Z1 + 0.05)],
            0.007, silic, padre=r)
-cilindro("chorro_reactivo", 0.005, Z1 - Z0 - 0.22, (VX - 0.1, VY + 0.12, (Z1 + Z0 + 0.25) / 2), mat("chorro_reac_m", color=C_REAC, rug=0.1, alfa=0.8), lados=8, padre=r)
+cilindro("chorro_reactivo", 0.012, Z1 - Z0 - 0.22, (VX - 0.1, VY + 0.12, (Z1 + Z0 + 0.25) / 2), mat("chorro_reac_m", color=C_REAC, rug=0.1, emision=C_REAC, fuerza=0.8, alfa=0.9), lados=8, padre=r)
 
 # ------------------------------------------------------------ llenado de bolsas (delante a la derecha, mirando al frente)
 BY = -0.32
