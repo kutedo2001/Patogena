@@ -18,6 +18,9 @@ static func ajustar(raiz: Node) -> void:
 			if nombre.begins_with("vidrio") or nombre.begins_with("cristal"):
 				mi.set_surface_override_material(i, _vidrio(m, 0.12))
 				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			elif nombre.begins_with("caldo"):
+				mi.set_surface_override_material(i, _caldo(m))
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			elif nombre.begins_with("liq_") or nombre.begins_with("liquido"):
 				mi.set_surface_override_material(i, _liquido(m))
 			elif nombre.begins_with("polipropileno"):
@@ -34,6 +37,7 @@ static func _vidrio(base: Material, alfa: float) -> StandardMaterial3D:
 	m.albedo_color = Color(c.r * 0.08, c.g * 0.08, c.b * 0.08, alfa)
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.cull_mode = BaseMaterial3D.CULL_BACK
+	m.render_priority = 1          # el vidrio se dibuja después de lo que contiene
 	m.roughness = 0.12
 	m.metallic_specular = 0.5
 	m.rim_enabled = true
@@ -66,5 +70,25 @@ static func _vidrio_plastico(base: Material) -> StandardMaterial3D:
 	m.cull_mode = BaseMaterial3D.CULL_BACK
 	m.roughness = 0.3
 	m.metallic_specular = 0.4
+	_cache[clave] = m
+	return m
+
+## Caldo de cultivo: translúcido para que se vea el agitador, con algo de brillo propio.
+static func _caldo(base: Material) -> StandardMaterial3D:
+	var clave := "caldo_" + base.resource_name
+	if _cache.has(clave):
+		return _cache[clave]
+	var b := base as StandardMaterial3D
+	var m := StandardMaterial3D.new()
+	var c := b.albedo_color
+	m.albedo_color = Color(c.r, c.g, c.b, 0.72)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.render_priority = 0
+	m.roughness = 0.3
+	m.metallic_specular = 0.15
+	m.emission_enabled = true
+	m.emission = b.emission if b.emission_enabled else c
+	m.emission_energy_multiplier = 0.5
 	_cache[clave] = m
 	return m

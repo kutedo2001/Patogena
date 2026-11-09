@@ -35,6 +35,9 @@ var _carro: Node3D
 var _pipeta: Node3D
 var _pipeta_y0 := 0.0
 var _estaciones: Array[Vector3] = []
+var _burbujas: Array[Node3D] = []
+var _burbuja_y0: Array[float] = []
+var _giratorios: Array[Node3D] = []
 var _tapa_ang := 0.0
 var _mat_pantalla: StandardMaterial3D
 var _ui: PantallaMaquina
@@ -70,6 +73,11 @@ func _ready() -> void:
 	_pipeta = _buscar("pipeta")
 	if _pipeta:
 		_pipeta_y0 = _pipeta.position.y
+	for n in find_children("burbuja*", "Node3D", true, false):
+		_burbujas.append(n)
+		_burbuja_y0.append((n as Node3D).position.y)
+	for n in find_children("gira_*", "Node3D", true, false):
+		_giratorios.append(n)
 	for i in 8:
 		var e := _buscar("estacion_%d" % i)
 		if e == null:
@@ -143,6 +151,15 @@ func _process(dt: float) -> void:
 		_ui.estado = estado
 		_ui.progreso = _progreso
 		_ui.velocidad = _vel_giro
+	for g in _giratorios:
+		g.rotate_object_local(Vector3.UP, _vel_giro * TAU * 0.7 * dt)
+	for i in _burbujas.size():
+		var b := _burbujas[i]
+		b.position.y += (0.25 + 0.1 * float(i % 3)) * dt * maxf(_vel_giro, 0.0)
+		b.position.x += sin(_t * 3.0 + i) * 0.02 * dt
+		if b.position.y > _burbuja_y0[i] + 0.55:
+			b.position.y = _burbuja_y0[i] - 0.15
+		b.visible = _vel_giro > 0.05
 	if _puente and _carro and _estaciones.size() >= 2:
 		_mover_portico(dt, trabaja)
 	if _tapa:

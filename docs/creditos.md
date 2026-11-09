@@ -7,3 +7,4 @@
 - Objetos de laboratorio (tubos, eppendorf, vial, placa de Petri, gradilla) y etiquetas: script propio (tools/blender/objetos.py, generación de etiquetas con PIL).
 - Centrífuga detallada y calcomanías (riesgo biológico, rotor, placa, franja de peligro): scripts propios (tools/blender/centrifuga.py, tools/texturas.py).
 - Secuenciador detallado: script propio (tools/blender/secuenciador.py).
+- Biorreactor detallado: script propio (tools/blender/biorreactor.py).
