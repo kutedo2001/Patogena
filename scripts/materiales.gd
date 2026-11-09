@@ -79,7 +79,7 @@ static func _caldo(base: Material) -> StandardMaterial3D:
 	var b := base as StandardMaterial3D
 	var m := StandardMaterial3D.new()
 	var c := b.albedo_color
-	m.albedo_color = Color(c.r, c.g, c.b, 0.72)
+	m.albedo_color = Color(c.r, c.g, c.b, minf(c.a, 0.72))
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.render_priority = 0
@@ -87,6 +87,6 @@ static func _caldo(base: Material) -> StandardMaterial3D:
 	m.metallic_specular = 0.15
 	m.emission_enabled = true
 	m.emission = b.emission if b.emission_enabled else c
-	m.emission_energy_multiplier = 0.5
+	m.emission_energy_multiplier = 0.5 * minf(c.a / 0.72, 1.0)
 	_cache[clave] = m
 	return m

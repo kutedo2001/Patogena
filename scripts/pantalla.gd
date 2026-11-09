@@ -250,6 +250,7 @@ func _draw() -> void:
 		Tipo.BIORREACTOR: _biorreactor(cuerpo)
 		Tipo.MEZCLADORA: _mezcladora(cuerpo)
 		Tipo.ENVASADORA: _envasadora(cuerpo)
+		Tipo.CEPA: _cepa(cuerpo)
 
 func _centrifuga(b: Rect2) -> void:
 	# rotor visto desde arriba con 6 cestillos
@@ -443,3 +444,45 @@ func _envasadora(b: Rect2) -> void:
 	_icono(Icono.CAJA, Vector2(x0 + _px(8), b.position.y + _px(40)), _px(14))
 	_txt(Vector2(x0 + _px(20), b.position.y + _px(44)), "%d/h" % int(velocidad * 900), 12, TENUE)
 	_barra(Rect2(x0, b.end.y - _px(14), b.end.x - x0 - _px(4), _px(8)), p, TINTA)
+
+## Árbol de mutaciones: 3 ramas × 4 niveles; las hechas en verde, la que se inyecta parpadea.
+const RAMAS := [Color(0.9, 0.3, 0.25), Color(0.3, 0.7, 1.0), Color(0.95, 0.75, 0.2)]
+func _cepa(b: Rect2) -> void:
+	var cols := 3
+	var filas := 4
+	var gw := b.size.x * 0.68
+	var dx := gw / cols
+	var dy := b.size.y / filas
+	var hechas := [3, 2, 1]
+	var curso := int(_t / 6.0) % 3
+	for c in cols:
+		var x := b.position.x + dx * (c + 0.5)
+		for f in filas:
+			var y := b.end.y - dy * (f + 0.5)
+			if f < filas - 1:
+				draw_line(Vector2(x, y), Vector2(x, y - dy), TENUE if f + 1 >= hechas[c] else RAMAS[c], _px(2))
+			var rr := minf(dx, dy) * 0.28
+			var hecha: bool = f < hechas[c]
+			var siguiente: bool = f == hechas[c] and c == curso
+			if hecha:
+				draw_circle(Vector2(x, y), rr, RAMAS[c])
+				draw_circle(Vector2(x, y), rr * 0.45, FONDO)
+			elif siguiente:
+				var a := 0.5 + 0.5 * sin(_t * 6.0)
+				draw_circle(Vector2(x, y), rr, Color(RAMAS[c], 0.3 + 0.5 * a))
+				_anillo(Vector2(x, y), rr * 1.3, progreso, TINTA, _px(2.5))
+			else:
+				draw_arc(Vector2(x, y), rr, 0, TAU, 20, TENUE, _px(1.5))
+		draw_line(Vector2(x - dx * 0.3, b.end.y + _px(2)), Vector2(x + dx * 0.3, b.end.y + _px(2)), RAMAS[c], _px(3))
+	# datos a la derecha: % infectado y virulencia
+	var x0 := b.position.x + gw + _px(12)
+	_txt(Vector2(x0, b.position.y + _px(26)), "%d%%" % (12 + int(_t / 4.0) % 80), 26, Color(0.5, 1.0, 0.2))
+	_txt(Vector2(x0, b.position.y + _px(46)), "☣", 16, TENUE)
+	for i in 5:
+		var on := i < 3
+		draw_rect(Rect2(x0 + _px(22) + i * _px(12), b.position.y + _px(36), _px(9), _px(10)), Color(0.9, 0.3, 0.25) if on else REJILLA)
+	var pts := PackedVector2Array()
+	for i in 30:
+		var u := i / 29.0
+		pts.append(Vector2(x0 + u * (b.end.x - x0 - _px(4)), b.end.y - _px(4) - (1.0 / (1.0 + exp(-(u - 0.6) * 8.0))) * b.size.y * 0.45))
+	draw_polyline(pts, Color(0.5, 1.0, 0.2), _px(2), true)

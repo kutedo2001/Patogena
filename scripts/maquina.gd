@@ -69,6 +69,17 @@ var _hombro: Node3D
 var _pinza: Node3D
 var _pinza_y0 := 0.0
 var _vial_pinza: Node3D
+# cámara de cepa
+var _virus: Node3D
+var _virus_capa: Node3D
+var _flotar: Node3D
+var _flotar_y0 := 0.0
+var _nieblas: Array[Node3D] = []
+var _iny_carro: Node3D
+var _iny_carro_z0 := 0.0
+var _iny_aguja: Node3D
+var _iny_aguja_x0 := 0.0
+var _vial_iny: Node3D
 var _tapa_ang := 0.0
 var _mat_pantalla: StandardMaterial3D
 var _ui: PantallaMaquina
@@ -128,6 +139,20 @@ func _ready() -> void:
 				(mi as MeshInstance3D).material_override = c
 				_mat_resistencia.append(c)
 	_nivel_vaso = _buscar("nivel_vaso")
+	_virus = _buscar("virus")
+	_virus_capa = _buscar("gira_virus_capa")
+	_flotar = _buscar("flotar")
+	if _flotar:
+		_flotar_y0 = _flotar.position.y
+	for n in find_children("niebla_*", "Node3D", true, false):
+		_nieblas.append(n)
+	_iny_carro = _buscar("inyector_carro")
+	if _iny_carro:
+		_iny_carro_z0 = _iny_carro.position.y
+	_iny_aguja = _buscar("inyector_aguja")
+	if _iny_aguja:
+		_iny_aguja_x0 = _iny_aguja.position.x
+	_vial_iny = _buscar("vial_inyeccion")
 	_mover_caja = _buscar("mover_caja")
 	if _mover_caja:
 		_caja_x0 = _mover_caja.position.x
@@ -235,7 +260,12 @@ func _process(dt: float) -> void:
 		_ui.progreso = _progreso
 		_ui.velocidad = _vel_giro
 	for g in _giratorios:
-		g.rotate_object_local(Vector3.UP, _vel_giro * TAU * 0.7 * dt)
+		var vel := 0.7
+		if g.name.begins_with("gira_baliza"):
+			vel = 1.5 if estado != Estado.APAGADA else 0.0
+			g.rotate_object_local(Vector3.UP, TAU * vel * dt)
+			continue
+		g.rotate_object_local(Vector3.UP, _vel_giro * TAU * vel * dt)
 	for i in _burbujas.size():
 		var b := _burbujas[i]
 		b.position.y += (0.25 + 0.1 * float(i % 3)) * dt * maxf(_vel_giro, 0.0)
@@ -250,6 +280,8 @@ func _process(dt: float) -> void:
 	_procesos_por_fases(trabaja)
 	if _mover_caja:
 		_envasar(trabaja)
+	if _virus:
+		_cepa(dt, trabaja)
 	if _tapa:
 		# la tapa se abre cuando la máquina espera material (se ve el rotor vacío esperando)
 		var objetivo := deg_to_rad(68.0) if estado == Estado.SIN_MATERIAL else 0.0
@@ -398,3 +430,34 @@ func _envasar(trabaja: bool) -> void:
 		_pinza.position.y = _pinza_y0 - 0.07 * baja
 		if _vial_pinza:
 			_vial_pinza.visible = en_ciclo and u > 0.05 and u < 0.5
+
+## Cámara de cepa: el virus flota, gira y late; cada ciclo llega un vial por el raíl,
+## la aguja entra en el cilindro, el virus da un latido fuerte y crece un poco.
+var _crecimiento := 0.0
+func _cepa(dt: float, trabaja: bool) -> void:
+	var p := _progreso
+	_virus.rotate_y(dt * 0.35)
+	_virus.rotate_x(dt * 0.12)
+	if _virus_capa:
+		_virus_capa.rotate_y(-dt * 0.6)
+	var inyecta := 0.0
+	if trabaja and p > 0.55 and p < 0.75:
+		inyecta = sin((p - 0.55) / 0.2 * PI)
+	var latido := 1.0 + 0.04 * sin(_t * 3.2) + 0.12 * inyecta
+	if trabaja and p > 0.74 and p < 0.76:
+		_crecimiento = minf(_crecimiento + dt * 0.4, 0.35)
+	_virus.scale = Vector3.ONE * latido * (1.0 + _crecimiento)
+	if _flotar:
+		_flotar.position.y = _flotar_y0 + sin(_t * 0.9) * 0.05
+	for i in _nieblas.size():
+		_nieblas[i].rotate_y(dt * (0.2 + i * 0.1) * (1 if i % 2 == 0 else -1))
+		_nieblas[i].scale = Vector3(1.0, 1.0 + 0.3 * sin(_t * 1.3 + i), 1.0)
+	if _iny_carro:
+		# el vial baja por el raíl (0–0,5) hasta la altura del puerto y vuelve a subir vacío (0,8–1)
+		var baja := smoothstep(0.0, 0.5, p) * (1.0 - smoothstep(0.8, 1.0, p)) if trabaja else 0.0
+		_iny_carro.position.y = _iny_carro_z0 - 0.0 + 0.0 * baja
+		_iny_carro.position.y = _iny_carro_z0 + 0.25 * (1.0 - baja)
+		if _vial_iny:
+			_vial_iny.visible = not (trabaja and p > 0.75)
+	if _iny_aguja:
+		_iny_aguja.position.x = _iny_aguja_x0 + 0.22 * inyecta

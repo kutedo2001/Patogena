@@ -9,7 +9,7 @@ extends Node3D
 ## Duración del ciclo animado por tipo de máquina (para que los procesos se lean; la receta real la fijará P4).
 const CICLO_VISUAL := {
 	PantallaMaquina.Tipo.CENTRIFUGA: 3.0, PantallaMaquina.Tipo.SECUENCIADOR: 6.0, PantallaMaquina.Tipo.BIORREACTOR: 9.0,
-	PantallaMaquina.Tipo.MEZCLADORA: 7.0, PantallaMaquina.Tipo.ENVASADORA: 12.0,
+	PantallaMaquina.Tipo.MEZCLADORA: 7.0, PantallaMaquina.Tipo.ENVASADORA: 12.0, PantallaMaquina.Tipo.CEPA: 8.0,
 }
 
 const MAQUINAS := [
@@ -22,6 +22,7 @@ const MAQUINAS := [
 	["res://assets/modelos/maquinas/biorreactor.glb", Vector2(4.0, -3.0), 0.0, Maquina.Estado.AVERIA, PantallaMaquina.Tipo.BIORREACTOR],
 	["res://assets/modelos/maquinas/mezcladora.glb", Vector2(2.0, 1.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.MEZCLADORA],
 	["res://assets/modelos/maquinas/envasadora.glb", Vector2(5.0, 1.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.ENVASADORA],
+	["res://assets/modelos/maquinas/camara_cepa.glb", Vector2(8.5, -4.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.CEPA],
 ]
 
 ## Los productos se dibujan a 2,5× su tamaño real para que se lean con la cámara del juego.
