@@ -32,3 +32,4 @@
 | 2026-11-09 | Paso a Godot 4.7 estable (antes 4.3) | Edu tiene la 4.7 y su editor ya había convertido el proyecto; trabajar con la misma versión evita conflictos |
 | 2026-11-09 | Nivel de detalle mínimo = el del lote 1 detallado (P3.4c–e), y a ser posible más: procesos animados visibles (botellas llenándose…), piezas pequeñas, pantallas vivas | Edu aprueba el lote 1 y pide «siempre este detalle o más» |
 | 2026-11-09 | Edu autoriza hacer todo lo visual hasta P3.6 sin preguntar, con este estilo y estas normas (detalle máximo); se le enseña al final | Agilizar: ya ha validado el nivel con los lotes 1 y 2 |
+| 2026-11-09 | Personajes: Kenney Mini Characters 2.0 (CC0) con animaciones de serie, recoloreados por paleta; escala 0,62 (0,9 casillas) | Regla 5: nunca personas por código; mismo estilo amable que contrasta con el gore |

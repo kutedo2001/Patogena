@@ -65,6 +65,56 @@ func _linea(nivel: int, celdas: Array[Vector2i], cerrada: bool, productos: Array
 	for i in n:
 		l.poner(load("res://assets/modelos/objetos/%s.glb" % productos[i]), i * paso)
 
+## Personajes de muestra (P3.7): [variante, posición (x, z), giro, animación, recorrido opcional]
+const GENTE := [
+	["investigador_m", Vector2(-3.75, -2.55), -90.0, "interact-right", []],
+	["investigador_f", Vector2(-0.75, -2.3), -90.0, "interact-left", []],
+	["investigador_m", Vector2(1.0, -0.9), 0.0, "walk", [Vector2(-3.0, -0.9), Vector2(6.0, -0.9)]],
+	["paciente_m", Vector2(-10.9, -2.7), 90.0, "sit", []],
+	["paciente_f", Vector2(-10.9, -1.7), 90.0, "sit", []],
+	["zombi", Vector2(-9.0, 0.8), 30.0, "walk", [Vector2(-10.0, 0.4), Vector2(-7.0, 1.6)]],
+]
+var _caminantes: Array = []   # [nodo, a, b, t, sentido]
+
+func _montar_gente() -> void:
+	var banco: Node3D = load("res://assets/modelos/mobiliario/banco_espera.glb").instantiate()
+	banco.position = Vector3(-10.85, 0, -2.2)
+	banco.rotation_degrees.y = 90
+	add_child(banco)
+	for g in GENTE:
+		var p := Personaje.new()
+		p.variante = g[0]
+		p.animacion = g[3]
+		p.position = Vector3(g[1].x, 0.3 if g[3] == "sit" else 0.0, g[1].y)
+		p.rotation_degrees.y = g[2]
+		add_child(p)
+		if not (g[4] as Array).is_empty():
+			_caminantes.append([p, g[4][0], g[4][1], randf(), 1.0])
+	# gore estilizado de prueba: charco y salpicaduras donde anda el zombi
+	for d in [[Vector3(-8.4, 0, 1.2), 0.8, "sangre_charco"], [Vector3(-9.8, 0, 0.3), 0.45, "sangre_salpicadura"], [Vector3(-7.2, 0, 1.8), 0.4, "sangre_salpicadura"]]:
+		var dc := Decal.new()
+		dc.texture_albedo = load("res://assets/texturas/%s.png" % d[2])
+		dc.size = Vector3(d[1], 0.4, d[1])
+		dc.position = d[0]
+		dc.rotation.y = randf() * TAU
+		add_child(dc)
+
+func _process(dt: float) -> void:
+	for c in _caminantes:
+		var p: Node3D = c[0]
+		var a: Vector2 = c[1]
+		var b: Vector2 = c[2]
+		var largo := a.distance_to(b)
+		var v := 0.35 if (p as Personaje).variante == "zombi" else 0.9
+		c[3] += c[4] * v * dt / largo
+		if c[3] > 1.0 or c[3] < 0.0:
+			c[4] = -c[4]
+			c[3] = clampf(c[3], 0.0, 1.0)
+		var pos := a.lerp(b, c[3])
+		p.position = Vector3(pos.x, 0, pos.y)
+		var dir: Vector2 = (b - a) * float(c[4])
+		p.rotation.y = atan2(dir.x, dir.y)
+
 func _ready() -> void:
 	titulo.text = tr("JUEGO_TITULO")
 	_igualar_renderizadores()
@@ -79,6 +129,7 @@ func _ready() -> void:
 		m.ciclo = CICLO_VISUAL.get(e[4], 3.0)
 		add_child(m)
 	_montar_cintas()
+	_montar_gente()
 	for o in OBJETOS:
 		var n: Node3D = load(o[0]).instantiate()
 		Materiales.ajustar(n)

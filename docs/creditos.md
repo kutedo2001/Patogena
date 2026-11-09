@@ -12,3 +12,5 @@
 - Envasadora detallada: script propio (tools/blender/envasadora.py).
 - Cámara de cepa y virus: script propio (tools/blender/camara_cepa.py).
 - Cintas transportadoras y productos de nivel 3–4: scripts propios (tools/blender/cintas.py, tools/blender/objetos.py).
+- Personajes: Kenney Mini Characters 2.0 (CC0, kenney.nl), recoloreados (assets/personajes/LICENCIA_Kenney_CC0.txt).
+- Banco de espera y texturas de sangre: scripts propios.
