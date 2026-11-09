@@ -73,14 +73,48 @@ def franja_peligro(N=(512, 64)):
         d.polygon([(x, H), (x + H // 2, H), (x + H + H // 2, 0), (x + H, 0)], fill=(25, 25, 25))
     im.save(os.path.join(RAIZ, 'calcomanias', 'franja_peligro.png'))
 
+def caja_vacunas(N=(512, 512)):
+    W, H = N
+    im = Image.new('RGB', N, (246, 246, 242)); d = ImageDraw.Draw(im)
+    d.rectangle([0, H - 70, W, H], fill=(40, 150, 110))
+    c, a, g = (W // 2, H // 2 - 30), 120, 42
+    d.rectangle([c[0] - g, c[1] - a, c[0] + g, c[1] + a], fill=(40, 150, 110))
+    d.rectangle([c[0] - a, c[1] - g, c[0] + a, c[1] + g], fill=(40, 150, 110))
+    logo(d, 24, 18, 60, (40, 150, 110), (246, 246, 242))
+    random.seed(12)
+    x = W - 200
+    while x < W - 30:
+        w = random.choice((2, 3, 5)); d.rectangle([x, 22, x + w, 70], fill=(30, 30, 30)); x += w + random.choice((2, 4, 5))
+    for k in range(6):
+        d.ellipse([30 + k * 40, H - 55, 58 + k * 40, H - 27], outline=(246, 246, 242), width=4)
+    im.save(os.path.join(RAIZ, 'calcomanias', 'caja_vacunas.png'))
+
+def bolsa_suero(N=(256, 512)):
+    W, H = N
+    im = Image.new('RGBA', N, (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for k in range(9):          # graduación
+        y = 90 + k * 40
+        d.rectangle([20, y, 20 + (60 if k % 2 == 0 else 35), y + 5], fill=(30, 60, 120, 255))
+    d.rectangle([110, 120, 236, 300], fill=(246, 246, 240, 235))
+    d.rectangle([110, 120, 236, 150], fill=(230, 180, 40, 255))
+    logo(d, 122, 165, 50, (40, 150, 110), (246, 246, 240))
+    random.seed(13)
+    x = 120
+    while x < 226:
+        w = random.choice((2, 3, 4)); d.rectangle([x, 235, x + w, 285], fill=(30, 30, 30, 255)); x += w + random.choice((2, 3, 4))
+    im.save(os.path.join(RAIZ, 'etiquetas', 'suero_bolsa.png'))
+
 if __name__ == '__main__':
     os.makedirs(os.path.join(RAIZ, 'etiquetas'), exist_ok=True)
     os.makedirs(os.path.join(RAIZ, 'calcomanias'), exist_ok=True)
     for n, c, s in (('sangre', (190, 30, 35), 1), ('plasma', (230, 180, 40), 2), ('adn', (60, 170, 80), 3),
-                    ('mutacion', (60, 65, 70), 4), ('cultivo', (60, 140, 180), 5)):
+                    ('mutacion', (60, 65, 70), 4), ('cultivo', (60, 140, 180), 5),
+                    ('agua', (60, 140, 220), 6), ('reactivo', (40, 70, 180), 7)):
         etiqueta(n, c, seed=s)
     triangulo_aviso('aviso_biorriesgo', lambda d, x, y, r: biohazard(d, x, y, r * 1.05, (20, 20, 20), int(r * 0.2)))
     triangulo_aviso('aviso_rotor', rotor)
     placa_logo()
     franja_peligro()
+    caja_vacunas()
+    bolsa_suero()
     print('texturas ok')

@@ -197,6 +197,117 @@ def gradilla(raiz_nombre="gradilla", padre=None, pos=(0, 0, 0), filas=2, cols=5,
     return r
 
 
+# ---------------------------------------------------------------- garrafa de agua destilada
+def garrafa(raiz_nombre="garrafa_agua", padre=None, pos=(0, 0, 0), lleno=0.8):
+    """Garrafa de 5 l de polietileno translúcido con asa, boca con tapón moleteado y etiqueta azul."""
+    r = vacio(raiz_nombre, pos, padre)
+    pe = mat("polipropileno_garrafa", color=(0.88, 0.92, 0.94), rug=0.4, alfa=0.45)
+    W, D, H = 0.075, 0.05, 0.11
+    caja("cuerpo", (W, D, H), (0, 0, H / 2), pe, bisel=0.014, segmentos=4, padre=r)
+    agua = mat("liq_agua", color=(0.55, 0.8, 0.95), rug=0.15, alfa=0.6)
+    caja("liquido", (W - 0.006, D - 0.006, H * lleno), (0, 0, 0.003 + H * lleno / 2), agua, bisel=0.01, segmentos=3, padre=r)
+    # hombro inclinado hacia la boca
+    torneado("hombro", [(0.0, H - 0.006), (0.019, H - 0.006), (0.016, H + 0.006), (0.012, H + 0.012), (0, H + 0.012)], pe, lados=32,
+             padre=r, pos=(-0.015, 0, 0))
+    cilindro("boca", 0.011, 0.012, (-0.015, 0, H + 0.02), pe, lados=24, bisel=0.001, padre=r)
+    estriado("tapon", 0.0135, 0.014, 20, 0.0008, mat("tapon_agua", color=(0.15, 0.45, 0.85), rug=0.45), padre=r,
+             pos=(-0.015, 0, H + 0.024), bisel=0.0008)
+    # asa hueca en el lado contrario
+    tubo_curvo("asa", [(0.012, 0, H + 0.002), (0.022, 0, H + 0.02), (0.035, 0, H + 0.016), (0.035, 0, H - 0.008)], 0.006, pe, padre=r)
+    calcomania("etiqueta", 0.05, 0.045, (0, -D / 2 - 0.0005, H * 0.45), mat_imagen("etq_agua", os.path.join(TEX, "agua.png"), 0.7),
+               padre=r)
+    return r
+
+
+# ---------------------------------------------------------------- frasco de reactivo (tipo Duran, tapón azul)
+def frasco_reactivo(raiz_nombre="frasco_reactivo", padre=None, pos=(0, 0, 0), color=(0.35, 0.15, 0.75), lleno=0.62):
+    """Frasco de vidrio redondo con graduación, anillo vertedor y tapón de rosca azul; reactivo morado."""
+    r = vacio(raiz_nombre, pos, padre)
+    R, H = 0.028, 0.07
+    t = 0.0014
+    rc = 0.016
+    ext = [(R * 0.9, 0), (R, 0.004), (R, H), (R * 0.92, H + 0.008), (rc + 0.002, H + 0.018), (rc, H + 0.026)]
+    inn = [(rc - t, H + 0.026), (rc - t + 0.002, H + 0.018), (R * 0.92 - t, H + 0.007), (R - t, H - 0.001), (R - t, t + 0.004), (R * 0.9 - t, t), (0, t)]
+    torneado("vidrio", [(0, 0)] + ext + inn, vidrio(), lados=48, padre=r)
+    m = mat("liq_reactivo", color=color, rug=0.15, emision=color, fuerza=0.25)
+    hf = H * lleno
+    torneado("liquido", [(0, t + 0.0003), (R * 0.9 - t - 0.0003, t + 0.0003), (R - t - 0.0003, t + 0.0043),
+                         (R - t - 0.0003, hf + 0.0025), (R * 0.7, hf + 0.0006), (0, hf)], m, lados=40, padre=r)
+    # graduación blanca impresa
+    for k in range(5):
+        z = 0.015 + k * 0.011
+        a = math.radians(-115)
+        caja(f"marca{k}", (0.0006, 0.012 if k % 2 == 0 else 0.007, 0.0012), (math.cos(a) * (R + 0.0002), math.sin(a) * (R + 0.0002), z),
+             mat("blanco_impreso", color=(0.95, 0.95, 0.95), rug=0.5), bisel=0.0, padre=r, giro=(0, 0, a))
+    azul = mat("tapon_reactivo", color=(0.08, 0.3, 0.75), rug=0.4)
+    torneado("anillo_vertedor", [(rc + 0.0005, H + 0.019), (rc + 0.004, H + 0.019), (rc + 0.004, H + 0.024), (rc + 0.0005, H + 0.024)], azul,
+             lados=32, padre=r, cerrar=True)
+    estriado("tapon", rc + 0.003, 0.016, 22, 0.0009, azul, padre=r, pos=(0, 0, H + 0.025), bisel=0.0008)
+    manga("etiqueta", R + 0.0003, H * 0.4, (0, 0, H * 0.32), mat_imagen("etq_reactivo", os.path.join(TEX, "reactivo.png"), 0.7),
+          padre=r, arco=0.45, lados=48)
+    return r
+
+
+# ---------------------------------------------------------------- bolsa de suero
+def bolsa_suero(raiz_nombre="bolsa_suero", padre=None, pos=(0, 0, 0), lleno=1.0):
+    """Bolsa de suero de 500 ml: plástico flexible con soldadura perimetral, ojal para colgar, graduación,
+    líquido ámbar claro y dos puertos abajo con tapón. El nodo «llenado» (líquido) escala en Z al llenarse."""
+    r = vacio(raiz_nombre, pos, padre)
+    pl = mat("polipropileno_bolsa", color=(0.9, 0.93, 0.92), rug=0.3, alfa=0.35)
+    W, D, H = 0.075, 0.016, 0.115
+    Z0 = 0.03                     # la bolsa empieza encima de los puertos
+    caja("soldadura", (W + 0.006, 0.0016, H + 0.01), (0, 0, Z0 + H / 2), pl, bisel=0.002, padre=r)
+    caja("cuerpo", (W, D, H), (0, 0, Z0 + H / 2), pl, bisel=0.0075, segmentos=5, padre=r)
+    suero = mat("liq_suero", color=(0.95, 0.85, 0.5), rug=0.15, alfa=0.75)
+    liq = caja("llenado", (W - 0.006, D - 0.004, H - 0.01), (0, 0, (H - 0.01) / 2), suero, bisel=0.006, segmentos=4, padre=r)
+    # origen del líquido en el fondo de la bolsa para que crezca hacia arriba
+    liq.location = (0, 0, Z0 + 0.004)
+    me = liq.data
+    for v in me.vertices:
+        v.co.z += (H - 0.01) / 2
+    liq.scale = (1, 1, lleno)
+    # ojal superior
+    caja("ojal_pestana", (0.03, 0.0016, 0.016), (0, 0, Z0 + H + 0.012), pl, bisel=0.002, padre=r)
+    toro("ojal", 0.0055, 0.0012, (0, 0, Z0 + H + 0.013), pl, padre=r).rotation_euler = (math.radians(90), 0, 0)
+    # puertos
+    for k, (x, c) in enumerate(((-0.014, (0.15, 0.4, 0.85)), (0.014, (0.92, 0.92, 0.9)))):
+        cilindro(f"puerto{k}", 0.004, 0.022, (x, 0, Z0 - 0.009), pl, lados=12, padre=r)
+        cilindro(f"puerto{k}_tapon", 0.0055, 0.009, (x, 0, Z0 - 0.022), mat(f"tapon_puerto{k}", color=c, rug=0.4), lados=12, bisel=0.001, padre=r)
+    calcomania("graduacion", W * 0.9, H * 0.85, (0, -D / 2 - 0.0006, Z0 + H / 2), mat_calcomania("etq_suero", os.path.join(TEX, "suero_bolsa.png"), 0.6, True), padre=r)
+    return r
+
+
+# ---------------------------------------------------------------- caja de vacunas
+def caja_vacunas(raiz_nombre="caja_vacunas", padre=None, pos=(0, 0, 0), abierta=False, con_viales=True):
+    """Caja de cartón blanca con cruz verde: bandeja con separadores y 6 viales, tapa con solapa abatible (nodo tapa_caja)."""
+    r = vacio(raiz_nombre, pos, padre)
+    carton = mat("carton", color=(0.94, 0.94, 0.91), rug=0.85)
+    carton_int = mat("carton_int", color=(0.78, 0.74, 0.66), rug=0.9)
+    W, D, H = 0.1, 0.066, 0.042
+    t = 0.0012
+    caja("fondo", (W, D, t), (0, 0, t / 2), carton, bisel=0.0, padre=r)
+    for s in (-1, 1):
+        caja(f"pared_x{s}", (t, D, H), (s * (W / 2 - t / 2), 0, H / 2), carton, bisel=0.0003, padre=r)
+        caja(f"pared_y{s}", (W, t, H), (0, s * (D / 2 - t / 2), H / 2), carton, bisel=0.0003, padre=r)
+    for k in (-1, 1):
+        caja(f"separador_x{k}", (0.0008, D - 2 * t, H * 0.7), (k * W / 6, 0, H * 0.35), carton_int, bisel=0.0, padre=r)
+    caja("separador_y", (W - 2 * t, 0.0008, H * 0.7), (0, 0, H * 0.35), carton_int, bisel=0.0, padre=r)
+    if con_viales:
+        for i in range(3):
+            for j in range(2):
+                v = vial(f"vacuna{i}{j}", padre=r, pos=((i - 1) * W / 3, (j - 0.5) * D / 2, t), color=(0.85, 0.92, 0.95))
+                v.scale = (0.62, 0.62, 0.62)
+    imp = mat_imagen("caja_impresa", os.path.join(os.path.dirname(TEX), "calcomanias", "caja_vacunas.png"), 0.8)
+    calcomania("cara_frente", W * 0.96, H * 0.92, (0, -D / 2 - 0.0004, H / 2), imp, padre=r)
+    tapa = vacio("tapa_caja", (0, D / 2, H), padre=r)
+    if abierta:
+        tapa.rotation_euler = (math.radians(-115), 0, 0)
+    caja("tapa", (W + 0.002, D + 0.002, t), (0, -D / 2, t / 2), carton, bisel=0.0003, padre=tapa)
+    caja("solapa", (W + 0.002, t, 0.012), (0, -D - 0.0005, -0.006), carton, bisel=0.0003, padre=tapa)
+    calcomania("cara_tapa", W * 0.96, D * 0.94, (0, -D / 2, t + 0.0004), imp, padre=tapa, giro=(0, 0, 0))
+    return r
+
+
 def main():
     global TEX
     args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [".", "."]
@@ -207,7 +318,11 @@ def main():
                        ("tubo_adn", lambda: eppendorf("tubo_adn")),
                        ("vial_mutacion", lambda: vial("vial_mutacion")),
                        ("placa_petri", lambda: petri("placa_petri")),
-                       ("gradilla", lambda: gradilla("gradilla"))):
+                       ("gradilla", lambda: gradilla("gradilla")),
+                       ("garrafa_agua", lambda: garrafa("garrafa_agua")),
+                       ("frasco_reactivo", lambda: frasco_reactivo("frasco_reactivo")),
+                       ("bolsa_suero", lambda: bolsa_suero("bolsa_suero")),
+                       ("caja_vacunas", lambda: caja_vacunas("caja_vacunas", abierta=True))):
         limpiar(); comun._mats.clear()
         fn()
         exportar(os.path.join(salida, nombre + ".glb"))

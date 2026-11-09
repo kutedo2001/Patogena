@@ -24,6 +24,10 @@ const OBJETOS := [
 	["res://assets/modelos/objetos/placa_petri.glb", Vector3(-5.6, 0, -1.1), 0.0],
 	["res://assets/modelos/objetos/vial_mutacion.glb", Vector3(-6.6, 0, -1.0), 0.0],
 	["res://assets/modelos/objetos/tubo_adn.glb", Vector3(-6.95, 0, -1.3), 0.0],
+	["res://assets/modelos/objetos/garrafa_agua.glb", Vector3(-6.9, 0, 0.3), 20.0],
+	["res://assets/modelos/objetos/frasco_reactivo.glb", Vector3(-6.45, 0, 0.35), 0.0],
+	["res://assets/modelos/objetos/bolsa_suero.glb", Vector3(-6.0, 0, 0.3), 0.0],
+	["res://assets/modelos/objetos/caja_vacunas.glb", Vector3(-5.4, 0, 0.35), -15.0],
 ]
 
 func _ready() -> void:
