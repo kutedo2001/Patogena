@@ -5,6 +5,16 @@ Lo que nota el jugador, por versión.
 ## Sin publicar
 - Estructura inicial del proyecto.
 
+## Segunda prueba de la puerta 4 (9-nov-2026)
+- Juegas como un científico: WASD o clic para moverte; la cámara te sigue.
+- Tutorial con historia: correos de Dirección del Proyecto Reinicio y pasos guiados con una flecha sobre lo que toca.
+- Extracción construible: camilla (llegan pacientes, les sacas sangre y se van), incubadora y toma de agua.
+- Cada estación se mejora con una máquina y después se pone a cargo de un zombi, que la hace funcionar sola.
+- Las máquinas trabajan solas; lo que llevas en las manos se ve y se deja con un clic.
+- Flechas verdes y naranjas marcan dónde entra y sale cada cosa.
+- Quitar devuelve todo el dinero. Sin inventario.
+- El muelle de envío enseña lo que compra y a qué precio; Dirección paga cada hito.
+
 ## Prueba de la puerta 4 (9-nov-2026)
 - Se puede jugar: laboratorio nivel 1 vacío con 2 000 € para construir.
 - Extracción a mano (mantener clic en donante, incubadora o toma de agua) y extractores automáticos.

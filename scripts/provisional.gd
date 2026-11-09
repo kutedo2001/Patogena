@@ -59,6 +59,8 @@ func luz(pos: Vector3) -> void:
 	add_child(mi)
 
 static func crear(e: Fabrica.Entidad, pos: Vector3) -> Node3D:
+	if e is Fabrica.Estacion:
+		return EstacionVista.crear_estacion(e, pos, null)
 	var p := Provisional.new()
 	p.position = pos
 	p.rotation.y = VistaFabrica.giro_y(maxi(e.giro, 0))

@@ -97,6 +97,9 @@ func poner_extractor(c: Vector2i, giro: int) -> Extractor:
 		return null
 	return _alta(Extractor.new(c, giro, nodos[c])) as Extractor
 
+func poner_estacion(tipo: String, c: Vector2i, giro: int) -> Estacion:
+	return _alta(Estacion.new(tipo, c, giro)) as Estacion
+
 func poner_muelle_envio(c: Vector2i) -> MuelleEnvio:
 	return _alta(MuelleEnvio.new(c)) as MuelleEnvio
 
@@ -435,3 +438,78 @@ class MuelleEnvio extends Entidad:
 		f.ingresos += precio
 		f.vendido[Fabrica.base(o)] = f.vendido.get(Fabrica.base(o), 0) + 1
 		return true
+
+## Estación de extracción (camilla, incubadora, toma de agua). Modos: «mano» (trabaja el
+## científico), «maquina» (el científico con la mejora, más rápido) y «zombi» (un zombi opera
+## la máquina: trabaja solo y saca el producto por su boca hacia la cinta).
+class Estacion extends Entidad:
+	var tipo := ""
+	var objeto := ""
+	var modo := "mano"
+	var listo := ""              # producto hecho esperando a que lo cojan o salga
+	var progreso := 0.0          # trabajo hecho de la pieza actual (s)
+	var crecimiento := 0.0       # incubadora: el cultivo crece solo
+	var paciente := false        # camilla: hay un paciente tumbado
+	var espera := 0.0            # camilla: tiempo hasta que llega el siguiente
+	var atendidos := 0
+	var trabajando := false      # el científico está trabajando en ella este paso
+	var _d := {}
+	func _init(t: String, c: Vector2i, g: int) -> void:
+		tipo = t
+		casillas = [c]
+		giro = g
+		_d = Fabrica.datos.estaciones[t]
+		objeto = _d.objeto
+		espera = 2.0
+	func duracion() -> float:
+		return float(_d.trabajo["maquina" if modo != "mano" else "mano"])
+	func lista_para_trabajar() -> bool:
+		if listo != "":
+			return false
+		if tipo == "camilla":
+			return paciente
+		if tipo == "incubadora":
+			return crecimiento >= _crece()
+		return true
+	func _crece() -> float:
+		return float(_d.crece["maquina" if modo != "mano" else "mano"])
+	## El científico trabaja dt segundos en la estación (la llama Juego mientras trabaja).
+	func trabajar(f: Fabrica, dt: float) -> void:
+		trabajando = true
+		_avanzar(f, dt)
+	func _avanzar(f: Fabrica, dt: float) -> void:
+		if not lista_para_trabajar():
+			return
+		progreso += dt
+		if progreso >= duracion():
+			progreso = 0.0
+			listo = objeto
+			f.anotar(objeto)
+			if tipo == "camilla":
+				paciente = false
+				atendidos += 1
+				espera = float(_d.llegada)
+			elif tipo == "incubadora":
+				crecimiento = 0.0
+	func paso(f: Fabrica, dt: float) -> void:
+		if tipo == "camilla" and not paciente:
+			espera -= dt
+			if espera <= 0.0:
+				paciente = true
+		if tipo == "incubadora" and crecimiento < _crece():
+			crecimiento += dt
+		if modo == "zombi":
+			_avanzar(f, dt)
+			if listo != "" and f.entregar(casillas[0] + Fabrica.DIRS[giro], listo, giro):
+				listo = ""
+		trabajando = false
+	func sacar(filtro: String) -> String:
+		if listo != "" and (filtro == "" or filtro == listo):
+			var o := listo
+			listo = ""
+			return o
+		return ""
+	func fraccion() -> float:
+		if tipo == "incubadora" and crecimiento < _crece():
+			return crecimiento / _crece()
+		return progreso / duracion()

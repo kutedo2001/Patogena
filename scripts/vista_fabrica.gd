@@ -14,6 +14,7 @@ const PANTALLA := {"centrifuga": PantallaMaquina.Tipo.CENTRIFUGA, "secuenciador"
 	"biorreactor": PantallaMaquina.Tipo.BIORREACTOR, "camara_cepa": PantallaMaquina.Tipo.CEPA}
 
 var fab: Fabrica
+var juego: Juego
 var _vis := {}                  # entidad → nodo
 var _objetos: Dictionary = {}   # nombre base → Array de nodos (reserva)
 var _usados: Dictionary = {}    # nombre base → cuántos se usan este fotograma
@@ -85,6 +86,8 @@ func _crear(e: Fabrica.Entidad) -> Node3D:
 		m.position = centro(e)
 		m.rotation.y = giro_y(e.giro)
 		return m
+	if e is Fabrica.Estacion:
+		return EstacionVista.crear_estacion(e, centro(e), juego)
 	return Provisional.crear(e, centro(e))
 
 ## Dirección por la que entra el objeto en esta cinta: la de la cinta de detrás si apunta aquí,
@@ -104,7 +107,7 @@ func entrada_cinta(e: Fabrica.Cinta) -> int:
 func _apunta(v, c: Vector2i) -> bool:
 	if v == null:
 		return false
-	if v is Fabrica.Cinta or v is Fabrica.Brazo or v is Fabrica.Extractor or v is Fabrica.Divisor:
+	if v is Fabrica.Cinta or v is Fabrica.Brazo or v is Fabrica.Extractor or v is Fabrica.Divisor or v is Fabrica.Estacion:
 		return v.casillas[0] + Fabrica.DIRS[v.giro] == c or v is Fabrica.Divisor
 	if v is Fabrica.MaquinaSim:
 		return v.casilla_salida == c

@@ -246,7 +246,9 @@
   "tiempo": 1.0
  },
  "ventas": {
-  "caja_vacunas": 30
+  "caja_vacunas": 30,
+  "tubo_plasma": 5,
+  "tubo_adn": 8
  },
  "pedidos": {
   "frasco_reactivo": {
@@ -258,5 +260,38 @@
    ]
   }
  },
- "_nota_mutaciones": "Los viales llevan la mutación tras ':' (vial_mutacion:tos). La cámara de cepa rechaza una mutación ya inyectada."
+ "_nota_mutaciones": "Los viales llevan la mutación tras ':' (vial_mutacion:tos). La cámara de cepa rechaza una mutación ya inyectada.",
+ "estaciones": {
+  "camilla": {
+   "objeto": "tubo_sangre",
+   "trabajo": {
+    "mano": 3.0,
+    "maquina": 1.2
+   },
+   "necesita_paciente": true,
+   "llegada": 5.0,
+   "mejora": "extractor"
+  },
+  "incubadora": {
+   "objeto": "placa_petri",
+   "crece": {
+    "mano": 8.0,
+    "maquina": 4.0
+   },
+   "trabajo": {
+    "mano": 0.6,
+    "maquina": 0.6
+   },
+   "mejora": "recolector"
+  },
+  "toma_agua": {
+   "objeto": "garrafa_agua",
+   "trabajo": {
+    "mano": 2.0,
+    "maquina": 0.8
+   },
+   "mejora": "bomba"
+  }
+ },
+ "_nota_estaciones": "Estaciones de extracción: modo mano (trabaja el científico), maquina (el científico con la mejora, más rápido) y zombi (un zombi opera la máquina: automático y saca por su boca)."
 }

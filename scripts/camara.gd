@@ -43,6 +43,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 			_arrastrando = ev.pressed
 	elif ev is InputEventMouseMotion and _arrastrando:
 		_mover_pantalla(ev.relative)
+		_t_manual = 0.0
 	elif ev is InputEventKey and ev.pressed and not ev.echo:
 		if ev.keycode == KEY_Q:
 			_giro_obj -= 45.0
@@ -74,12 +75,23 @@ func _desplazar(d: Vector2) -> void:
 	position.x = clampf(position.x + mundo.x, limites.position.x, limites.end.x)
 	position.z = clampf(position.z + mundo.z, limites.position.y, limites.end.y)
 
+## En la partida la cámara sigue al científico (WASD mueve al científico); las flechas y el
+## botón central la desplazan a mano y deja de seguirle unos segundos.
+var seguir: Node3D
+var _t_manual := 99.0
+
 func _process(dt: float) -> void:
+	var wasd := seguir == null
 	var v := Vector2(
-		Input.get_axis("ui_left", "ui_right") + float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_A)),
-		Input.get_axis("ui_up", "ui_down") + float(Input.is_key_pressed(KEY_S)) - float(Input.is_key_pressed(KEY_W)))
+		Input.get_axis("ui_left", "ui_right") + (float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_A)) if wasd else 0.0),
+		Input.get_axis("ui_up", "ui_down") + (float(Input.is_key_pressed(KEY_S)) - float(Input.is_key_pressed(KEY_W)) if wasd else 0.0))
 	if v != Vector2.ZERO:
 		_desplazar(v.limit_length(1.0) * VEL_MOVER * dt * distancia / 21.0)
+		_t_manual = 0.0
+	_t_manual += dt
+	if seguir and _t_manual > 3.0 and not _arrastrando:
+		var meta := Vector3(seguir.global_position.x, 0, seguir.global_position.z)
+		position = position.lerp(meta, 1.0 - exp(-2.5 * dt))
 	var k := 1.0 - exp(-12.0 * dt)
 	distancia = lerpf(distancia, _dist_obj, k)
 	giro = lerpf(giro, _giro_obj, k)

@@ -46,7 +46,8 @@ func _ready() -> void:
 	# piezas provisionales (puerta 4): brazo, divisor y almacén
 	Fabrica.cargar_datos()
 	var prov := {"brazo": Fabrica.Brazo.new(Vector2i.ZERO, 0, ""), "divisor": Fabrica.Divisor.new(Vector2i.ZERO, 0),
-		"almacen": Fabrica.Almacen.new(Vector2i.ZERO, 0)}
+		"almacen": Fabrica.Almacen.new(Vector2i.ZERO, 0), "camilla": Fabrica.Estacion.new("camilla", Vector2i.ZERO, 0),
+		"incubadora": Fabrica.Estacion.new("incubadora", Vector2i.ZERO, 0), "toma_agua": Fabrica.Estacion.new("toma_agua", Vector2i.ZERO, 0)}
 	for r in rutas + prov.keys():
 		var n: Node3D = Provisional.crear(prov[r], Vector3.ZERO) if prov.has(r) else load(r).instantiate()
 		Materiales.ajustar(n)

@@ -58,3 +58,7 @@
 | 2026-11-09 | Cámara: el arrastre pasa al botón central; el derecho cancela o quita | El derecho se usaba para las dos cosas |
 | 2026-11-09 | La pantalla objetivo se conserva como «escaparate» (`-- --escaparate`) con su HUD de datos de muestra | Referencia visual de la puerta 3 |
 | 2026-11-09 | Nuevo inicio decidido por Edu: científico controlable (WASD y clic), estaciones de extracción construibles con pacientes que llegan y se van, progresión a mano → científico con máquina → zombi con máquina, sin inventario, máquinas siempre automáticas, bocas visibles, devolución completa, venta clara y tutorial con historia | Primera prueba de Edu: se bloqueó al empezar (P4.5) |
+| 2026-11-09 | Dinero inicial 1.000 € = camilla + centrífuga + biorreactor justos con la ayuda de 300 € del correo; hitos pagan 500/400/1.000 € | Que la primera mutación nunca quede bloqueada por dinero |
+| 2026-11-09 | La cámara sigue al científico; WASD mueve al científico y las flechas o el botón central mueven la cámara | WASD es del científico (elección de Edu) |
+| 2026-11-09 | Tras liberar el virus llega un zombi trabajador cada 40 s (máx. 6 esperando); un zombi solo puede operar una estación ya mejorada con máquina | Progresión pedida por Edu: yo → yo con máquina → zombi con máquina |
+| 2026-11-09 | El muelle compra vacunas (30 €), ADN (8 €) y plasma (5 €) | Siempre hay forma de conseguir dinero |

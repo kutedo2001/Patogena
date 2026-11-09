@@ -311,6 +311,7 @@ func _partida() -> void:
 	if "--prueba_raton" in OS.get_cmdline_user_args():
 		var pr := PruebaRaton.new()
 		pr.juego = juego
+		pr.hud = hud
 		add_child(pr)
 	var monitor := MonitorMundo.new()
 	monitor.juego = juego
@@ -320,6 +321,7 @@ func _partida() -> void:
 	for a in OS.get_cmdline_user_args():
 		tieso = tieso or a.begins_with("--centro=") or a.begins_with("--dist=")
 	if not tieso:
+		camara.seguir = juego.cientifico
 		camara.position = Vector3(0, 0, 0.5)
 		camara.distancia = 21.0
 		camara._dist_obj = 21.0

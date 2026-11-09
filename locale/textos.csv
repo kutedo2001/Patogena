@@ -96,3 +96,75 @@ CONSEJO_CEPA,"Lleva el vial a la cámara de cepa (clic en ella) o únelas con un
 CONSEJO_AUTOMATIZAR,"Pon un extractor sobre un donante y tiende cintas (Logística → 1, arrastrando) hasta la centrífuga.","Place an extractor on a donor and drag belts (Logistics → 1) to the centrifuge."
 CONSEJO_ADN,"Recolector sobre la incubadora → secuenciador: el ADN abre más mutaciones.","Harvester on the incubator → sequencer: DNA unlocks more mutations."
 CONSEJO_VACUNAS,"Suero (agua + reactivo del terminal) y ADN → envasadora → muelle de envío: las vacunas dan dinero.","Serum (water + reagent from the terminal) and DNA → filler → shipping dock: vaccines make money."
+HUD_MANOS,En las manos,In hand
+HUD_AYUDA_MANOS,"Clic en una máquina, cinta o el muelle para dejarlo. F para tirarlo.","Click a machine, belt or the dock to drop it. F to discard."
+HUD_ZOMBIS,Zombis disponibles: %d,Zombies available: %d
+HUD_PREMIOS,Dirección paga cada hito: 500 € · 400 € · 1.000 €,"Management pays each milestone: €500 · €400 · €1,000"
+HUD_AYUDA_MAQUINA2,Trabaja sola con lo que le llegue por cinta o lo que le dejes. Flecha verde: entra · naranja: sale.,Works on its own with what arrives by belt or what you drop in. Green arrow: in · orange: out.
+HUD_ASIGNAR_ZOMBI,Poner un zombi a trabajar,Put a zombie to work
+HUD_COMPRA,COMPRA LO QUE LE DEJES,BUYS WHAT YOU DROP OFF
+CONS_MUELLE,Muelle de envío,Shipping dock
+AYUDA_MUELLE,Lleva aquí los productos (en las manos o por cinta) y el camión los paga al momento.,Bring products here (in hand or by belt) and the truck pays on the spot.
+EST_CAMILLA,Camilla de extracción,Extraction bed
+EST_INCUBADORA,Incubadora de cultivos,Culture incubator
+EST_TOMA_AGUA,Toma de agua,Water intake
+DESC_CAMILLA,"Llega un paciente, se tumba y le sacas sangre (clic en la camilla). Después se va.",A patient arrives and lies down; you draw blood (click the bed). Then they leave.
+DESC_INCUBADORA,"El cultivo crece solo. Cuando está listo, recoges la placa.","The culture grows on its own. When ready, collect the plate."
+DESC_TOMA_AGUA,Llena una garrafa de agua destilada (clic en la toma).,Fills a jug of distilled water (click the intake).
+MODO_MANO,A MANO,BY HAND
+MODO_MAQUINA,CON MÁQUINA,WITH MACHINE
+MODO_ZOMBI,LA OPERA UN ZOMBI,RUN BY A ZOMBIE
+AYUDA_EST_MANO,Haz clic: el científico va y trabaja. Mejórala con una máquina para ir más rápido.,Click: the scientist goes and works. Upgrade it with a machine to go faster.
+AYUDA_EST_MAQUINA,"Más rápida. Cuando tengas zombis, pon uno a manejarla y trabajará sola hacia la flecha naranja.","Faster. Once you have zombies, put one in charge and it works alone toward the orange arrow."
+AYUDA_EST_ZOMBI,Trabaja sola y saca el producto por la flecha naranja: pon ahí una cinta.,Works alone and outputs at the orange arrow: put a belt there.
+MEJ_EXTRACTOR,Instalar extractor automático,Install automatic extractor
+MEJ_RECOLECTOR,Instalar recolector,Install harvester
+MEJ_BOMBA,Instalar bomba,Install pump
+AVISO_ESPERA_PACIENTE,Esperando al siguiente paciente,Waiting for the next patient
+AVISO_ZOMBI_TRABAJA,Esta estación ya la opera un zombi,A zombie already runs this station
+AVISO_MANOS_LLENAS,Llevas las manos llenas: deja algo antes,Your hands are full: drop something first
+AVISO_NO_SE_VENDE,El muelle no compra esto,The dock doesn't buy this
+AVISO_NO_LLEGA,No hay camino hasta ahí,No path to there
+AVISO_HITO,Hito cumplido: Dirección ha ingresado una partida extraordinaria,Milestone reached: Management has transferred extra funds
+AVISO_ZOMBI,Ha vuelto un paciente… distinto. Espera junto a la puerta para trabajar,A patient came back… different. Waiting by the door to work
+CORREO_DE,DIRECCIÓN · PATÓGENA S.A.,MANAGEMENT · PATÓGENA INC.
+CORREO_CONFIDENCIAL,CONFIDENCIAL,CONFIDENTIAL
+CORREO_FIRMA,Departamento de Proyectos Especiales,Special Projects Department
+CORREO_CONTINUAR,Continuar,Continue
+CORREO_BIENVENIDA_T,Bienvenido al Proyecto Reinicio,Welcome to Project Reboot
+CORREO_BIENVENIDA,"Enhorabuena por su incorporación. Este sótano es ahora su laboratorio y usted, su único empleado. Su cometido: desarrollar un producto biológico de alto rendimiento. No haga preguntas sobre su uso final; tampoco las responderíamos.
+
+Para empezar, familiarícese con las instalaciones. Muévase con WASD o haciendo clic en el suelo.","Congratulations on joining us. This basement is now your laboratory and you are its only employee. Your task: develop a high-yield biological product. Do not ask about its final use; we would not answer.
+
+To begin, get familiar with the facility. Move with WASD or by clicking the floor."
+CORREO_PACIENTE_T,Sobre los donantes,About the donors
+CORREO_PACIENTE,Los donantes llegan por la puerta oeste. Han firmado un consentimiento de 40 páginas y les hemos prometido un bocadillo. Sáqueles una muestra y déjelos marchar: necesitamos que sigan circulando.,Donors arrive through the west door. They signed a 40-page consent form and were promised a sandwich. Draw a sample and let them go: we need them to keep circulating.
+CORREO_BIORREACTOR_T,El plasma no es el producto,Plasma is not the product
+CORREO_BIORREACTOR,"El plasma es materia prima. El biorreactor lo convierte en una mutación del producto. Hemos ingresado fondos para la primera adquisición. Elija la mutación en su panel; la tos es un buen comienzo, discreta y sociable.","Plasma is raw material. The bioreactor turns it into a mutation of the product. Funds for the first purchase have been transferred. Pick the mutation in its panel; a cough is a good start, discreet and sociable."
+CORREO_LIBERADO_T,Fase 1 completada,Phase 1 complete
+CORREO_LIBERADO,"La cámara de cepa ha registrado la mutación y el producto ha salido del laboratorio por cauces que no le conciernen. Le recordamos que el monitor de la pared es solo informativo.
+
+La operación necesita liquidez: el muelle de envío compra lo que le deje. Las vacunas son lo más rentable; el plasma sobrante, también sirve.","The strain chamber registered the mutation and the product has left the lab through channels that do not concern you. Please note the wall monitor is for information only.
+
+The operation needs cash: the shipping dock buys what you leave there. Vaccines pay best; surplus plasma also helps."
+CORREO_AUTOMATIZAR_T,Optimización de recursos humanos,Human resources optimisation
+CORREO_AUTOMATIZAR,"Su productividad manual es encomiable y completamente insuficiente. Instale una máquina en la camilla (selecciónela) y tienda cintas: arrastre con la herramienta de cinta desde la flecha naranja hasta la flecha verde de la siguiente máquina.
+
+Próximamente recibirá personal de apoyo. No se asuste por su aspecto.","Your manual productivity is commendable and entirely insufficient. Install a machine on the bed (select it) and lay belts: drag with the belt tool from the orange arrow to the next machine's green arrow.
+
+Support staff will arrive soon. Do not be alarmed by their appearance."
+CORREO_FIN_T,Evaluación del periodo de prueba,Probation review
+CORREO_FIN,"Ha demostrado aptitud. A partir de ahora trabajará con los objetivos trimestrales del panel izquierdo. Los zombis, perdón, el personal de apoyo, no cobra ni descansa. Aprovéchelo.","You have shown aptitude. From now on you will work to the quarterly targets on the left panel. The zombies, sorry, the support staff, take no pay and no breaks. Make the most of it."
+PASO_MOVER,Muévete por el laboratorio con WASD o haciendo clic en el suelo.,Move around the lab with WASD or by clicking the floor.
+PASO_CAMILLA,Construye una camilla: Extracción → 1 y clic en el suelo (la flecha amarilla marca un buen sitio).,Build an extraction bed: Extraction → 1 and click the floor (the yellow arrow marks a good spot).
+PASO_SANGRE,"Cuando el paciente se tumbe, haz clic en la camilla para sacarle sangre.","When the patient lies down, click the bed to draw blood."
+PASO_CENTRIFUGA,Construye una centrífuga (Procesado → 1). Su flecha verde es por donde entra la sangre.,Build a centrifuge (Processing → 1). Its green arrow is where the blood goes in.
+PASO_PLASMA,"Con la sangre en las manos, haz clic en la centrífuga. Trabaja sola y saca plasma.","With the blood in hand, click the centrifuge. It works on its own and makes plasma."
+PASO_BIORREACTOR,Construye un biorreactor (Producto → 1).,Build a bioreactor (Product → 1).
+PASO_VIAL,Recoge 2 plasmas de la centrífuga y llévalos al biorreactor.,Collect 2 plasma from the centrifuge and take them to the bioreactor.
+PASO_CEPA,Lleva el vial de la mutación a la cámara de cepa.,Take the mutation vial to the strain chamber.
+PASO_VENDER,Lleva algo al muelle de envío (abajo a la derecha) para venderlo.,Take something to the shipping dock (bottom right) to sell it.
+PASO_MEJORA,Selecciona la camilla e instala el extractor automático.,Select the bed and install the automatic extractor.
+PASO_CINTA,"Tiende una cinta (Logística → 1, arrastrando) de la flecha naranja de la camilla a la verde de la centrífuga.","Lay a belt (Logistics → 1, drag) from the bed's orange arrow to the centrifuge's green arrow."
+PASO_ZOMBI,"Cuando llegue un zombi, selecciona la camilla y ponlo a trabajar.","When a zombie arrives, select the bed and put it to work."
+PASO_LIBRE,Cumple los objetivos trimestrales y automatiza todo lo que puedas.,Meet the quarterly targets and automate all you can.
