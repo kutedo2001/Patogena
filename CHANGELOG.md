@@ -13,3 +13,6 @@ Lo que nota el jugador, por versión.
 - Zombis que andan con los brazos al frente; mancos, decapitados y sin piernas arrastrándose, con muñones que gotean y rastro de sangre; investigadores y pacientes infectados; un zombi comiéndose a un paciente.
 - Investigadores y pacientes con más animaciones (trabajan, cogen cosas, asienten, se ponen nerviosos).
 - Curvas de cinta con nervios radiales.
+- Interfaz: barra superior (fondos, energía, mapa de propagación, cura, día, velocidad, pantallas), objetivo trimestral, teletipo de noticias, panel de máquina, barra de construcción con fichas e inventario.
+- La máquina seleccionada se marca con un anillo y lo que vas a construir aparece como fantasma verde.
+- La sangre del suelo se ve también en la versión web.

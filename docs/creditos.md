@@ -14,3 +14,5 @@
 - Cintas transportadoras y productos de nivel 3–4: scripts propios (tools/blender/cintas.py, tools/blender/objetos.py).
 - Personajes: Kenney Mini Characters 2.0 (CC0, kenney.nl), recoloreados (assets/personajes/LICENCIA_Kenney_CC0.txt).
 - Banco de espera y texturas de sangre: scripts propios.
+- Fuente Inter (Rasmus Andersson), SIL Open Font License 1.1 (assets/fuentes/LICENCIA_Inter_OFL.txt).
+- HUD, iconos vectoriales e iconos 3D renderizados: código propio (scripts/hud.gd, icono_hud.gd, mapa_hud.gd, iconos.gd).

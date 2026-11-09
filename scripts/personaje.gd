@@ -172,10 +172,7 @@ func _rastro() -> void:
 	if _ultimo_rastro.distance_to(aqui) < 0.35:
 		return
 	_ultimo_rastro = aqui
-	var d := Decal.new()
-	d.texture_albedo = preload("res://assets/texturas/sangre_gota.png")
-	var s := randf_range(0.12, 0.22)
-	d.size = Vector3(s, 0.3, s)
+	var d := Mancha.crear(preload("res://assets/texturas/sangre_gota.png"), randf_range(0.12, 0.22))
 	d.rotation.y = randf() * TAU
 	get_parent().add_child(d)
 	d.global_position = aqui + Vector3(randf_range(-0.08, 0.08), 0, randf_range(-0.08, 0.08))

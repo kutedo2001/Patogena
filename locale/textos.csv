@@ -1,2 +1,50 @@
 keys,es,en
 JUEGO_TITULO,Patógena S.A.,Patógena S.A.
+HUD_EMPRESA,PATÓGENA S.A.,PATÓGENA INC.
+HUD_SEDE,Laboratorio nivel 2 · Sótano B,Laboratory level 2 · Basement B
+HUD_FONDOS,Fondos,Funds
+HUD_POR_MIN,/min,/min
+HUD_ENERGIA,Energía,Power
+HUD_PROPAGACION,Propagación,Spread
+HUD_CURA,Cura,Cure
+HUD_DIA,Día %d,Day %d
+HUD_OBJETIVO,OBJETIVO TRIMESTRAL,QUARTERLY TARGET
+HUD_FASE,Fase 1 · Material de partida,Phase 1 · Starting material
+HUD_OBJ_PLASMA,Entregar plasma,Deliver plasma
+HUD_OBJ_VACUNAS,Vender cajas de vacunas,Sell vaccine boxes
+HUD_OBJ_MUTACION,Primera mutación en la cámara de cepa,First mutation in the strain chamber
+HUD_RECOMPENSA,Al completar: laboratorio nivel 3,On completion: laboratory level 3
+HUD_DIRECTO,EN DIRECTO,LIVE
+HUD_NOTICIA_1,Oporto: los hospitales refuerzan turnos por un brote de fiebre que las autoridades califican de estacional.,Porto: hospitals add shifts over a fever outbreak authorities describe as seasonal.
+HUD_NOTICIA_2,Patógena S.A. dona 40 000 vacunas a la sanidad pública. «Es nuestra responsabilidad»,"Patógena Inc. donates 40,000 vaccines to public health. ""It is our responsibility"""
+HUD_NOTICIA_3,"Lisboa cierra dos colegios tras varias mordeduras en el patio, sin relación según la consejería.","Lisbon closes two schools after several bites in playgrounds, unrelated according to officials."
+HUD_INVENTARIO,Inventario,Inventory
+HUD_CONSTRUIR,Construir,Build
+HUD_CAT_EXTRACCION,Extracción,Extraction
+HUD_CAT_PROCESADO,Procesado,Processing
+HUD_CAT_PRODUCTO,Producto,Product
+HUD_CAT_LOGISTICA,Logística,Logistics
+HUD_CAT_ENERGIA,Energía,Power
+MAQ_CENTRIFUGA,Centrífuga CF-200,Centrifuge CF-200
+MAQ_SECUENCIADOR,Secuenciador GX-9,Sequencer GX-9
+MAQ_BIORREACTOR,Biorreactor BR-40,Bioreactor BR-40
+MAQ_MEZCLADORA,Mezcladora MX-3,Mixer MX-3
+MAQ_ENVASADORA,Envasadora EV-12,Filler EV-12
+MAQ_CINTA_MK1,Cinta transportadora Mk1,Conveyor belt Mk1
+MAQ_CINTA_MK2,Cinta transportadora Mk2,Conveyor belt Mk2
+MAQ_SINTETIZADOR,Sintetizador de proteínas,Protein synthesizer
+MAQ_DESTILADOR,Destilador,Distiller
+DESC_CENTRIFUGA,Separa el plasma de la sangre donada. Las muestras se tratan con el máximo respeto.,Separates plasma from donated blood. Samples are treated with the utmost respect.
+HUD_TRABAJANDO,TRABAJANDO,RUNNING
+HUD_RECETA,Receta,Recipe
+HUD_RITMO,Ritmo,Rate
+HUD_CONSUMO,Consumo,Draw
+HUD_EFICIENCIA,Eficiencia,Efficiency
+HUD_PRODUCIDO,Producido hoy,Produced today
+HUD_ENTRADA,Entrada,Input
+HUD_SALIDA,Salida,Output
+HUD_MOVER,Mover,Move
+HUD_QUITAR,Quitar,Remove
+HUD_PAUSAR,Pausar,Pause
+HUD_BLOQUEADO,Requiere nivel 3,Requires level 3
+HUD_COSTE,Coste,Cost

@@ -35,3 +35,6 @@
 | 2026-11-09 | Personajes: Kenney Mini Characters 2.0 (CC0) con animaciones de serie, recoloreados por paleta; escala 0,62 (0,9 casillas) | Regla 5: nunca personas por código; mismo estilo amable que contrasta con el gore |
 | 2026-11-09 | Gore de personajes como efecto encima del cuerpo del pack: amputar = escalar el hueso a 0, muñón y gotas con mallas simples, poses de zombi por hueso sobre la animación | Cumple la regla 5 (el cuerpo sigue siendo el modelo CC0) y permite cualquier combinación de amputaciones sin modelos nuevos |
 | 2026-11-09 | Curvas de cinta con textura propia (nervios radiales, chevron estrecho) | El chevron ancho se abría en abanico y parecían arañazos |
+| 2026-11-09 | HUD construido por código (hud.gd) con fuente Inter (OFL), iconos vectoriales propios e iconos 3D renderizados desde los modelos sobre el color de la casilla | Iconos coherentes con el mundo; con fondo transparente el vidrio desaparecía |
+| 2026-11-09 | Idioma por defecto castellano hasta que haya menú de opciones; en móvil la interfaz se escala ×1,3 | La pantalla del móvil es pequeña aunque tenga muchos píxeles |
+| 2026-11-09 | Marcas de interfaz en el mundo sin texto: anillo de selección pulsante y fantasma verde translúcido con su huella | Regla 6 |

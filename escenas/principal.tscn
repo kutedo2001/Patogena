@@ -53,13 +53,3 @@ script = ExtResource("3")
 
 [node name="Camara" type="Camera3D" parent="RigCamara"]
 current = true
-
-[node name="HUD" type="CanvasLayer" parent="."]
-
-[node name="Titulo" type="Label" parent="HUD"]
-offset_left = 24.0
-offset_top = 16.0
-offset_right = 600.0
-offset_bottom = 60.0
-theme_override_font_sizes/font_size = 28
-text = "JUEGO_TITULO"

@@ -2,7 +2,6 @@ extends Node3D
 ## Escena principal. En la puerta 3 monta la sala, la cámara y unos volúmenes
 ## de escala provisionales (gris, con baliza) para juzgar densidad y proporción.
 
-@onready var titulo: Label = $HUD/Titulo
 @onready var sala: Node3D = $Sala
 @onready var camara: Node3D = $RigCamara
 
@@ -111,14 +110,69 @@ func _montar_gente() -> void:
 	for d in [[Vector3(-8.4, 0, 1.2), 0.8, "sangre_charco"], [Vector3(-9.8, 0, 0.3), 0.45, "sangre_salpicadura"],
 			[Vector3(-7.2, 0, 1.8), 0.4, "sangre_salpicadura"], [Vector3(-3.6, 0, 1.2), 1.0, "sangre_charco"],
 			[Vector3(-2.6, 0, 0.8), 0.5, "sangre_salpicadura"], [Vector3(-8.9, 0, 2.1), 0.5, "sangre_salpicadura"]]:
-		var dc := Decal.new()
-		dc.texture_albedo = load("res://assets/texturas/%s.png" % d[2])
-		dc.size = Vector3(d[1], 0.4, d[1])
+		var dc := Mancha.crear(load("res://assets/texturas/%s.png" % d[2]), d[1])
 		dc.position = d[0]
 		dc.rotation.y = randf() * TAU
 		add_child(dc)
 
+## Marcas de interfaz en el mundo (sin texto): anillo de la máquina seleccionada en el HUD y
+## fantasma verde de la construcción elegida en la barra, con su huella en el suelo.
+var _anillo: MeshInstance3D
+var _fantasma_mat: StandardMaterial3D
+
+func _seleccion_y_fantasma() -> void:
+	_anillo = MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.98
+	tm.outer_radius = 1.06
+	tm.rings = 48
+	_anillo.mesh = tm
+	_anillo.scale = Vector3(1, 0.05, 1)
+	var am := StandardMaterial3D.new()
+	am.albedo_color = Color(0.25, 0.71, 0.66)
+	am.emission_enabled = true
+	am.emission = Color(0.25, 0.71, 0.66)
+	am.emission_energy_multiplier = 1.5
+	am.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_anillo.material_override = am
+	_anillo.position = Vector3(-4.5, 0.02, -2.5)
+	_anillo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_anillo)
+	# fantasma
+	var f: Node3D = load("res://assets/modelos/maquinas/centrifuga.glb").instantiate()
+	_fantasma_mat = StandardMaterial3D.new()
+	_fantasma_mat.albedo_color = Color(0.3, 0.85, 0.5, 0.55)
+	_fantasma_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS   # solo la cara delantera: se lee la forma
+	_fantasma_mat.emission_enabled = true
+	_fantasma_mat.emission = Color(0.2, 0.8, 0.4)
+	_fantasma_mat.emission_energy_multiplier = 0.12
+	_fantasma_mat.roughness = 0.6
+	_fantasma_mat.cull_mode = BaseMaterial3D.CULL_BACK
+	for mi in f.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).material_override = _fantasma_mat
+		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	f.position = Vector3(0.0, 0, 1.0)
+	add_child(f)
+	# huella 2×2 en el suelo con borde
+	for i in 2:
+		for j in 2:
+			var c := MeshInstance3D.new()
+			var pm := PlaneMesh.new()
+			pm.size = Vector2(0.94, 0.94)
+			c.mesh = pm
+			var cm := StandardMaterial3D.new()
+			cm.albedo_color = Color(0.3, 0.9, 0.5, 0.22)
+			cm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			cm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			c.material_override = cm
+			c.position = Vector3(-0.5 + i, 0.015, 0.5 + j)
+			add_child(c)
+
 func _process(dt: float) -> void:
+	if _anillo:
+		var k := 1.0 + 0.04 * sin(Time.get_ticks_msec() * 0.004)
+		_anillo.scale = Vector3(k, 0.05, k)
+		_fantasma_mat.albedo_color.a = 0.55 + 0.08 * sin(Time.get_ticks_msec() * 0.005)
 	for c in _caminantes:
 		var p: Node3D = c[0]
 		var a: Vector2 = c[1]
@@ -135,7 +189,8 @@ func _process(dt: float) -> void:
 		p.rotation.y = atan2(dir.x, dir.y)
 
 func _ready() -> void:
-	titulo.text = tr("JUEGO_TITULO")
+	add_child(HUD.new())
+	_seleccion_y_fantasma()
 	_igualar_renderizadores()
 	sala.camara = camara
 	for e in MAQUINAS:
