@@ -156,14 +156,15 @@ Eventos: inspección sanitaria, huelga de transportistas, apagón, filtración a
 
 ## Dirección de arte
 
-**3D low-poly limpio, laboratorio blanco y verde corporativo, vista isométrica.** Pantalla objetivo en la puerta 3 comparada con Timberborn, Shapez 2 y Alchemy Factory.
+**3D estilizado y muy detallado, laboratorio blanco y verde corporativo, vista isométrica.** Pantalla objetivo en la puerta 3 comparada con Timberborn, Shapez 2 y Alchemy Factory.
 
-- Cámara: perspectiva de unos 30° de campo, inclinación 50°, giro de 45° (Q/E), zoom de 12 a 40 casillas, WASD o arrastrar.
-- Escala: casilla = 1 m; becario 0,9; máquinas 1×1, 2×2 o 3×3 y 1–2,5 de alto.
+- Cámara: perspectiva de unos 30° de campo, inclinación 50°, giro de 45° (Q/E), zoom de 4 a 40 casillas (4 = zoom de detalle), WASD o arrastrar.
+- Escala: casilla = 1 m; becario 0,9; máquinas 1×1, 2×2 o 3×3 y 1–2,5 de alto; productos a 2,5× su tamaño real.
+- **Detalle (lo pide Edu, siempre y cuanto más mejor):** al zoom de detalle todo aguanta. Piezas pequeñas (tornillos, juntas, cables, rejillas, pegatinas, etiquetas), pantallas vivas con información, objetos pieza a pieza (vidrio con grosor, líquidos con menisco, tapones moleteados) y procesos animados que se ven: botellas y viales llenándose, tubos entrando y saliendo, rotores, pórticos, burbujas, bombas. Listón mínimo: el lote 1 detallado (centrífuga, secuenciador, biorreactor).
 - Paleta: blanco roto y gris claro, metal gris azulado, verde de marca, productos saturados; verde ácido solo para virus y zombis.
 - Luz cenital fría, sombras suaves, máquinas que emiten al trabajar, día y noche por las ventanas.
 - Materiales: plástico mate, metal satinado, cristal, líquidos brillantes.
-- Evitar: texto sobre el mundo, cajas grises como máquinas, mezclar packs, gore fotorrealista. El gore va estilizado, a juego con el low-poly.
+- Evitar: texto sobre el mundo, máquinas de cuatro cajas sin detalle, mezclar packs, gore fotorrealista. El gore va estilizado, a juego con el resto.
 
 | Tipo | Vía |
 | --- | --- |

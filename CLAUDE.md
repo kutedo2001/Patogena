@@ -19,6 +19,7 @@ Fábrica 3D isométrica de un laboratorio farmacéutico que provoca un apocalips
 4. Gráficos pieza a pieza: cada asset o lote se enseña a Edu en una lámina con la cámara del juego y al lado de las referencias antes de montarlo.
 5. Personas, caras, manos y animales: nunca con primitivas ni esculpido por código (pack CC0 recoloreado).
 6. Ningún texto flotando sobre el mundo: luces e iconos de estado en las máquinas; el resto en paneles del HUD.
+7. Detalle máximo, siempre (lo pide Edu): al zoom máximo todo aguanta. Piezas pequeñas (tornillos, juntas, cables, rejillas, pegatinas), pantallas vivas con información, objetos pieza a pieza (vidrio con grosor, líquidos con menisco, tapones moleteados) y procesos animados que se ven (botellas llenándose, tubos entrando y saliendo, rotores, pórticos, burbujas). El listón mínimo es el lote 1 (P3.4c–e); cada lote nuevo, igual o más.
 
 ## Sincronización
 - git pull al empezar; commit y push al acabar cada tarea; actualizar D: o avisar a Edu.
