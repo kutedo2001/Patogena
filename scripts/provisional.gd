@@ -9,8 +9,11 @@ const C_GRAFITO := Color(0.25, 0.28, 0.29)
 const C_ACENTO := Color(0.4, 0.77, 0.9)
 const C_AMARILLO := Color(0.98, 0.82, 0.25)
 const C_MADERA := Color(0.62, 0.48, 0.3)
+const C_MARCA_P := Color(0.29, 0.58, 0.54)
 
 var tipo := ""
+var _viajes_vistos := 0
+var _t_viaje := 99.0
 var _brazo: Node3D
 var _luz: StandardMaterial3D
 var _barra: MeshInstance3D
@@ -107,12 +110,40 @@ static func crear(e: Fabrica.Entidad, pos: Vector3) -> Node3D:
 		p.caja(Vector3(0.24, 0.12, 0.3), Vector3(0.42, 0.3, 0), C_GRAFITO)
 		p.luz(Vector3(0.25, 0.56, 0.18))
 	elif e is Fabrica.MuelleEnvio:
+		# hub de envío 2×2: andén con franjas, rampa y furgoneta que sale cargada
 		p.tipo = "muelle"
-		p.caja(Vector3(0.98, 0.12, 0.98), Vector3(0, 0.06, 0), C_GRAFITO)
-		for k in 4:
-			p.caja(Vector3(0.98, 0.005, 0.1), Vector3(0, 0.125, -0.42 + k * 0.28), C_AMARILLO)
-		p.caja(Vector3(0.9, 0.12, 0.9), Vector3(0, 0.2, 0), C_MADERA)
-		p.luz(Vector3(0.42, 0.3, 0.42))
+		p.caja(Vector3(1.96, 0.25, 1.96), Vector3(0, 0.125, 0), C_GRAFITO)
+		for k in 7:
+			p.caja(Vector3(1.96, 0.005, 0.12), Vector3(0, 0.255, -0.84 + k * 0.28), C_AMARILLO)
+		p.caja(Vector3(0.5, 0.5, 0.5), Vector3(-0.6, 0.5, -0.6), C_CHASIS)        # caseta
+		p.caja(Vector3(0.52, 0.06, 0.52), Vector3(-0.6, 0.78, -0.6), C_ACENTO)
+		var van := Node3D.new()
+		van.name = "van"
+		p.add_child(van)
+		p.caja(Vector3(1.2, 0.55, 0.6), Vector3(0.2, 0.55, 0.45), Color(0.93, 0.94, 0.93), van)
+		p.caja(Vector3(0.35, 0.42, 0.58), Vector3(0.95, 0.48, 0.45), Color(0.93, 0.94, 0.93), van)
+		p.caja(Vector3(0.05, 0.22, 0.5), Vector3(1.13, 0.58, 0.45), Color(0.2, 0.3, 0.35), van)
+		p.caja(Vector3(1.22, 0.1, 0.62), Vector3(0.2, 0.62, 0.45), C_MARCA_P, van)
+		for x in [-0.25, 0.85]:
+			for z in [0.15, 0.75]:
+				p.cilindro(0.11, 0.08, Vector3(x, 0.36, z), Color(0.08, 0.08, 0.09), van).rotation.x = PI * 0.5
+		p.luz(Vector3(-0.85, 0.85, -0.85))
+	elif e is Fabrica.Ascensor:
+		# ascensor de pedidos 2×2: base con tolva, torre de guías y cápsula que sube al completar
+		p.tipo = "ascensor"
+		p.caja(Vector3(1.96, 0.3, 1.96), Vector3(0, 0.15, 0), C_GRAFITO)
+		p.caja(Vector3(1.6, 0.06, 1.6), Vector3(0, 0.33, 0), C_AMARILLO)
+		for x in [-0.8, 0.8]:
+			for z in [-0.8, 0.8]:
+				p.caja(Vector3(0.12, 4.0, 0.12), Vector3(x, 2.3, z), C_CHASIS)
+		p.caja(Vector3(1.8, 0.1, 1.8), Vector3(0, 4.3, 0), C_ACENTO)
+		var cap := Node3D.new()
+		cap.name = "capsula"
+		p.add_child(cap)
+		p.cilindro(0.55, 0.9, Vector3(0, 0.85, 0), Color(0.93, 0.94, 0.93), cap)
+		p.cilindro(0.57, 0.12, Vector3(0, 1.1, 0), C_MARCA_P, cap)
+		p.cilindro(0.3, 0.3, Vector3(0, 1.45, 0), C_GRAFITO, cap)
+		p.luz(Vector3(0.9, 0.4, 0.9))
 	elif e is Fabrica.Fuente:
 		p.tipo = "fuente"
 		p.caja(Vector3(0.8, 0.8, 0.8), Vector3(0, 0.4, 0), C_GRAFITO)
@@ -132,5 +163,20 @@ func actualizar(e: Fabrica.Entidad, t: float) -> void:
 		var f: float = float(e.contenido.size()) / float(e.capacidad)
 		_barra.scale.y = maxf(f, 0.02)
 		_barra.position.y = 0.15 + 0.25 * _barra.scale.y
-	if tipo == "divisor":
-		pass
+	if tipo == "muelle":
+		var van: Node3D = get_node_or_null("van")
+		if van:
+			# sale al completar un viaje: avanza y vuelve (se mide con el número de viajes)
+			if e.viajes != _viajes_vistos:
+				_viajes_vistos = e.viajes
+				_t_viaje = 0.0
+			_t_viaje += get_process_delta_time()
+			var k := clampf(_t_viaje / 3.0, 0.0, 1.0)
+			var fuera := sin(k * PI)
+			van.position.x = fuera * 6.0
+			van.visible = fuera < 0.95
+	if tipo == "ascensor":
+		var cap: Node3D = get_node_or_null("capsula")
+		if cap:
+			var sube: float = e.subiendo
+			cap.position.y = sin((1.0 - sube / 6.0) * PI) * 8.0 if sube > 0.0 else 0.0

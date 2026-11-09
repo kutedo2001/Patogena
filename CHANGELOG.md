@@ -5,6 +5,15 @@ Lo que nota el jugador, por versión.
 ## Sin publicar
 - Estructura inicial del proyecto.
 
+## Camino a la 1.0 · bloque 1 (9-nov-2026)
+- Mochila de 12 casillas al estilo Factorio: la pila elegida va en la mano; clic izquierdo carga o recoge, Mayús+clic lo hace todo, clic derecho abre el panel. Arrastrar entre casillas y a las máquinas.
+- LISA, la IA del laboratorio, narra la historia: tú eres la empresa.
+- Cada máquina tiene una boca por ingrediente con su icono; las vacunas heredan la mutación.
+- Hub de envío: carga cajas de vacunas, la furgoneta se va y vender vacunas es lo que propaga el virus.
+- Ascensor de pedidos: entrega lotes grandes para pasar de fase y desbloquear máquinas (candados en la barra).
+- Sala de 48×32 en parcelas de 8×8; empiezas con 4 y compras las de al lado.
+- Anuncios grandes en cada logro. Arreglos: cúpula de la cepa, cambio de mutación, mutación repetida avisada, quitar devuelve el contenido.
+
 ## Segunda prueba de la puerta 4 (9-nov-2026)
 - Juegas como un científico: WASD o clic para moverte; la cámara te sigue.
 - Tutorial con historia: correos de Dirección del Proyecto Reinicio y pasos guiados con una flecha sobre lo que toca.

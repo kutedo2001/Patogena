@@ -29,6 +29,7 @@ func _ready() -> void:
 		["CORREO_AUTOMATIZAR", "PASO_MEJORA", func(): return _modo("maquina") or _modo("zombi"), func(): return _donde("camilla")],
 		["", "PASO_CINTA", func(): return _cintas() >= 3, func(): return null],
 		["", "PASO_ZOMBI", func(): return _modo("zombi"), func(): return Vector3(juego.ESPERA_ZOMBIS.x, 0, juego.ESPERA_ZOMBIS.y) if juego.zombis_libres > 0 else null],
+		["CORREO_ASCENSOR", "PASO_ASCENSOR", func(): return juego.ascensor.completadas >= 1, func(): return juego.vista.centro(juego.ascensor)],
 		["CORREO_FIN", "PASO_LIBRE", func(): return false, func(): return null],
 	]
 	_marca = Node3D.new()

@@ -29,6 +29,8 @@ func soltar_en(e, d: Dictionary) -> void:
 	if e == null:
 		return
 	var tareas: Array = []
+	if d.has("i"):
+		juego.mano_i = d.i              # la casilla arrastrada pasa a la mano
 	if d.de is Fabrica.Entidad:
 		tareas.append(["coger", d.de, d.get("objeto", "")])
 	if not (d.de is Fabrica.Entidad) or e != d.de:

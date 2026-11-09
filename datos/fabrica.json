@@ -39,6 +39,12 @@
    "salida": 0,
    "recetas": [
     "plasma"
+   ],
+   "entradas": [
+    [
+     0,
+     ""
+    ]
    ]
   },
   "secuenciador": {
@@ -49,6 +55,12 @@
    "salida": 1,
    "recetas": [
     "adn"
+   ],
+   "entradas": [
+    [
+     1,
+     ""
+    ]
    ]
   },
   "mezcladora": {
@@ -59,6 +71,16 @@
    "salida": 0,
    "recetas": [
     "suero"
+   ],
+   "entradas": [
+    [
+     0,
+     "frasco_reactivo"
+    ],
+    [
+     1,
+     "garrafa_agua"
+    ]
    ]
   },
   "envasadora": {
@@ -69,6 +91,16 @@
    "salida": 1,
    "recetas": [
     "vacunas"
+   ],
+   "entradas": [
+    [
+     0,
+     "vial_mutacion"
+    ],
+    [
+     1,
+     "bolsa_suero"
+    ]
    ]
   },
   "biorreactor": {
@@ -84,6 +116,16 @@
     "nauseas",
     "frio",
     "calor"
+   ],
+   "entradas": [
+    [
+     0,
+     ""
+    ],
+    [
+     1,
+     ""
+    ]
    ]
   },
   "camara_cepa": {
@@ -94,6 +136,12 @@
    "salida": 1,
    "recetas": [
     "inyectar"
+   ],
+   "entradas": [
+    [
+     1,
+     ""
+    ]
    ]
   }
  },
@@ -105,7 +153,7 @@
    "salidas": {
     "tubo_plasma": 1
    },
-   "tiempo": 3.0
+   "tiempo": 4.0
   },
   "adn": {
    "entradas": {
@@ -128,13 +176,14 @@
   },
   "vacunas": {
    "entradas": {
-    "tubo_adn": 1,
-    "bolsa_suero": 1
+    "vial_mutacion": 1,
+    "bolsa_suero": 2
    },
    "salidas": {
-    "caja_vacunas": 1
+    "caja_vacunas": 4
    },
-   "tiempo": 4.0
+   "tiempo": 8.0,
+   "hereda": "vial_mutacion"
   },
   "inyectar": {
    "entradas": {
@@ -151,7 +200,7 @@
    "salidas": {
     "vial_mutacion": 1
    },
-   "tiempo": 6.0,
+   "tiempo": 8.0,
    "mutacion": "tos"
   },
   "estornudos": {
@@ -161,7 +210,7 @@
    "salidas": {
     "vial_mutacion": 1
    },
-   "tiempo": 6.0,
+   "tiempo": 8.0,
    "mutacion": "estornudos"
   },
   "fiebre": {
@@ -171,7 +220,7 @@
    "salidas": {
     "vial_mutacion": 1
    },
-   "tiempo": 6.0,
+   "tiempo": 8.0,
    "mutacion": "fiebre"
   },
   "nauseas": {
@@ -181,7 +230,7 @@
    "salidas": {
     "vial_mutacion": 1
    },
-   "tiempo": 6.0,
+   "tiempo": 8.0,
    "mutacion": "nauseas"
   },
   "frio": {
@@ -192,7 +241,7 @@
    "salidas": {
     "vial_mutacion": 1
    },
-   "tiempo": 6.0,
+   "tiempo": 8.0,
    "mutacion": "frio"
   },
   "calor": {
@@ -203,7 +252,7 @@
    "salidas": {
     "vial_mutacion": 1
    },
-   "tiempo": 6.0,
+   "tiempo": 8.0,
    "mutacion": "calor"
   }
  },
@@ -246,9 +295,9 @@
   "tiempo": 1.0
  },
  "ventas": {
-  "caja_vacunas": 30,
-  "tubo_plasma": 5,
-  "tubo_adn": 8
+  "caja_vacunas": 40,
+  "tubo_plasma": 4,
+  "tubo_adn": 6
  },
  "pedidos": {
   "frasco_reactivo": {
@@ -293,5 +342,47 @@
    "mejora": "bomba"
   }
  },
- "_nota_estaciones": "Estaciones de extracción: modo mano (trabaja el científico), maquina (el científico con la mejora, más rápido) y zombi (un zombi opera la máquina: automático y saca por su boca)."
+ "_nota_estaciones": "Estaciones de extracción: modo mano (trabaja el científico), maquina (el científico con la mejora, más rápido) y zombi (un zombi opera la máquina: automático y saca por su boca).",
+ "_nota_bocas": "entradas: [fila local, objeto o '']: la boca está en la cara −X local de esa fila; solo se entra por ahí (a mano se entra por cualquier lado). La salida es la cara +X de la fila 'salida'. Cinta Mk1 = 1 objeto/s; centrífuga y secuenciador 15/min; biorreactor consume 15 plasma/min (1 centrífuga : 1 biorreactor); envasadora: 1 vial + 2 sueros → 4 cajas con la mutación del vial.",
+ "fases": [
+  {
+   "pide": {
+    "tubo_plasma": 30
+   },
+   "desbloquea": [
+    "incubadora",
+    "toma_agua",
+    "secuenciador",
+    "mezcladora",
+    "almacen"
+   ]
+  },
+  {
+   "pide": {
+    "tubo_adn": 20,
+    "bolsa_suero": 30
+   },
+   "desbloquea": [
+    "envasadora",
+    "brazo",
+    "divisor"
+   ]
+  },
+  {
+   "pide": {
+    "vial_mutacion": 10,
+    "caja_vacunas": 40
+   },
+   "desbloquea": [
+    "capsula",
+    "tuberia"
+   ]
+  }
+ ],
+ "inicio_desbloqueado": [
+  "camilla",
+  "centrifuga",
+  "biorreactor",
+  "cinta"
+ ]
 }

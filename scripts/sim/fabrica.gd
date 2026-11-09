@@ -20,6 +20,7 @@ var nodos := {}                  # Vector2i → tipo de nodo de extracción ("do
 var dinero := 0.0
 var vendido := {}
 var ingresos := 0.0              # lo cobrado por ventas
+var vendidas_con := {}           # mutación → cajas de vacunas vendidas con ella
 var desechados := 0              # viales con una mutación repetida (se tiran)
 
 static func base(objeto: String) -> String:
@@ -102,6 +103,9 @@ func poner_estacion(tipo: String, c: Vector2i, giro: int) -> Estacion:
 
 func poner_muelle_envio(c: Vector2i) -> MuelleEnvio:
 	return _alta(MuelleEnvio.new(c)) as MuelleEnvio
+
+func poner_ascensor(c: Vector2i) -> Ascensor:
+	return _alta(Ascensor.new(c)) as Ascensor
 
 func quitar(c: Vector2i) -> Entidad:
 	var e: Entidad = celdas.get(c)
@@ -204,7 +208,7 @@ class Cinta extends Entidad:
 
 ## Máquina con receta: entra por la cara −X local, saca por la +X en la fila de salida.
 class MaquinaSim extends Entidad:
-	enum Estado { APAGADA, TRABAJANDO, SIN_MATERIAL, SALIDA_LLENA }
+	enum Estado { APAGADA, TRABAJANDO, SIN_MATERIAL, SALIDA_LLENA, REPETIDA }
 	var tipo := ""
 	var origen := Vector2i.ZERO
 	var tam := Vector2i.ONE
@@ -229,22 +233,46 @@ class MaquinaSim extends Entidad:
 		var minimo := Vector2i(rot.map(func(v): return v.x).min(), rot.map(func(v): return v.y).min())
 		casillas = rot.map(func(v): return o + v - minimo)
 		casilla_salida = o + Fabrica.girar(Vector2i(tam.x - 1, int(d.salida)), g) - minimo + Fabrica.DIRS[g]
+		# bocas de entrada: casilla de la máquina en la cara −X local de cada fila, con su filtro
+		for b in d.get("entradas", []):
+			bocas.append([o + Fabrica.girar(Vector2i(0, int(b[0])), g) - minimo, str(b[1])])
 		poner_receta(d.recetas[0])
 		progreso = -1.0
+	## Cambiar de receta no pierde nada (B7): la tanda en curso devuelve sus ingredientes a la
+	## tolva y lo que la receta nueva no usa sale por la salida.
 	func poner_receta(r: String) -> void:
+		if not _r.is_empty() and progreso >= 0.0:
+			for o in _r.entradas:
+				entrada[o] = entrada.get(o, 0) + int(_r.entradas[o])
 		receta = r
 		_r = Fabrica.datos.recetas[r]
-		entrada.clear()
 		progreso = -1.0
+		for o in entrada.keys():
+			if not _r.entradas.has(o):
+				for k in int(entrada[o]):
+					salida.append(o)
+				entrada.erase(o)
+	## La mutación de esta receta ya está registrada en la cámara de cepa (B9).
+	func repetida(f: Fabrica) -> bool:
+		return _r.has("mutacion") and str(_r.mutacion) in f.mutaciones_hechas
 	func duracion() -> float:
 		return float(_r.tiempo)
-	var etiquetas: Array[String] = []   # mutaciones de los viales en la tolva (cámara de cepa)
+	var etiquetas: Array[String] = []   # mutaciones de los viales en la tolva (cepa y envasadora)
+	var bocas: Array = []                # [casilla, filtro] por donde entra cada ingrediente
+	## Boca por la que entraría o (desde fuera, en dirección d, a la casilla c). null si ninguna.
+	func boca(o: String, d: int, c: Vector2i):
+		for b in bocas:
+			if b[0] == c and d == giro and (b[1] == "" or b[1] == Fabrica.base(o)):
+				return b
+		return null
 	func _cabe(o: String) -> bool:
 		var n: int = _r.entradas.get(Fabrica.base(o), 0)
 		return n > 0 and entrada.get(Fabrica.base(o), 0) < maxi(4 * n, 4)   # tolva: hasta 4 recetas
 	## También lo usa el jugador al echar objetos a mano (d = −1: entra por cualquier lado).
-	func aceptar(f: Fabrica, o: String, d: int, _c: Vector2i) -> bool:
-		if (d != giro and d != -1) or not _cabe(o):
+	func aceptar(f: Fabrica, o: String, d: int, c: Vector2i) -> bool:
+		if not _cabe(o):
+			return false
+		if d != -1 and (boca(o, d, c) == null if not bocas.is_empty() else d != giro):
 			return false
 		if _r.has("cuenta"):
 			var et := Fabrica.etiqueta(o)
@@ -254,9 +282,16 @@ class MaquinaSim extends Entidad:
 				f.desechados += 1               # mutación ya registrada: el vial se desecha y no atasca
 				return true
 			etiquetas.append(et)
+		elif _r.has("hereda") and Fabrica.base(o) == _r.hereda:
+			etiquetas.append(Fabrica.etiqueta(o))
 		entrada[Fabrica.base(o)] = entrada.get(Fabrica.base(o), 0) + 1
 		return true
 	func paso(f: Fabrica, dt: float) -> void:
+		if progreso < 0.0 and repetida(f):
+			estado = Estado.REPETIDA          # no fabrica una mutación que ya existe
+			if not salida.is_empty() and f.entregar(casilla_salida, salida[0], giro):
+				salida.pop_front()
+			return
 		if progreso < 0.0:
 			var hay := true
 			for o in _r.entradas:
@@ -272,8 +307,11 @@ class MaquinaSim extends Entidad:
 			progreso += dt
 			if progreso >= float(_r.tiempo):
 				progreso = -1.0
+				var heredada := ""
+				if _r.has("hereda") and not etiquetas.is_empty():
+					heredada = etiquetas.pop_front()
 				for o in _r.salidas:
-					var nombre: String = o + (":" + _r.mutacion if _r.has("mutacion") else "")
+					var nombre: String = o + (":" + _r.mutacion if _r.has("mutacion") else (":" + heredada if heredada != "" else ""))
 					for k in int(_r.salidas[o]):
 						salida.append(nombre)
 					f.anotar(o, int(_r.salidas[o]))
@@ -428,14 +466,23 @@ class Extractor extends Entidad:
 
 ## Muelle de envío: vende lo que le llega (cajas de vacunas) y suma el dinero.
 class MuelleEnvio extends Entidad:
+	var carga := 0                 # cajas cargadas en la furgoneta (sale con 8)
+	var viajes := 0
 	func _init(c: Vector2i) -> void:
-		casillas = [c]
+		casillas = [c, c + Vector2i(1, 0), c + Vector2i(0, 1), c + Vector2i(1, 1)]
 	func aceptar(f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
 		var precio: float = Fabrica.datos.ventas.get(Fabrica.base(o), 0)
 		if precio <= 0.0:
 			return false
 		f.dinero += precio
 		f.ingresos += precio
+		carga += 1
+		if carga >= 8:
+			carga = 0
+			viajes += 1
+		var et := Fabrica.etiqueta(o)
+		if et != "":
+			f.vendidas_con[et] = f.vendidas_con.get(et, 0) + 1   # vender vacunas = propagar esa mutación
 		f.vendido[Fabrica.base(o)] = f.vendido.get(Fabrica.base(o), 0) + 1
 		return true
 
@@ -513,3 +560,41 @@ class Estacion extends Entidad:
 		if tipo == "incubadora" and crecimiento < _crece():
 			return crecimiento / _crece()
 		return progreso / duracion()
+
+## Ascensor de pedidos (como el ascensor espacial de Satisfactory): 2×2, acepta por cualquier lado
+## lo que pida la fase actual; al completarla sube la cápsula y se desbloquean máquinas.
+class Ascensor extends Entidad:
+	var fase := 0
+	var entregado := {}
+	var completadas := 0
+	var subiendo := 0.0            # >0 mientras sube la cápsula (s)
+	func _init(c: Vector2i) -> void:
+		casillas = [c, c + Vector2i(1, 0), c + Vector2i(0, 1), c + Vector2i(1, 1)]
+	func pide() -> Dictionary:
+		var fs: Array = Fabrica.datos.fases
+		return fs[fase].pide if fase < fs.size() else {}
+	func falta(o: String) -> int:
+		return int(pide().get(Fabrica.base(o), 0)) - int(entregado.get(Fabrica.base(o), 0))
+	func aceptar(_f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
+		if subiendo > 0.0 or falta(o) <= 0:
+			return false
+		entregado[Fabrica.base(o)] = entregado.get(Fabrica.base(o), 0) + 1
+		return true
+	func completa() -> bool:
+		var p := pide()
+		if p.is_empty():
+			return false
+		for o in p:
+			if int(entregado.get(o, 0)) < int(p[o]):
+				return false
+		return true
+	func paso(_f: Fabrica, dt: float) -> void:
+		if subiendo > 0.0:
+			subiendo -= dt
+			if subiendo <= 0.0:
+				subiendo = 0.0
+		elif completa():
+			completadas += 1
+			fase += 1
+			entregado.clear()
+			subiendo = 6.0

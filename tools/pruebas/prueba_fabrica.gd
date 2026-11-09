@@ -12,7 +12,8 @@ func _initialize() -> void:
 	_cadenas()
 	_brazo_divisor_almacen()
 	_bloqueo()
-	if hechas < 12:
+	_ascensor_y_hub()
+	if hechas < 16:
 		fallos += 1
 		print("  FALLO solo se hicieron %d comprobaciones de 12" % hechas)
 	print("Tiempo real total: %d ms" % (Time.get_ticks_msec() - t0))
@@ -37,6 +38,11 @@ func _cadenas() -> void:
 	var br: Fabrica.MaquinaSim = f.celdas[Vector2i(-6, -5)]
 	var cepa: Fabrica.MaquinaSim = f.celdas[Vector2i(0, -5)]
 	var sq: Fabrica.MaquinaSim = f.celdas[Vector2i(-5, 0)]
+	var malo := Fabrica.new()
+	malo.poner_fuente(Vector2i(-1, 0), 0, "garrafa_agua", 1.0)
+	var mz2 := malo.poner_maquina("mezcladora", Vector2i(0, 0))
+	for i in 100: malo.paso()
+	comprobar(mz2.entrada.is_empty(), "la mezcladora no acepta agua por la boca del reactivo")
 	var mz: Fabrica.MaquinaSim = f.celdas[Vector2i(-5, 3)]
 	var ev: Fabrica.MaquinaSim = f.celdas[Vector2i(0, 0)]
 	var palet: Fabrica.Almacen = f.celdas[Vector2i(7, 1)]
@@ -53,7 +59,7 @@ func _cadenas() -> void:
 	comprobar(f.producido.get("tubo_plasma", 0) > 0, "las centrífugas hacen plasma")
 	comprobar(f.mutaciones >= 1, "la cámara de cepa recibe al menos una mutación")
 	comprobar(f.producido.get("tubo_adn", 0) > 0 and f.producido.get("bolsa_suero", 0) > 0, "secuenciador y mezcladora producen")
-	comprobar(palet.contenido.size() >= 30 and palet.contenido[0] == "caja_vacunas", "las cajas de vacunas llegan al palé sin atascos (≥30)")
+	comprobar(palet.contenido.size() >= 30 and palet.contenido[0] == "caja_vacunas:tos", "las cajas de vacunas llevan la mutación y llegan al palé sin atascos (≥30)")
 	comprobar(ms < 3000, "5 min de juego se simulan en menos de 3 s (×100)")
 
 ## Las dos cadenas de la pantalla objetivo con fuentes en lugar de extractores (también la usa la vista esquemática).
@@ -71,14 +77,17 @@ static func montar_cadenas() -> Fabrica:
 	f.poner_fuente(Vector2i(-12, 1), 0, "placa_petri", 2.0)
 	f.poner_linea([Vector2i(-11, 1), Vector2i(-10, 1), Vector2i(-9, 1), Vector2i(-8, 1), Vector2i(-7, 1), Vector2i(-6, 1)])
 	f.poner_maquina("secuenciador", Vector2i(-5, 0))
-	f.poner_linea([Vector2i(-3, 1), Vector2i(-2, 1), Vector2i(-2, 0), Vector2i(-1, 0)])
+	f.poner_linea([Vector2i(-3, 1), Vector2i(-3, 0)], 1, 3)
+	f.poner_almacen(Vector2i(-3, -1))                                   # el ADN se guarda (irá a mutaciones)
+	f.poner_fuente(Vector2i(-2, 0), 0, "vial_mutacion:tos", 4.0)      # viales con mutación para las vacunas
+	f.poner_cinta(Vector2i(-1, 0), 0)
 	f.poner_fuente(Vector2i(-12, 4), 0, "garrafa_agua", 3.0)
 	f.poner_linea([Vector2i(-11, 4), Vector2i(-10, 4), Vector2i(-9, 4), Vector2i(-8, 4), Vector2i(-7, 4)])
 	f.poner_cinta(Vector2i(-6, 4), 0)
 	f.poner_fuente(Vector2i(-8, 2), 1, "frasco_reactivo", 3.0)       # el reactivo entra por la otra casilla de la cara
 	f.poner_linea([Vector2i(-8, 3), Vector2i(-7, 3), Vector2i(-6, 3)], 1, 0)
 	f.poner_maquina("mezcladora", Vector2i(-5, 3))
-	f.poner_linea([Vector2i(-3, 3), Vector2i(-2, 3), Vector2i(-1, 3), Vector2i(-1, 2), Vector2i(-1, 1)], 1, 0)   # suero por la otra casilla
+	f.poner_linea([Vector2i(-3, 3), Vector2i(-2, 3), Vector2i(-1, 3), Vector2i(-1, 2), Vector2i(-1, 1)], 1, 0)   # suero a su boca
 	f.poner_maquina("envasadora", Vector2i(0, 0))
 	f.poner_linea([Vector2i(2, 1), Vector2i(3, 1), Vector2i(4, 1), Vector2i(5, 1), Vector2i(6, 1)])
 	f.poner_almacen(Vector2i(7, 1))
@@ -123,3 +132,18 @@ func _bloqueo() -> void:
 	comprobar(f.producido.tubo_plasma == en_cinta + cf.salida.size(), "no se pierde ningún plasma (%d hechos)" % f.producido.tubo_plasma)
 	var q := f.quitar(Vector2i(2, 0))
 	comprobar(q == cf and not f.celdas.has(Vector2i(2, 0)), "quitar libera las casillas")
+
+## El ascensor acepta solo lo que pide la fase y la completa; el hub vende vacunas con mutación.
+func _ascensor_y_hub() -> void:
+	print("Ascensor de pedidos y hub:")
+	var f := Fabrica.new()
+	var a := f.poner_ascensor(Vector2i(0, 0))
+	f.poner_fuente(Vector2i(-2, 0), 0, "tubo_plasma", 0.3)
+	f.poner_cinta(Vector2i(-1, 0), 0)
+	comprobar(not a.aceptar(f, "tubo_sangre", 0, Vector2i(0, 0)), "el ascensor no acepta lo que no pide")
+	_simular(f, 40.0)
+	comprobar(a.completadas == 1 and a.fase == 1, "30 plasmas completan la fase 1")
+	var h := f.poner_muelle_envio(Vector2i(5, 5))
+	for i in 10:
+		h.aceptar(f, "caja_vacunas:tos", 0, Vector2i(5, 5))
+	comprobar(f.vendidas_con.get("tos", 0) == 10 and h.viajes == 1, "10 vacunas de tos vendidas, una furgoneta sale (%d €)" % int(f.ingresos))

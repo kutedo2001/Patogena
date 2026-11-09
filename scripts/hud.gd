@@ -76,11 +76,32 @@ func _ready() -> void:
 	_inv_caja = _columna(pi, 8)
 	_anclar.call_deferred(pi, Control.PRESET_BOTTOM_LEFT)
 	if juego:
+		juego.anuncio.connect(mostrar_anuncio)
 		juego.tutorial.correo.connect(_mostrar_correo)
 		juego.aviso.connect(func(k: String): _avisos.push_front(tr(k)); _avisos.resize(mini(_avisos.size(), 3)))
 	_refrescar(true)
 
 var _correo: Control
+var _anuncio: PanelContainer
+var _anuncio_t := 0.0
+
+## Anuncio grande arriba en el centro para los momentos importantes (mutación, hito, venta…).
+func mostrar_anuncio(titulo: String, texto: String) -> void:
+	if _anuncio:
+		_anuncio.queue_free()
+	_anuncio = _carcasa(_raiz, 14)
+	_anuncio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var v := _columna(_anuncio, 6)
+	var f := _franja(v, titulo.to_upper(), "cepa")
+	f.alignment = BoxContainer.ALIGNMENT_CENTER
+	var p := _pantalla(v, 12)
+	var l := _texto(p, texto, 18, F_BOLD, P_TINTA)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.custom_minimum_size.x = 460
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_anuncio_t = 4.5
+	_anuncio.set_anchors_and_offsets_preset.call_deferred(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 110)
+	_anuncio.grow_horizontal = Control.GROW_DIRECTION_BOTH
 
 ## Correo de Dirección: carcasa centrada con la cabecera de la empresa, el texto y «Continuar».
 func _mostrar_correo(titulo: String, texto: String) -> void:
@@ -142,7 +163,7 @@ func _clic(c: Control, accion: Callable) -> void:
 func _arrastrable(c: Control, data: Dictionary, icono: String) -> void:
 	c.mouse_filter = Control.MOUSE_FILTER_STOP
 	c.mouse_default_cursor_shape = Control.CURSOR_DRAG
-	c.set_drag_forwarding(func(_p):
+	var fn := func(_p):
 		var t := TextureRect.new()
 		t.texture = _icono(icono)
 		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -151,7 +172,9 @@ func _arrastrable(c: Control, data: Dictionary, icono: String) -> void:
 		var r := Control.new()
 		r.add_child(t)
 		c.set_drag_preview(r)
-		return data, Callable(), Callable())
+		return data
+	c.set_meta("drag_fn", fn)
+	c.set_drag_forwarding(fn, Callable(), Callable())
 
 func _vaciar(c: Control) -> void:
 	for h in c.get_children():
@@ -263,7 +286,7 @@ func _refrescar(forzar := false) -> void:
 		_texto(_obj_caja, tr("HUD_FASE_1"), 15, F_BOLD)
 		var pant := _pantalla(_obj_caja, 10)
 		var lista := _columna(pant, 10)
-		var iconos := ["tubo_plasma", "tubo_adn", "vial_mutacion"]
+		var iconos := ["tubo_plasma", "vial_mutacion", "ascensor"]
 		for i in Juego.HITOS.size():
 			var hv := juego.hito(i)
 			var fila := _fila(lista, 10)
@@ -311,36 +334,54 @@ func _refrescar(forzar := false) -> void:
 		fm = "%s|%s|%s|%d|%d" % [sel.get_instance_id(), sel.modo, sel.listo, juego.zombis_libres, int(juego.fab.dinero >= 250)]
 	elif sel is Fabrica.MuelleEnvio:
 		fm = "muelle|%s" % str(juego.fab.vendido)
+	elif sel is Fabrica.Ascensor:
+		fm = "asc|%d|%s|%s" % [sel.fase, str(sel.entregado), str(sel.subiendo > 0.0)]
+	if sel == null and juego.parcela_sel.x >= 0:
+		fm = "parcela|%s|%d" % [juego.parcela_sel, int(juego.fab.dinero >= juego.precio_parcela(juego.parcela_sel))]
 	if forzar or _firmas.get("maq") != fm:
 		_firmas["maq"] = fm
 		_panel_seleccion(sel)
 	# construcción
-	var fc := "%s|%s|%d|%s" % [juego.categoria, str(juego.herramienta), _hover, juego.quitando]
+	var fc := "%s|%s|%d|%s|%d" % [juego.categoria, str(juego.herramienta), _hover, juego.quitando, juego.desbloqueadas.size()]
 	if forzar or _firmas.get("cons") != fc:
 		_firmas["cons"] = fc
 		_barra_construccion_juego()
-	# manos del científico y zombis disponibles
-	var fi := "%s|%d|%d" % [juego.mano_obj, juego.mano_n, juego.zombis_libres]
+	# mochila (la casilla de la mano resaltada) y zombis disponibles
+	var fi := "%s|%d|%d" % [str(juego.mochila), juego.mano_i, juego.zombis_libres]
 	if forzar or _firmas.get("inv") != fi:
 		_firmas["inv"] = fi
 		_vaciar(_inv_caja)
-		var cab := _franja(_inv_caja, tr("HUD_MANOS").to_upper())
-		_texto(cab, "%d/%d" % [juego.mano_n, Juego.MANOS_MAX], 12, F_BOLD, Color.WHITE)
-		var fila := _fila(_inv_caja, 6)
-		var nombre := Fabrica.base(juego.mano_obj)
-		for k in Juego.MANOS_MAX:
-			var b := _bandeja(fila, nombre if k < juego.mano_n else "", 50)
-			if k < juego.mano_n:
-				_arrastrable(b, {"de": "manos", "objeto": juego.mano_obj}, nombre)
-				b.tooltip_text = tr("OBJ_" + nombre.to_upper())
-		# soltar aquí lo arrastrado desde una máquina = ir a cogerlo
-		var caja_manos: Control = _inv_caja.get_parent()
-		caja_manos.set_drag_forwarding(Callable(),
-			func(_p, d): return d is Dictionary and d.get("de") is Fabrica.Entidad,
-			func(_p, d): juego.encargar([["coger", d.de, d.get("objeto", "")]]))
-		if juego.mano_n > 0:
-			_texto(_inv_caja, tr("HUD_AYUDA_MANOS"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			_accion(_inv_caja, tr("HUD_TIRAR"), "F", true, func(): juego.soltar_mano())
+		var cab := _franja(_inv_caja, tr("HUD_MOCHILA").to_upper())
+		var usadas := juego.mochila.filter(func(c): return not c.is_empty()).size()
+		_texto(cab, "%d/%d" % [usadas, Juego.MOCHILA_CASILLAS], 12, F_BOLD, Color.WHITE)
+		var grid := GridContainer.new()
+		grid.columns = 6
+		grid.add_theme_constant_override("h_separation", 5)
+		grid.add_theme_constant_override("v_separation", 5)
+		grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_inv_caja.add_child(grid)
+		for i in Juego.MOCHILA_CASILLAS:
+			var c: Dictionary = juego.mochila[i]
+			var nombre: String = Fabrica.base(c.o) if not c.is_empty() else ""
+			var b := _bandeja(grid, nombre, 50, c.n if not c.is_empty() else -1)
+			if i == juego.mano_i:
+				b.add_theme_stylebox_override("panel", _estilo_bandeja(true))
+			var k := i
+			b.mouse_filter = Control.MOUSE_FILTER_STOP
+			if not c.is_empty():
+				b.tooltip_text = tr("OBJ_" + nombre.to_upper()) + "\n" + tr("HUD_AYUDA_CASILLA")
+				_arrastrable(b, {"de": "manos", "i": i, "objeto": c.o}, nombre)
+			b.gui_input.connect(func(ev): if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT: juego.elegir_mano(k))
+			# soltar sobre una casilla: reordenar la mochila o ir a recoger de una máquina
+			b.set_drag_forwarding(b.get_meta("drag_fn", Callable()),
+				func(_p, d): return d is Dictionary and d.has("de"),
+				func(_p, d):
+					if d.de is String and d.has("i"):
+						juego.mover_casilla(d.i, k)
+					elif d.de is Fabrica.Entidad:
+						juego.encargar([["coger", d.de, d.get("objeto", "")]]))
+		var ayuda := tr("HUD_AYUDA_MOCHILA_MANO") if juego.mano_i >= 0 else tr("HUD_AYUDA_MOCHILA")
+		_texto(_inv_caja, ayuda, 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		if juego.liberado:
 			var zf := _fila(_inv_caja, 8)
 			zf.add_child(IconoHUD.new("cepa", Color(0.3, 0.6, 0.15), 16))
@@ -355,6 +396,12 @@ func _panel_seleccion(sel) -> void:
 		return
 	if sel is Fabrica.MuelleEnvio:
 		_panel_muelle()
+		return
+	if sel is Fabrica.Ascensor:
+		_panel_ascensor(sel)
+		return
+	if sel == null and juego.parcela_sel.x >= 0:
+		_panel_parcela(juego.parcela_sel)
 		return
 	if not (sel is Fabrica.MaquinaSim or sel is Fabrica.Almacen or sel is Fabrica.Extractor):
 		_maq_panel.visible = false
@@ -480,7 +527,7 @@ func _panel_seleccion(sel) -> void:
 				hp.add_child(t)
 	if not sel.salida.is_empty():
 		_accion(_maq_caja, tr("HUD_RECOGER"), "%d" % sel.salida.size(), true, func(): juego.encargar([["coger", sel, ""]]))
-	_texto(_maq_caja, tr("HUD_AYUDA_MAQUINA3"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_texto(_maq_caja, tr("HUD_AYUDA_MAQUINA4"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 func _panel_estacion(e: Fabrica.Estacion) -> void:
 	_maq_panel.visible = true
@@ -515,6 +562,61 @@ func _panel_estacion(e: Fabrica.Estacion) -> void:
 		_accion(_maq_caja, tr(m[0]), "%s €" % _miles(m[1]), juego.fab.dinero >= float(m[1]), func(): juego.mejorar(e))
 	elif e.modo == "maquina":
 		_accion(_maq_caja, tr("HUD_ASIGNAR_ZOMBI"), tr("HUD_ZOMBIS") % juego.zombis_libres, juego.zombis_libres > 0, func(): juego.asignar_zombi(e))
+
+func _panel_ascensor(a: Fabrica.Ascensor) -> void:
+	_maq_panel.visible = true
+	var cab := _fila(_maq_caja, 12)
+	_bandeja(cab, "ascensor", 64)
+	var cc := _columna(cab, 4)
+	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cc.alignment = BoxContainer.ALIGNMENT_CENTER
+	_texto(cc, tr("CONS_ASCENSOR"), 17, F_BOLD)
+	_texto(cc, (tr("HUD_FASE_ASC") % (a.fase + 1)).to_upper(), 11, F_BOLD, Color(0.15, 0.6, 0.3))
+	var p := a.pide()
+	if p.is_empty():
+		_texto(_maq_caja, tr("ANUNCIO_FASE_PRONTO"), 13, F_SEMI)
+		return
+	_franja(_maq_caja, tr("HUD_PIDE"))
+	var pe := _pantalla(_maq_caja, 10)
+	var lista := _columna(pe, 8)
+	for o in p:
+		var f := _fila(lista, 10)
+		_bandeja(f, o, 40)
+		var c := _columna(f, 4)
+		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var hecho := int(a.entregado.get(o, 0))
+		_texto(c, "%s  %d/%d" % [tr("OBJ_" + str(o).to_upper()), hecho, int(p[o])], 13, F_BOLD, P_TINTA)
+		_barra(c, float(hecho) / float(p[o]), P_TINTA, 6)
+	var des: Array = Fabrica.datos.fases[a.fase].desbloquea
+	var fd := _fila(_maq_caja, 6)
+	_texto(fd, tr("HUD_DESBLOQUEA").to_upper(), 10, F_BOLD, C_TENUE_OSC)
+	for id in des:
+		var ic: String = id
+		for cat in Juego.CATALOGO:
+			for en in Juego.CATALOGO[cat]:
+				if en[0] == id:
+					ic = en[1]
+		var b := _bandeja(fd, ic, 34)
+		b.tooltip_text = tr("DESC_" + str(id).to_upper())
+	_texto(_maq_caja, tr("DESC_ASCENSOR"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+func _panel_parcela(pc: Vector2i) -> void:
+	_maq_panel.visible = true
+	var cab := _fila(_maq_caja, 12)
+	_bandeja(cab, "", 64)
+	var cc := _columna(cab, 4)
+	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cc.alignment = BoxContainer.ALIGNMENT_CENTER
+	_texto(cc, tr("HUD_PARCELA"), 17, F_BOLD)
+	_texto(cc, "8 × 8", 12, F_BOLD, C_TENUE_OSC)
+	if not juego.comprable(pc):
+		_texto(_maq_caja, tr("HUD_PARCELA_LEJOS"), 12, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		return
+	if juego.ascensor.completadas < juego.fase_parcela(pc):
+		_texto(_maq_caja, tr("HUD_PARCELA_FASE2"), 12, F_MED, C_TENUE_OSC)
+		return
+	var precio := juego.precio_parcela(pc)
+	_accion(_maq_caja, tr("HUD_COMPRAR_PARCELA"), "%s €" % _miles(precio), juego.fab.dinero >= precio, func(): juego.comprar_parcela(pc); juego.parcela_sel = Vector2i(-1, -1))
 
 func _panel_muelle() -> void:
 	_maq_panel.visible = true
@@ -634,6 +736,11 @@ func _barra_construccion_juego() -> void:
 			c.add_child(pv)
 			var asequible: bool = juego.fab.dinero >= float(e[3])
 			_texto(pv, "%s€" % _miles(e[3]), 10, F_BOLD, C_AMBAR if asequible else C_ROJO)
+			if not juego.desbloqueada(e):
+				c.modulate = Color(0.55, 0.55, 0.55)
+				var cand := IconoHUD.new("candado", C_GRAFITO, 14)
+				cand.position = Vector2(45, 4)
+				c.add_child(cand)
 			pv.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 3)
 			pv.grow_horizontal = Control.GROW_DIRECTION_BOTH
 			pv.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -692,10 +799,16 @@ func _process(dt: float) -> void:
 	if _maq_prog and (sel is Fabrica.MaquinaSim or sel is Fabrica.Extractor or sel is Fabrica.Estacion):
 		_maq_prog.value = sel.fraccion()
 	if _maq_estado and sel is Fabrica.MaquinaSim:
-		var claves := ["HUD_APAGADA", "HUD_TRABAJANDO", "HUD_SIN_MATERIAL", "HUD_SALIDA_LLENA"]
+		var claves := ["HUD_APAGADA", "HUD_TRABAJANDO", "HUD_SIN_MATERIAL", "HUD_SALIDA_LLENA", "HUD_REPETIDA"]
 		_maq_estado.text = tr(claves[sel.estado])
 		_maq_estado.add_theme_color_override("font_color", Color(0.15, 0.6, 0.3) if sel.estado == 1 else Color(0.75, 0.5, 0.05))
 	_ficha_mundo()
+	if _anuncio:
+		_anuncio_t -= dt
+		_anuncio.modulate.a = clampf(_anuncio_t, 0.0, 1.0)
+		if _anuncio_t <= 0.0:
+			_anuncio.queue_free()
+			_anuncio = null
 	_t_refresco += dt
 	if _t_refresco > 0.15:
 		_t_refresco = 0.0
@@ -720,12 +833,16 @@ func _ficha_mundo() -> void:
 		return
 	var t := ""
 	var d := ""
-	if e is String:
+	if e is String and e == "parcela":
+		var pc := juego.parcela_de(juego._cel)
+		t = tr("HUD_PARCELA")
+		d = ("%s €" % _miles(juego.precio_parcela(pc))) if juego.comprable(pc) else tr("HUD_PARCELA_LEJOS")
+	elif e is String:
 		t = tr("CONS_TERMINAL")
 		d = tr("DESC_TERMINAL")
 	elif e is Fabrica.MaquinaSim:
 		t = tr("MAQ_" + e.tipo.to_upper())
-		d = tr("DESC_" + e.tipo.to_upper()) + "\n" + tr(["HUD_APAGADA", "HUD_TRABAJANDO", "HUD_SIN_MATERIAL", "HUD_SALIDA_LLENA"][e.estado])
+		d = tr("DESC_" + e.tipo.to_upper()) + "\n" + tr(["HUD_APAGADA", "HUD_TRABAJANDO", "HUD_SIN_MATERIAL", "HUD_SALIDA_LLENA", "HUD_REPETIDA"][e.estado])
 	elif e is Fabrica.Estacion:
 		t = tr("EST_" + e.tipo.to_upper())
 		d = tr("DESC_" + e.tipo.to_upper()) + "\n" + tr("MODO_" + e.modo.to_upper())
@@ -735,6 +852,9 @@ func _ficha_mundo() -> void:
 	elif e is Fabrica.MuelleEnvio:
 		t = tr("CONS_MUELLE")
 		d = tr("AYUDA_MUELLE")
+	elif e is Fabrica.Ascensor:
+		t = tr("CONS_ASCENSOR")
+		d = tr("DESC_ASCENSOR")
 	elif e is Fabrica.Almacen:
 		t = tr("CONS_ALMACEN")
 		d = tr("DESC_ALMACEN") + "  (%d)" % e.contenido.size()
@@ -745,7 +865,7 @@ func _ficha_mundo() -> void:
 		t = tr("CONS_DIVISOR")
 		d = tr("DESC_DIVISOR")
 	_ff_titulo.text = t
-	_ff_texto.text = d + "\n" + tr("HUD_CLIC_PANEL")
+	_ff_texto.text = d + "\n" + tr("HUD_CLIC_USAR")
 	_ficha_flotante.visible = true
 	_ficha_flotante.reset_size()
 	var m := get_viewport().get_mouse_position() / get_window().content_scale_factor

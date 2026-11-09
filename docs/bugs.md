@@ -38,16 +38,31 @@ Formato: síntoma · causa · arreglo · comprobación · cómo evitarlo.
 - **Arreglo:** si se terminan de extraer con las manos ocupadas, la sangre espera y sale un aviso; botón «Tirar lo que llevo» (F) y botón «Ir a recoger lo hecho» en el panel; llevar cosas arrastrándolas.
 - **Comprobación:** prueba de ratón: plasma en las manos → extraer → la sangre espera → vender el plasma → recoger la sangre.
 
-## B6 · La cúpula de la cámara de cepa gira como una tapa con bisagra — abierto
+## B6 · La cúpula de la cámara de cepa gira como una tapa con bisagra — resuelto (V1.1)
 - **Causa:** la pieza se llama «tapa» y recibe la animación de la tapa de la centrífuga.
+- **Arreglo:** la animación de tapa solo se aplica a la centrífuga (`maquina.gd`).
+- **Comprobación:** captura de la cámara de cepa trabajando; la cúpula ya no se mueve.
+- **Evitar:** no reutilizar nombres de nodo con animación genérica entre máquinas.
 
-## B7 · Cambiar de mutación borra lo cargado en el biorreactor — abierto
+## B7 · Cambiar de mutación borra lo cargado en el biorreactor — resuelto (V1.1)
 - **Causa:** `poner_receta` vacía la tolva y cancela la tanda en curso.
+- **Arreglo:** la tanda en curso vuelve a la tolva; lo que no sirve para la nueva receta pasa a la salida.
+- **Comprobación:** prueba de ratón «cambiar receta conserva la tolva».
+- **Evitar:** cambiar de receta nunca destruye objetos.
 
-## B8 · La primera mutación no da ninguna recompensa visible — abierto
+## B8 · La primera mutación no da ninguna recompensa visible — resuelto (V1.1)
 - **Causa:** aviso solo en el teletipo, propagación inicial 0,001 % que se ve como 0,00 %, premio sin efecto visible.
+- **Arreglo:** anuncio grande arriba al hacer una mutación nueva, cumplir un hito, comprar parcela o pasar de fase; la propagación crece con las vacunas vendidas.
+- **Comprobación:** prueba de ratón ve el anuncio tras la primera mutación.
+- **Evitar:** cada logro importante tiene feedback grande, no solo teletipo.
 
-## B9 · Mutación repetida desaparece en silencio — abierto
+## B9 · Mutación repetida desaparece en silencio — resuelto (V1.1)
 - **Causa:** la cámara desecha la repetida y el biorreactor tiene la tos por defecto.
+- **Arreglo:** el biorreactor pasa a estado REPETIDA (luz y aviso) y no fabrica; si llega un vial repetido a la cámara, se desecha con anuncio.
+- **Comprobación:** prueba de ratón con la tos dos veces.
+- **Evitar:** nada desaparece sin avisar.
 
-## B10 · Al quitar una máquina se pierde lo que tenía dentro — abierto
+## B10 · Al quitar una máquina se pierde lo que tenía dentro — resuelto (V1.1)
+- **Arreglo:** quitar devuelve el 100 % y mete lo que tenía dentro en la mochila (o lo deja al lado si está llena).
+- **Comprobación:** prueba de ratón «quitar devuelve contenido».
+- **Evitar:** quitar nunca destruye objetos.

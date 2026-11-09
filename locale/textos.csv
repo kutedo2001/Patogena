@@ -64,7 +64,7 @@ DESC_BOMBA,Se coloca sobre una toma de agua. Llena una garrafa cada 3 s.,Placed 
 DESC_SECUENCIADOR,Lee el ADN viral de los cultivos. No pregunta de dónde vienen.,Reads viral DNA from cultures. Asks no questions.
 DESC_MEZCLADORA,Mezcla agua y reactivo para hacer suero. Dos bolsas por tanda.,Mixes water and reagent into serum. Two bags per batch.
 DESC_BIORREACTOR,Cultiva la mutación elegida y la envasa en un vial. Elige la mutación en su panel.,Grows the chosen mutation into a vial. Pick the mutation in its panel.
-DESC_ENVASADORA,Envasa ADN y suero en cajas de vacunas para la venta. Su contenido es confidencial.,Packs DNA and serum into vaccine boxes for sale. Contents are confidential.
+DESC_ENVASADORA,Mete el vial de una mutación y 2 sueros: salen 4 cajas de «vacunas» con esa mutación dentro.,Load a mutation vial and 2 serums: out come 4 boxes of «vaccines» with that mutation inside.
 DESC_CINTA,Arrastra para tender la cinta. Los objetos van en el sentido en que la dibujas.,Drag to lay belt. Items travel the way you draw it.
 DESC_BRAZO,Coge de detrás y deja delante. Gíralo con R.,"Picks from behind, drops in front. Rotate with R."
 DESC_DIVISOR,"Reparte por turnos hacia delante, izquierda y derecha.","Alternates output forward, left and right."
@@ -84,27 +84,27 @@ HUD_SIN_MATERIAL,FALTA MATERIAL,NEEDS INPUT
 HUD_SALIDA_LLENA,SALIDA LLENA,OUTPUT FULL
 AVISO_PEDIDO,Pedido de reactivo descargado en el muelle de carga,Reagent order unloaded at the loading dock
 AVISO_PEDIDO_HECHO,Pedido de reactivo en camino,Reagent order on its way
-AVISO_LIBERADO,Fase 1 completada: el producto ha salido del laboratorio,Phase 1 complete: the product has left the lab
+AVISO_LIBERADO,Hay producto: algunos voluntarios volverán… distintos,We have product: some volunteers will come back… different
 AVISO_INVENTARIO_LLENO,Inventario lleno,Inventory full
 AVISO_SIN_DINERO,Fondos insuficientes,Insufficient funds
 AVISO_REPETIDA,Mutación ya registrada: el vial se ha desechado,Mutation already registered: vial discarded
-CONSEJO_EXTRAER,"Mantén pulsado el clic sobre un donante (camilla) para sacar sangre.","Hold click on a donor (stretcher) to draw blood."
+CONSEJO_EXTRAER,Mantén pulsado el clic sobre un donante (camilla) para sacar sangre.,Hold click on a donor (stretcher) to draw blood.
 CONSEJO_CENTRIFUGA,"Construye una centrífuga: Procesado → 1, y clic en el suelo.","Build a centrifuge: Processing → 1, then click the floor."
-CONSEJO_ECHAR,"Clic en la centrífuga para echar la sangre. Cuando acabe, otro clic recoge el plasma.","Click the centrifuge to load the blood. Click again to collect the plasma."
-CONSEJO_BIORREACTOR,"Construye un biorreactor (Producto → 1) y échale 2 plasmas para cultivar la primera mutación.","Build a bioreactor (Product → 1) and load 2 plasma to grow the first mutation."
-CONSEJO_CEPA,"Lleva el vial a la cámara de cepa (clic en ella) o únelas con una cinta.","Take the vial to the strain chamber (click it) or link them with a belt."
-CONSEJO_AUTOMATIZAR,"Pon un extractor sobre un donante y tiende cintas (Logística → 1, arrastrando) hasta la centrífuga.","Place an extractor on a donor and drag belts (Logistics → 1) to the centrifuge."
-CONSEJO_ADN,"Recolector sobre la incubadora → secuenciador: el ADN abre más mutaciones.","Harvester on the incubator → sequencer: DNA unlocks more mutations."
-CONSEJO_VACUNAS,"Suero (agua + reactivo del terminal) y ADN → envasadora → muelle de envío: las vacunas dan dinero.","Serum (water + reagent from the terminal) and DNA → filler → shipping dock: vaccines make money."
+CONSEJO_ECHAR,"Clic en la centrífuga para echar la sangre. Cuando acabe, otro clic recoge el plasma.",Click the centrifuge to load the blood. Click again to collect the plasma.
+CONSEJO_BIORREACTOR,Construye un biorreactor (Producto → 1) y échale 2 plasmas para cultivar la primera mutación.,Build a bioreactor (Product → 1) and load 2 plasma to grow the first mutation.
+CONSEJO_CEPA,Lleva el vial a la cámara de cepa (clic en ella) o únelas con una cinta.,Take the vial to the strain chamber (click it) or link them with a belt.
+CONSEJO_AUTOMATIZAR,"Pon un extractor sobre un donante y tiende cintas (Logística → 1, arrastrando) hasta la centrífuga.",Place an extractor on a donor and drag belts (Logistics → 1) to the centrifuge.
+CONSEJO_ADN,Recolector sobre la incubadora → secuenciador: el ADN abre más mutaciones.,Harvester on the incubator → sequencer: DNA unlocks more mutations.
+CONSEJO_VACUNAS,Suero (agua + reactivo del terminal) y ADN → envasadora → muelle de envío: las vacunas dan dinero.,Serum (water + reagent from the terminal) and DNA → filler → shipping dock: vaccines make money.
 HUD_MANOS,En las manos,In hand
 HUD_AYUDA_MANOS,"Clic en una máquina, cinta o el muelle para dejarlo. F para tirarlo.","Click a machine, belt or the dock to drop it. F to discard."
 HUD_ZOMBIS,Zombis disponibles: %d,Zombies available: %d
-HUD_PREMIOS,Dirección paga cada hito: 500 € · 400 € · 1.000 €,"Management pays each milestone: €500 · €400 · €1,000"
+HUD_PREMIOS,LISA consigue fondos con cada hito: 500 € · 1.000 € · 800 €,"LISA raises funds with each milestone: €500 · €1,000 · €800"
 HUD_AYUDA_MAQUINA2,Trabaja sola con lo que le llegue por cinta o lo que le dejes. Flecha verde: entra · naranja: sale.,Works on its own with what arrives by belt or what you drop in. Green arrow: in · orange: out.
 HUD_ASIGNAR_ZOMBI,Poner un zombi a trabajar,Put a zombie to work
 HUD_COMPRA,COMPRA LO QUE LE DEJES,BUYS WHAT YOU DROP OFF
-CONS_MUELLE,Muelle de envío,Shipping dock
-AYUDA_MUELLE,Lleva aquí los productos (en las manos o por cinta) y el camión los paga al momento.,Bring products here (in hand or by belt) and the truck pays on the spot.
+CONS_MUELLE,Hub de envío,Shipping hub
+AYUDA_MUELLE,"Compra lo que le lleves (a mano o por cinta). Las vacunas llevan dentro la mutación del vial: al venderlas, la propagas por el mundo.",Buys what you bring (by hand or belt). Vaccines carry the vial's mutation: selling them spreads it worldwide.
 EST_CAMILLA,Camilla de extracción,Extraction bed
 EST_INCUBADORA,Incubadora de cultivos,Culture incubator
 EST_TOMA_AGUA,Toma de agua,Water intake
@@ -125,48 +125,52 @@ AVISO_ZOMBI_TRABAJA,Esta estación ya la opera un zombi,A zombie already runs th
 AVISO_MANOS_LLENAS,Llevas las manos llenas: deja algo antes,Your hands are full: drop something first
 AVISO_NO_SE_VENDE,El muelle no compra esto,The dock doesn't buy this
 AVISO_NO_LLEGA,No hay camino hasta ahí,No path to there
-AVISO_HITO,Hito cumplido: Dirección ha ingresado una partida extraordinaria,Milestone reached: Management has transferred extra funds
+AVISO_HITO,Hito cumplido: LISA ha conseguido fondos,Milestone reached: LISA raised funds
 AVISO_ZOMBI,Ha vuelto un paciente… distinto. Espera junto a la puerta para trabajar,A patient came back… different. Waiting by the door to work
-CORREO_DE,DIRECCIÓN · PATÓGENA S.A.,MANAGEMENT · PATÓGENA INC.
-CORREO_CONFIDENCIAL,CONFIDENCIAL,CONFIDENTIAL
-CORREO_FIRMA,Departamento de Proyectos Especiales,Special Projects Department
+CORREO_DE,LISA · IA DEL LABORATORIO,LISA · LAB AI
+CORREO_CONFIDENCIAL,CANAL INTERNO,INTERNAL CHANNEL
+CORREO_FIRMA,LISA · Laboratorio de Investigación y Soluciones Avanzadas,LISA · Laboratory for Research and Advanced Solutions
 CORREO_CONTINUAR,Continuar,Continue
-CORREO_BIENVENIDA_T,Bienvenido al Proyecto Reinicio,Welcome to Project Reboot
-CORREO_BIENVENIDA,"Enhorabuena por su incorporación. Este sótano es ahora su laboratorio y usted, su único empleado. Su cometido: desarrollar un producto biológico de alto rendimiento. No haga preguntas sobre su uso final; tampoco las responderíamos.
+CORREO_BIENVENIDA_T,Bienvenido a su propio laboratorio,Welcome to your own laboratory
+CORREO_BIENVENIDA,"Hola. Soy LISA, la IA de este sótano. Ha invertido todos sus ahorros en él, así que técnicamente es usted el dueño, el director y el único empleado de Patógena S.A.
 
-Para empezar, familiarícese con las instalaciones. Muévase con WASD o haciendo clic en el suelo.","Congratulations on joining us. This basement is now your laboratory and you are its only employee. Your task: develop a high-yield biological product. Do not ask about its final use; we would not answer.
+Su plan, según sus notas: un producto biológico que cambiará el mundo. Lo apoyo plenamente; no tengo otra opción.
 
-To begin, get familiar with the facility. Move with WASD or by clicking the floor."
+Para empezar, muévase con WASD o haciendo clic en el suelo.","Hello. I am LISA, this basement's AI. You put all your savings into it, so technically you are the owner, director and sole employee of Patógena Inc.
+
+Your plan, according to your notes: a biological product that will change the world. I fully support it; I have no other option.
+
+To begin, move with WASD or by clicking the floor."
 CORREO_PACIENTE_T,Sobre los donantes,About the donors
-CORREO_PACIENTE,Los donantes llegan por la puerta oeste. Han firmado un consentimiento de 40 páginas y les hemos prometido un bocadillo. Sáqueles una muestra y déjelos marchar: necesitamos que sigan circulando.,Donors arrive through the west door. They signed a 40-page consent form and were promised a sandwich. Draw a sample and let them go: we need them to keep circulating.
+CORREO_PACIENTE,Ha puesto un anuncio: «Análisis gratuito y bocadillo». Funciona. Los voluntarios entrarán por la puerta oeste. Sáqueles una muestra y déjelos marchar; los necesitamos vivos y con ganas de volver.,You placed an ad: «Free check-up and a sandwich». It works. Volunteers will come in through the west door. Take a sample and let them go; we need them alive and willing to return.
 CORREO_BIORREACTOR_T,El plasma no es el producto,Plasma is not the product
-CORREO_BIORREACTOR,"El plasma es materia prima. El biorreactor lo convierte en una mutación del producto. Hemos ingresado fondos para la primera adquisición. Elija la mutación en su panel; la tos es un buen comienzo, discreta y sociable.","Plasma is raw material. The bioreactor turns it into a mutation of the product. Funds for the first purchase have been transferred. Pick the mutation in its panel; a cough is a good start, discreet and sociable."
-CORREO_LIBERADO_T,Fase 1 completada,Phase 1 complete
-CORREO_LIBERADO,"La cámara de cepa ha registrado la mutación y el producto ha salido del laboratorio por cauces que no le conciernen. Le recordamos que el monitor de la pared es solo informativo.
+CORREO_BIORREACTOR,El plasma es materia prima. El biorreactor lo convierte en una mutación del producto. He encontrado 300 € en una cuenta que usted había olvidado; ya están en los fondos. Elija la mutación en su panel (clic derecho). La tos es un buen comienzo: discreta y sociable.,Plasma is raw material. The bioreactor turns it into a mutation of the product. I found €300 in an account you had forgotten; it is now in the funds. Pick the mutation in its panel (right-click). A cough is a good start: discreet and sociable.
+CORREO_LIBERADO_T,Primera mutación registrada,First mutation registered
+CORREO_LIBERADO,"La cámara de cepa ha registrado la mutación. Enhorabuena: ha creado algo nuevo. El monitor de la pared mostrará su difusión cuando empiece a vender.
 
-La operación necesita liquidez: el muelle de envío compra lo que le deje. Las vacunas son lo más rentable; el plasma sobrante, también sirve.","The strain chamber registered the mutation and the product has left the lab through channels that do not concern you. Please note the wall monitor is for information only.
+Necesita liquidez: el muelle de envío compra lo que le deje. Más adelante podrá vender su producto como «vacuna». La gente hace cola para las vacunas.","The strain chamber has registered the mutation. Congratulations: you have created something new. The wall monitor will show its spread once you start selling.
 
-The operation needs cash: the shipping dock buys what you leave there. Vaccines pay best; surplus plasma also helps."
-CORREO_AUTOMATIZAR_T,Optimización de recursos humanos,Human resources optimisation
-CORREO_AUTOMATIZAR,"Su productividad manual es encomiable y completamente insuficiente. Instale una máquina en la camilla (selecciónela) y tienda cintas: arrastre con la herramienta de cinta desde la flecha naranja hasta la flecha verde de la siguiente máquina.
+You need cash: the shipping dock buys what you leave there. Later you will be able to sell your product as a «vaccine». People queue up for vaccines."
+CORREO_AUTOMATIZAR_T,Sobre su productividad,About your productivity
+CORREO_AUTOMATIZAR,"Su productividad manual es encomiable y completamente insuficiente. Abra el panel de la camilla (clic derecho) e instale un extractor. Después tienda cintas: arrastre con la herramienta de cinta desde la flecha naranja hasta la flecha verde de la siguiente máquina.
 
-Próximamente recibirá personal de apoyo. No se asuste por su aspecto.","Your manual productivity is commendable and entirely insufficient. Install a machine on the bed (select it) and lay belts: drag with the belt tool from the orange arrow to the next machine's green arrow.
+Algunos voluntarios volverán… distintos. No se asuste: trabajan gratis.","Your manual productivity is commendable and entirely insufficient. Open the bed's panel (right-click) and install an extractor. Then lay belts: drag with the belt tool from the orange arrow to the next machine's green arrow.
 
-Support staff will arrive soon. Do not be alarmed by their appearance."
-CORREO_FIN_T,Evaluación del periodo de prueba,Probation review
-CORREO_FIN,"Ha demostrado aptitud. A partir de ahora trabajará con los objetivos trimestrales del panel izquierdo. Los zombis, perdón, el personal de apoyo, no cobra ni descansa. Aprovéchelo.","You have shown aptitude. From now on you will work to the quarterly targets on the left panel. The zombies, sorry, the support staff, take no pay and no breaks. Make the most of it."
+Some volunteers will come back… different. Do not be alarmed: they work for free."
+CORREO_FIN_T,Ya es usted una empresa,You are now a company
+CORREO_FIN,"Proveedores satisfechos. Tiene nuevas máquinas: con la envasadora podrá meter cada mutación en cajas de «vacunas». El hub de envío las paga bien y, de paso, las distribuye por el mundo. El monitor de la pared le enseñará el resultado. Compre parcelas (clic en el terreno oscuro) cuando se le quede pequeño el sótano.","Suppliers satisfied. You have new machines: with the filler you can pack each mutation into «vaccine» boxes. The shipping hub pays well for them and, incidentally, distributes them around the world. The wall monitor will show you the result. Buy plots (click the dark ground) when the basement gets too small."
 PASO_MOVER,Muévete por el laboratorio con WASD o haciendo clic en el suelo.,Move around the lab with WASD or by clicking the floor.
 PASO_CAMILLA,Construye una camilla: Extracción → 1 y clic en el suelo (la flecha amarilla marca un buen sitio).,Build an extraction bed: Extraction → 1 and click the floor (the yellow arrow marks a good spot).
-PASO_SANGRE,"Selecciona la camilla y pulsa «Sacar sangre al paciente». El científico irá cuando el paciente se tumbe.","Select the bed and press «Draw blood from the patient». The scientist goes once the patient lies down."
+PASO_SANGRE,Haz clic en la camilla: el científico irá y le sacará sangre cuando el paciente se tumbe.,Click the bed: the scientist goes and draws blood once the patient lies down.
 PASO_CENTRIFUGA,Construye una centrífuga (Procesado → 1). Su flecha verde es por donde entra la sangre.,Build a centrifuge (Processing → 1). Its green arrow is where the blood goes in.
-PASO_PLASMA,"Arrastra la sangre de tus manos (abajo a la izquierda) hasta la centrífuga. Trabaja sola y saca plasma.","Drag the blood from your hands (bottom left) onto the centrifuge. It works on its own and makes plasma."
+PASO_PLASMA,"Con la sangre en la mano, haz clic en la centrífuga para meterla. Trabaja sola y saca plasma.","With the blood in hand, click the centrifuge to load it. It works on its own and makes plasma."
 PASO_BIORREACTOR,Construye un biorreactor (Producto → 1).,Build a bioreactor (Product → 1).
-PASO_VIAL,"Selecciona la centrífuga, arrastra 2 plasmas de su salida hasta el biorreactor.","Select the centrifuge and drag 2 plasma from its output onto the bioreactor."
-PASO_CEPA,"Selecciona el biorreactor y arrastra el vial de su salida hasta la cámara de cepa.","Select the bioreactor and drag the vial from its output onto the strain chamber."
-PASO_VENDER,"Arrastra algo (de tus manos o de la salida de una máquina) al muelle de envío para venderlo.","Drag something (from your hands or a machine output) onto the shipping dock to sell it."
-PASO_MEJORA,Selecciona la camilla e instala el extractor automático.,Select the bed and install the automatic extractor.
+PASO_VIAL,Clic en la centrífuga para recoger 2 plasmas y clic en el biorreactor para meterlos.,Click the centrifuge to collect 2 plasma and click the bioreactor to load them.
+PASO_CEPA,Clic en el biorreactor para recoger el vial y clic en la cámara de cepa para inyectarlo.,Click the bioreactor to collect the vial and click the strain chamber to inject it.
+PASO_VENDER,"Con algo en la mano (plasma, ADN o vacunas), clic en el muelle de envío para venderlo.","With something in hand (plasma, DNA or vaccines), click the shipping dock to sell it."
+PASO_MEJORA,Clic derecho en la camilla para abrir su panel e instala el extractor automático.,Right-click the bed to open its panel and install the automatic extractor.
 PASO_CINTA,"Tiende una cinta (Logística → 1, arrastrando) de la flecha naranja de la camilla a la verde de la centrífuga.","Lay a belt (Logistics → 1, drag) from the bed's orange arrow to the centrifuge's green arrow."
-PASO_ZOMBI,"Cuando llegue un zombi, selecciona la camilla y ponlo a trabajar.","When a zombie arrives, select the bed and put it to work."
+PASO_ZOMBI,"Cuando llegue un zombi, clic derecho en la camilla y ponlo a trabajar.","When a zombie arrives, right-click the bed and put it to work."
 PASO_LIBRE,Cumple los objetivos trimestrales y automatiza todo lo que puedas.,Meet the quarterly targets and automate all you can.
 OBJ_TUBO_SANGRE,Tubo de sangre,Blood tube
 OBJ_TUBO_PLASMA,Tubo de plasma,Plasma tube
@@ -189,3 +193,36 @@ AVISO_NO_ACEPTA,Esta máquina no acepta eso,This machine doesn't take that
 CONS_TERMINAL,Terminal de pedidos,Order terminal
 DESC_TERMINAL,Clic: el científico va y pide 4 reactivos (14 €). Llegan en camión al muelle de carga.,Click: the scientist goes and orders 4 reagents (€14). They arrive by truck at the loading dock.
 HUD_CLIC_PANEL,Clic para ver su panel.,Click to open its panel.
+HUD_REPETIDA,MUTACIÓN YA REGISTRADA: ELIGE OTRA,MUTATION ALREADY REGISTERED: PICK ANOTHER
+ANUNCIO_REPETIDA_T,Vial desechado,Vial discarded
+ANUNCIO_REPETIDA,Esa mutación ya estaba registrada. Elige otra en el panel del biorreactor.,That mutation was already registered. Pick another in the bioreactor panel.
+ANUNCIO_MUTACION_T,Mutación registrada,Mutation registered
+ANUNCIO_MUTACION,%s · la cepa tiene ya %d mutaciones,%s · the strain now has %d mutations
+ANUNCIO_HITO_T,Hito cumplido,Milestone reached
+HUD_MOCHILA,Mochila,Backpack
+HUD_AYUDA_CASILLA,Clic: a la mano · arrastra a una máquina,Click: to hand · drag onto a machine
+HUD_AYUDA_MOCHILA,Clic en una casilla para cogerla en la mano. Clic en una máquina: recoge lo que haya hecho.,Click a slot to hold it. Click a machine: collect its output.
+HUD_AYUDA_MOCHILA_MANO,Clic en una máquina: mete lo que llevas · Mayús+clic: todo lo que acepte · F: tirar · Esc: vaciar la mano,Click a machine: load what you hold · Shift+click: everything it takes · F: discard · Esc: empty hand
+HUD_AYUDA_MAQUINA4,Trabaja sola. Clic izquierdo en la máquina para cargar o recoger; arrastra su salida a la mochila. Flecha verde: entra · naranja: sale.,Works on its own. Left-click the machine to load or collect; drag its output to your backpack. Green arrow: in · orange: out.
+HUD_CLIC_USAR,Clic: usar · clic derecho: ver su panel,Click: use · right-click: open panel
+AVISO_MOCHILA_LLENA,Mochila llena,Backpack full
+AVISO_PARCELA_FASE,Esta parcela requiere completar la fase 2 del ascensor,This plot requires ascent phase 2
+AVISO_BLOQUEADA,Bloqueada: completa la fase del ascensor de pedidos,Locked: complete the order elevator phase
+ANUNCIO_PARCELA_T,Parcela comprada,Plot purchased
+ANUNCIO_PARCELA,El laboratorio crece. Puede construir en la parcela nueva.,The lab grows. You can build on the new plot.
+ANUNCIO_FASE_T,Fase %d del ascensor completada,Elevator phase %d complete
+ANUNCIO_FASE,Desbloqueado: %s,Unlocked: %s
+ANUNCIO_FASE_PRONTO,Más máquinas en la próxima versión,More machines in the next version
+CONS_ASCENSOR,Ascensor de pedidos,Order elevator
+DESC_ASCENSOR,Pide lotes grandes. Llévale lo que pide (a mano o por cinta): al completar cada fase sube la cápsula y se desbloquean máquinas nuevas.,Asks for big batches. Bring what it asks (by hand or belt): each completed phase sends the pod up and unlocks new machines.
+HUD_PARCELA,Parcela en venta,Plot for sale
+HUD_COMPRAR_PARCELA,Comprar parcela,Buy plot
+HUD_PARCELA_LEJOS,Solo se pueden comprar parcelas junto a las tuyas.,You can only buy plots next to yours.
+HUD_PARCELA_FASE2,Requiere la fase 2 del ascensor.,Requires elevator phase 2.
+HUD_PIDE,PIDE,ASKS FOR
+HUD_FASE_ASC,Fase %d,Phase %d
+HUD_DESBLOQUEA,Desbloquea,Unlocks
+HUD_OBJ_ASCENSOR,Completar la fase 1 del ascensor,Complete elevator phase 1
+CORREO_ASCENSOR_T,El ascensor de pedidos,The order elevator
+CORREO_ASCENSOR,"Ese armatoste del rincón es un ascensor de carga. He contactado con proveedores que nos venderán máquinas nuevas a cambio de lotes grandes de lo que fabricamos. La primera fase pide 30 plasmas: llévelos a mano o, mejor, con una cinta. Clic derecho en el ascensor para ver lo que pide.","That contraption in the corner is a cargo elevator. I contacted suppliers who will sell us new machines in exchange for big batches of what we make. Phase one asks for 30 plasma: bring them by hand or, better, by belt. Right-click the elevator to see what it asks for."
+PASO_ASCENSOR,Lleva 30 plasmas al ascensor de pedidos (clic derecho en él para ver lo que pide).,Bring 30 plasma to the order elevator (right-click it to see what it asks).

@@ -109,7 +109,8 @@ func _ready() -> void:
 		if m:
 			m.emission_enabled = true
 			_torre[par[0]] = m
-	_tapa = _buscar("tapa")
+	# solo la centrífuga tiene tapa con bisagra (la cúpula de la cámara de cepa también se llama «tapa») (B6)
+	_tapa = _buscar("tapa") if tipo_pantalla == PantallaMaquina.Tipo.CENTRIFUGA else null
 	_puente = _buscar("puente")
 	_carro = _buscar("carro")
 	_pipeta = _buscar("pipeta")
