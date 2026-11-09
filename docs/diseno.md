@@ -81,6 +81,20 @@ Cuatro sistemas. Ayudantes y líquidos por tubería quedan para la 1.1.
 - Monitor del mundo en la pared, panel del mundo en el HUD, teletipo de noticias.
 
 
+## Diseño de la 1.0 (decidido con Edu el 9-nov-2026)
+
+Sustituye a lo anterior donde choque. Detalle de referencias en `docs/propuesta_1_0.md`.
+
+- **Tú eres la empresa.** No hay Dirección: el científico funda su propio laboratorio y se expande. Le guía **LISA**, la IA del laboratorio: fría, servicial y con humor negro (como ADA en Satisfactory). Ella explica los pasos y comenta lo que haces.
+- **Bucle incremental**: todo empieza a mano (pinchar al paciente con animación vistosa) y la dificultad está en hacer con máquinas, en buena proporción, lo que antes hacías a mano. Arco: jeringa → primer taller → zombis → tuberías y cápsulas → granja de humanos.
+- **Objetos al estilo Factorio, sin ventanas**: mochila de casillas con pilas; la pila elegida se ve en las manos. Clic en una máquina: mete lo que llevas en su entrada o recoge su salida; Mayús+clic: todo; clic derecho: abre su ventana con casillas para arrastrar. El científico va andando a hacerlo.
+- **Hub de vacunas** (como el HUB de Satisfactory, pero de venta): una plataforma con su vehículo que recibe por cinta las **vacunas con la mutación dentro**. Cada caja vendida da dinero **y propaga esa mutación** por las regiones que compran.
+- **Ascensor de pedidos** (como el ascensor espacial): pide lotes grandes de recursos por fases; cada fase completada desbloquea máquinas nuevas. Se ve cargar y despegar.
+- **Terreno por parcelas de 8×8** alrededor del laboratorio, compradas con dinero y cada vez más caras; algunas requieren una fase del ascensor.
+- **Alcance de la 1.0**: etapas 0–2 completas, tuberías y cápsulas de donante, granja de humanos, mapa del mundo con regiones, cura que avanza y victoria al 90 % zombi.
+- **Duración**: partida larga, 8 horas o más.
+- **Máquinas con bocas físicas** por ingrediente, cintas que entran y salen por ellas y ritmos redondos (ver la propuesta).
+
 ## Revisión tras la primera prueba de Edu (9-nov-2026): inicio, científico y estaciones
 
 Sustituye a lo que contradiga en «Mecánicas de la versión 1».

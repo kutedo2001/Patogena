@@ -37,3 +37,17 @@ Formato: síntoma · causa · arreglo · comprobación · cómo evitarlo.
 - **Causa:** con otra cosa en las manos (plasma), la sangre extraída no se podía coger y se quedaba en la camilla; la camilla no admite otro paciente hasta que se recoge, y no había aviso ni forma visible de soltar lo que se llevaba.
 - **Arreglo:** si se terminan de extraer con las manos ocupadas, la sangre espera y sale un aviso; botón «Tirar lo que llevo» (F) y botón «Ir a recoger lo hecho» en el panel; llevar cosas arrastrándolas.
 - **Comprobación:** prueba de ratón: plasma en las manos → extraer → la sangre espera → vender el plasma → recoger la sangre.
+
+## B6 · La cúpula de la cámara de cepa gira como una tapa con bisagra — abierto
+- **Causa:** la pieza se llama «tapa» y recibe la animación de la tapa de la centrífuga.
+
+## B7 · Cambiar de mutación borra lo cargado en el biorreactor — abierto
+- **Causa:** `poner_receta` vacía la tolva y cancela la tanda en curso.
+
+## B8 · La primera mutación no da ninguna recompensa visible — abierto
+- **Causa:** aviso solo en el teletipo, propagación inicial 0,001 % que se ve como 0,00 %, premio sin efecto visible.
+
+## B9 · Mutación repetida desaparece en silencio — abierto
+- **Causa:** la cámara desecha la repetida y el biorreactor tiene la tos por defecto.
+
+## B10 · Al quitar una máquina se pierde lo que tenía dentro — abierto

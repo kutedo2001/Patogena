@@ -65,3 +65,5 @@
 | 2026-11-09 | Clic en una máquina solo abre su panel; las cosas se llevan arrastrando desde las manos o desde la salida de una máquina (el científico va andando); estaciones con botón de trabajar | Edu: el clic que dejaba y cogía todo a la vez liaba mucho |
 | 2026-11-09 | Ficha junto al puntero con qué es, qué hace y su estado (panel del HUD, no texto en el mundo) | Pedido por Edu |
 | 2026-11-09 | Apuntado para la puerta 5: extracción animada vistosa, partes de máquina con sentido y cintas que entren y salgan por sus bocas como Alchemy Factory | Pedido por Edu; se pule al final |
+| 2026-11-09 | Diseño de la 1.0 (ver diseno.md): el jugador es la empresa; guía la IA LISA; objetos al estilo Factorio sin ventanas; hub que vende vacunas con la mutación y propaga el virus; ascensor de pedidos que desbloquea máquinas; parcelas 8×8; alcance completo hasta la granja de humanos; partida de 8 h o más | Respuestas de Edu |
+| 2026-11-09 | Edu pide modo autónomo hasta la 1.0 con lo decidido; se le enseña en cada versión jugable | Petición de Edu |
