@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import importlib, comun
 importlib.reload(comun)
 from comun import *
+import bmesh
 
 TEX = None  # carpeta de texturas de etiquetas; la fija main()
 
@@ -308,6 +309,117 @@ def caja_vacunas(raiz_nombre="caja_vacunas", padre=None, pos=(0, 0, 0), abierta=
     return r
 
 
+# ---------------------------------------------------------------- proteína vírica: cristal naranja en su placa
+def proteina(raiz_nombre="proteina", padre=None, pos=(0, 0, 0)):
+    """Cristal de proteína (racimo de prismas hexagonales naranjas) sobre una placa de cristalización."""
+    r = vacio(raiz_nombre, pos, padre)
+    caja("placa", (0.06, 0.06, 0.006), (0, 0, 0.003), mat("placa_blanca", color=(0.92, 0.93, 0.92), rug=0.4), bisel=0.0015, padre=r)
+    cilindro("pocillo", 0.022, 0.003, (0, 0, 0.0065), mat("negro_mate", color=(0.05, 0.055, 0.06), rug=0.7), lados=24, bisel=0.0, padre=r)
+    naranja = mat("proteina_cristal", color=(1.0, 0.32, 0.03), rug=0.12, emision=(1.0, 0.3, 0.02), fuerza=0.4, alfa=0.9)
+    random.seed(4)
+    for k in range(7):
+        a = k * math.tau / 7
+        d = 0.0 if k == 0 else 0.008
+        h = 0.03 if k == 0 else random.uniform(0.014, 0.022)
+        c = cilindro(f"prisma{k}", 0.0045 if k else 0.006, h, (math.cos(a) * d, math.sin(a) * d, 0.007 + h / 2), naranja, lados=6, bisel=0.0005, padre=r)
+        c.rotation_euler = (random.uniform(-0.4, 0.4) if k else 0, random.uniform(-0.4, 0.4) if k else 0, a)
+        torneado(f"punta{k}", [(0, 0), (0.0045 if k else 0.006, 0), (0, 0.006)], naranja, lados=6, padre=c, pos=(0, 0, h / 2), suave=False)
+    return r
+
+
+# ---------------------------------------------------------------- vector: cápsula blanca y roja
+def vector(raiz_nombre="vector", padre=None, pos=(0, 0, 0)):
+    """Cápsula de dos mitades (roja y blanca) con junta y un pequeño contenido visible por una ventana."""
+    r = vacio(raiz_nombre, pos, padre)
+    R, L = 0.011, 0.028
+    rojo = mat("capsula_roja", color=(0.8, 0.08, 0.08), rug=0.25)
+    blanco = mat("capsula_blanca", color=(0.95, 0.95, 0.93), rug=0.3)
+    g = vacio("eje", (0, 0, R), padre=r)
+    g.rotation_euler = (0, math.radians(90), 0)
+    roja = [(0, -L / 2 - R)] + [(R * math.sin(math.radians(a)), -L / 2 - R * math.cos(math.radians(a))) for a in range(10, 91, 10)] + [(R, 0.001), (0, 0.001)]
+    torneado("mitad_roja", roja, rojo, lados=32, padre=g)
+    Rb = R + 0.0005
+    blanca = [(0, -0.004), (Rb, -0.004), (Rb, L / 2)] + [(Rb * math.cos(math.radians(a)), L / 2 + Rb * math.sin(math.radians(a))) for a in range(10, 91, 10)]
+    torneado("mitad_blanca", blanca, blanco, lados=32, padre=g)
+    toro("junta", R + 0.0006, 0.0007, (0, 0, -0.004), mat("junta_gris", color=(0.5, 0.52, 0.55), rug=0.5), padre=g)
+    return r
+
+
+# ---------------------------------------------------------------- neurotoxina: ampolla morada
+def ampolla(raiz_nombre="neurotoxina", padre=None, pos=(0, 0, 0)):
+    """Ampolla de vidrio con cuello estrangulado, anillo de rotura y líquido morado; calavera estilizada en la etiqueta."""
+    r = vacio(raiz_nombre, pos, padre)
+    R = 0.0085
+    t = 0.0008
+    ext = [(R * 0.85, 0), (R, 0.002), (R, 0.032), (R * 0.75, 0.038), (0.003, 0.044), (0.0028, 0.047), (0.0045, 0.052), (0.0045, 0.06), (0, 0.064)]
+    torneado("vidrio", [(0, 0)] + ext, vidrio(), lados=32, padre=r)
+    m = mat("liq_neurotoxina", color=(0.45, 0.05, 0.6), rug=0.15, emision=(0.55, 0.1, 0.8), fuerza=0.6)
+    torneado("liquido", [(0, t), (R * 0.85 - t, t), (R - t, 0.002 + t), (R - t, 0.026), (R * 0.6, 0.0255), (0, 0.025)], m, lados=24, padre=r)
+    toro("anillo_rotura", 0.0031, 0.0006, (0, 0, 0.0455), mat("anillo_rojo", color=(0.85, 0.1, 0.1), rug=0.4), padre=r)
+    manga("etiqueta", R + 0.0002, 0.014, (0, 0, 0.008), mat_imagen("etq_neuro", os.path.join(TEX, "neurotoxina.png"), 0.7), padre=r, arco=0.7, lados=32)
+    return r
+
+
+# ---------------------------------------------------------------- cápside: esfera geodésica en un soporte
+def capside(raiz_nombre="capside", padre=None, pos=(0, 0, 0)):
+    """Cápside vírica impresa: icosaedro geodésico con caras de dos tonos y aristas marcadas, sobre un aro."""
+    r = vacio(raiz_nombre, pos, padre)
+    toro("soporte", 0.012, 0.0025, (0, 0, 0.0025), mat("metal"), padre=r)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.018, location=(0, 0, 0.02))
+    ob = bpy.context.active_object
+    ob.name = "geodesica"
+    ob.data.materials.append(mat("capside_a", color=(0.3, 0.75, 0.85), rug=0.35))
+    ob.data.materials.append(mat("capside_b", color=(0.85, 0.95, 0.98), rug=0.35))
+    for i, p in enumerate(ob.data.polygons):
+        p.material_index = i % 3 == 0
+        p.use_smooth = False
+    md = ob.modifiers.new("w", "WIREFRAME"); md.thickness = 0.0012; md.use_replace = False; md.material_offset = 0
+    bpy.context.view_layer.objects.active = ob
+    bpy.ops.object.modifier_apply(modifier="w")
+    ob.parent = r
+    for k in range(12):
+        pass
+    return r
+
+
+# ---------------------------------------------------------------- núcleo zombi: cubo verde que late
+def nucleo(raiz_nombre="nucleo_zombi", padre=None, pos=(0, 0, 0)):
+    """Cubo de contención de acero con caras de cristal y un núcleo verde orgánico dentro (nodo «latir»)."""
+    r = vacio(raiz_nombre, pos, padre)
+    A = 0.034
+    acero = mat("inox_osc", color=(0.45, 0.47, 0.5), metal=1.0, rug=0.4)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            caja(f"arista_z{sx}{sy}", (0.004, 0.004, A), (sx * A / 2, sy * A / 2, A / 2), acero, bisel=0.0008, padre=r)
+            caja(f"arista_x{sx}{sy}", (A, 0.004, 0.004), (0, sx * A / 2, A / 2 + sy * A / 2), acero, bisel=0.0008, padre=r)
+            caja(f"arista_y{sx}{sy}", (0.004, A, 0.004), (sx * A / 2, 0, A / 2 + sy * A / 2), acero, bisel=0.0008, padre=r)
+    caja("cristal", (A - 0.002, A - 0.002, A - 0.002), (0, 0, A / 2), vidrio(), bisel=0.0, padre=r)
+    lat = vacio("latir", (0, 0, A / 2), padre=r)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=0.011, location=(0, 0, 0))
+    ob = bpy.context.active_object
+    ob.name = "nucleo"
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    random.seed(9)
+    for v in bm.verts:
+        v.co *= 1.0 + 0.18 * math.sin(v.co.x * 400) * math.cos(v.co.y * 380) + random.uniform(-0.05, 0.05)
+    bm.to_mesh(ob.data); bm.free()
+    ob.data.materials.append(mat("nucleo_verde", color=(0.25, 0.85, 0.1), rug=0.35, emision=(0.4, 1.0, 0.1), fuerza=1.5))
+    for p in ob.data.polygons:
+        p.use_smooth = True
+    ob.parent = lat
+    for k in range(5):
+        a = k * math.tau / 5
+        tubo_curvo(f"vena{k}", [(0, 0, 0), (math.cos(a) * 0.008, math.sin(a) * 0.008, 0.004 * (k % 2)), (math.cos(a) * 0.015, math.sin(a) * 0.015, -0.003)],
+                   0.0012, mat("vena_roja", color=(0.6, 0.05, 0.08), rug=0.4), padre=lat)
+    caja("placa_tapa", (A + 0.004, A + 0.004, 0.003), (0, 0, A + 0.0015), acero, bisel=0.0008, padre=r)
+    caja("placa_base", (A + 0.004, A + 0.004, 0.003), (0, 0, 0.0015), acero, bisel=0.0008, padre=r)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            tornillo(f"base_t{sx}{sy}", (sx * A * 0.4, sy * A * 0.4, A + 0.003), r, r=0.0018, normal="+Z")
+    cilindro("tapa_valvula", 0.004, 0.004, (0, 0, A + 0.005), mat("volante_rojo", color=(0.7, 0.05, 0.05), rug=0.45), lados=12, padre=r)
+    return r
+
+
 def main():
     global TEX
     args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [".", "."]
@@ -322,7 +434,12 @@ def main():
                        ("garrafa_agua", lambda: garrafa("garrafa_agua")),
                        ("frasco_reactivo", lambda: frasco_reactivo("frasco_reactivo")),
                        ("bolsa_suero", lambda: bolsa_suero("bolsa_suero")),
-                       ("caja_vacunas", lambda: caja_vacunas("caja_vacunas", abierta=True))):
+                       ("caja_vacunas", lambda: caja_vacunas("caja_vacunas", abierta=True)),
+                       ("proteina", lambda: proteina("proteina")),
+                       ("vector", lambda: vector("vector")),
+                       ("neurotoxina", lambda: ampolla("neurotoxina")),
+                       ("capside", lambda: capside("capside")),
+                       ("nucleo_zombi", lambda: nucleo("nucleo_zombi"))):
         limpiar(); comun._mats.clear()
         fn()
         exportar(os.path.join(salida, nombre + ".glb"))

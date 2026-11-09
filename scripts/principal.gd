@@ -27,17 +27,43 @@ const MAQUINAS := [
 
 ## Los productos se dibujan a 2,5× su tamaño real para que se lean con la cámara del juego.
 const ESCALA_OBJETOS := 2.5
-const OBJETOS := [
-	# muestrario provisional en el suelo (P3.4a) para ver los objetos con la cámara del juego
-	["res://assets/modelos/objetos/gradilla.glb", Vector3(-6.3, 0, -1.9), 20.0],
-	["res://assets/modelos/objetos/placa_petri.glb", Vector3(-5.6, 0, -1.1), 0.0],
-	["res://assets/modelos/objetos/vial_mutacion.glb", Vector3(-6.6, 0, -1.0), 0.0],
-	["res://assets/modelos/objetos/tubo_adn.glb", Vector3(-6.95, 0, -1.3), 0.0],
-	["res://assets/modelos/objetos/garrafa_agua.glb", Vector3(-6.9, 0, 0.3), 20.0],
-	["res://assets/modelos/objetos/frasco_reactivo.glb", Vector3(-6.45, 0, 0.35), 0.0],
-	["res://assets/modelos/objetos/bolsa_suero.glb", Vector3(-6.0, 0, 0.3), 0.0],
-	["res://assets/modelos/objetos/caja_vacunas.glb", Vector3(-5.4, 0, 0.35), -15.0],
-]
+const OBJETOS := []
+
+const PRODUCTOS := ["tubo_sangre", "tubo_plasma", "placa_petri", "tubo_adn", "garrafa_agua", "frasco_reactivo", "bolsa_suero",
+	"proteina", "vector", "neurotoxina", "capside", "nucleo_zombi", "vial_mutacion", "caja_vacunas"]
+
+func _montar_cintas() -> void:
+	# Mk1 en bucle con los 14 productos; Mk2 y Mk3 rectas con algunos, para comparar
+	var bucle: Array[Vector2i] = []
+	for x in range(-8, 0):
+		bucle.append(Vector2i(x, 3))
+	for z in range(4, 7):
+		bucle.append(Vector2i(-1, z))
+	for x in range(-2, -9, -1):
+		bucle.append(Vector2i(x, 6))
+	for z in range(5, 3, -1):
+		bucle.append(Vector2i(-8, z))
+	_linea(1, bucle, true, PRODUCTOS)
+	var r2: Array[Vector2i] = []
+	for x in range(1, 10):
+		r2.append(Vector2i(x, 4))
+	_linea(2, r2, false, ["tubo_plasma", "tubo_adn", "bolsa_suero", "vial_mutacion"])
+	var r3: Array[Vector2i] = []
+	for x in range(1, 10):
+		r3.append(Vector2i(x, 6))
+	_linea(3, r3, false, ["caja_vacunas", "nucleo_zombi", "capside"])
+
+func _linea(nivel: int, celdas: Array[Vector2i], cerrada: bool, productos: Array) -> void:
+	var l := LineaCinta.new()
+	l.nivel = nivel
+	l.casillas = celdas
+	l.cerrada = cerrada
+	l.escala_objetos = ESCALA_OBJETOS
+	add_child(l)
+	var n := productos.size()
+	var paso := minf(1.1, l.largo() / float(n))
+	for i in n:
+		l.poner(load("res://assets/modelos/objetos/%s.glb" % productos[i]), i * paso)
 
 func _ready() -> void:
 	titulo.text = tr("JUEGO_TITULO")
@@ -52,6 +78,7 @@ func _ready() -> void:
 		m.tipo_pantalla = e[4]
 		m.ciclo = CICLO_VISUAL.get(e[4], 3.0)
 		add_child(m)
+	_montar_cintas()
 	for o in OBJETOS:
 		var n: Node3D = load(o[0]).instantiate()
 		Materiales.ajustar(n)

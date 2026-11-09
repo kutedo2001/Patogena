@@ -104,12 +104,29 @@ def bolsa_suero(N=(256, 512)):
         w = random.choice((2, 3, 4)); d.rectangle([x, 235, x + w, 285], fill=(30, 30, 30, 255)); x += w + random.choice((2, 3, 4))
     im.save(os.path.join(RAIZ, 'etiquetas', 'suero_bolsa.png'))
 
+def banda(N=(256, 256)):
+    W, H = N
+    im = Image.new('RGB', N, (52, 55, 58)); px = im.load()
+    random.seed(15)
+    for y in range(H):
+        for x in range(W):
+            n = random.randint(-5, 5); r, g, b = px[x, y]; px[x, y] = (r + n, g + n, b + n)
+    d = ImageDraw.Draw(im)
+    # nervios transversales y chevron central (indica sentido +U)
+    for k in range(4):
+        y0 = k * H // 4
+        d.rectangle([0, y0, W, y0 + 6], fill=(32, 34, 36))
+    for k in range(2):
+        cy = H // 4 + k * H // 2
+        d.polygon([(W * 0.3, cy - 26), (W * 0.62, cy), (W * 0.3, cy + 26), (W * 0.4, cy + 26), (W * 0.72, cy), (W * 0.4, cy - 26)], fill=(88, 92, 96))
+    im.rotate(90).save(os.path.join(RAIZ, 'banda.png'))
+
 if __name__ == '__main__':
     os.makedirs(os.path.join(RAIZ, 'etiquetas'), exist_ok=True)
     os.makedirs(os.path.join(RAIZ, 'calcomanias'), exist_ok=True)
     for n, c, s in (('sangre', (190, 30, 35), 1), ('plasma', (230, 180, 40), 2), ('adn', (60, 170, 80), 3),
                     ('mutacion', (60, 65, 70), 4), ('cultivo', (60, 140, 180), 5),
-                    ('agua', (60, 140, 220), 6), ('reactivo', (40, 70, 180), 7)):
+                    ('agua', (60, 140, 220), 6), ('reactivo', (40, 70, 180), 7), ('neurotoxina', (110, 30, 140), 8)):
         etiqueta(n, c, seed=s)
     triangulo_aviso('aviso_biorriesgo', lambda d, x, y, r: biohazard(d, x, y, r * 1.05, (20, 20, 20), int(r * 0.2)))
     triangulo_aviso('aviso_rotor', rotor)
@@ -117,4 +134,5 @@ if __name__ == '__main__':
     franja_peligro()
     caja_vacunas()
     bolsa_suero()
+    banda()
     print('texturas ok')
