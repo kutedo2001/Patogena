@@ -220,11 +220,30 @@ valvula("valvula_vaciado", (VX + 0.42, VY - 0.36, ZD - 0.035))
 caja("dosif_base", (0.36, 0.3, 0.06), (DX, DY, ZG + 0.03), gr, bisel=0.01, padre=r)
 caja("dosif_columna", (0.06, 0.06, 0.45), (DX, DY + 0.12, ZG + 0.285), inox_osc, bisel=0.008, padre=r)
 caja("dosif_brazo", (0.06, 0.2, 0.06), (DX, DY + 0.03, ZG + 0.48), inox_osc, bisel=0.008, padre=r)
-cilindro("dosif_boquilla", 0.012, 0.06, (DX, DY - 0.05, ZG + 0.43), inox, lados=10, padre=r)
-caja("dosif_bandeja", (0.32, 0.22, 0.02), (DX, DY - 0.04, ZG + 0.07), inox, bisel=0.006, padre=r)
-for k, x in enumerate((DX - 0.1, DX, DX + 0.1)):
-    vv = objetos.vial(f"vial{k}", padre=r, pos=(x, DY - 0.05, ZG + 0.08), color=COLOR)
+caja("dosif_cabezal", (0.09, 0.08, 0.08), (DX, DY - 0.06, ZG + 0.48), ac, bisel=0.012, padre=r)
+tubo_curvo("dosif_manguera", [(DX, DY + 0.18, ZG + 0.45), (DX + 0.03, DY + 0.15, ZG + 0.56), (DX, DY - 0.04, ZG + 0.53)], 0.012,
+           mat("silicona", color=(0.9, 0.85, 0.75), rug=0.4, alfa=0.85), padre=r)
+# boquilla que baja al llenar, con su gota
+boq = vacio("boquilla", (DX, DY - 0.06, ZG + 0.44), padre=r)
+cilindro("boquilla_cuerpo", 0.016, 0.05, (0, 0, 0), inox, lados=12, padre=boq)
+torneado("boquilla_punta", [(0, -0.06), (0.004, -0.06), (0.012, -0.025), (0, -0.025)], inox, lados=12, padre=boq)
+esfera("gota", 0.007, (0, 0, -0.07), mat("liq_gota", color=COLOR, rug=0.1, emision=COLOR, fuerza=0.8), padre=boq,
+       escala=(1, 1, 1.4))
+# bandeja que avanza para poner cada vial bajo la boquilla
+caja("dosif_guia", (0.5, 0.04, 0.012), (DX, DY - 0.06, ZG + 0.066), inox_osc, bisel=0.003, padre=r)
+band = vacio("bandeja", (DX, DY - 0.06, ZG + 0.07), padre=r)
+caja("dosif_bandeja", (0.36, 0.1, 0.02), (0, 0, 0.0), inox, bisel=0.006, padre=band)
+for k in range(4):
+    caja(f"bandeja_tope{k}", (0.006, 0.1, 0.03), (-0.15 + k * 0.1, 0, 0.015), inox_osc, bisel=0.002, padre=band)
+for k, x in enumerate((-0.1, 0.0, 0.1)):
+    vv = objetos.vial(f"vial{k}", padre=band, pos=(x, 0, 0.01), color=COLOR)
     vv.scale = (ESC, ESC, ESC)
+    for ob in vv.children:
+        if ob.name.startswith("liquido"):
+            ob.name = f"llenado{k}"
+        for parte in ("goma", "capsula", "flip"):
+            if ob.name.startswith(parte):
+                ob.name = f"taponado{k}_{parte}"
 
 # ------------------------------------------------------------ bocas
 puerto_lamas("entrada", -1, -0.9, ZH + 0.25, r, ancho=0.3, alto=0.22, y=-0.5, z_flecha=ZH + 0.002, x_flecha=-0.93)

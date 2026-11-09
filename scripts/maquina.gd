@@ -38,6 +38,16 @@ var _estaciones: Array[Vector3] = []
 var _burbujas: Array[Node3D] = []
 var _burbuja_y0: Array[float] = []
 var _giratorios: Array[Node3D] = []
+# dosificadora: viales que se llenan uno a uno bajo una boquilla
+var _llenados: Array[Node3D] = []
+var _taponados: Array = []          # por vial, lista de piezas del tapón
+var _vial_x: Array[float] = []      # x de cada vial dentro de la bandeja
+var _bandeja: Node3D
+var _bandeja_x0 := 0.0
+var _boquilla: Node3D
+var _boquilla_y0 := 0.0
+var _gota: Node3D
+var _gota_y0 := 0.0
 var _tapa_ang := 0.0
 var _mat_pantalla: StandardMaterial3D
 var _ui: PantallaMaquina
@@ -78,6 +88,21 @@ func _ready() -> void:
 		_burbuja_y0.append((n as Node3D).position.y)
 	for n in find_children("gira_*", "Node3D", true, false):
 		_giratorios.append(n)
+	_bandeja = _buscar("bandeja")
+	_boquilla = _buscar("boquilla")
+	_gota = _buscar("gota")
+	if _bandeja and _boquilla:
+		_bandeja_x0 = _bandeja.position.x
+		_boquilla_y0 = _boquilla.position.y
+		if _gota:
+			_gota_y0 = _gota.position.y
+		for i in 8:
+			var l := _buscar("llenado%d" % i)
+			if l == null:
+				break
+			_llenados.append(l)
+			_vial_x.append((l.get_parent() as Node3D).position.x)
+			_taponados.append(find_children("taponado%d_*" % i, "Node3D", true, false))
 	for i in 8:
 		var e := _buscar("estacion_%d" % i)
 		if e == null:
@@ -162,6 +187,8 @@ func _process(dt: float) -> void:
 		b.visible = _vel_giro > 0.05
 	if _puente and _carro and _estaciones.size() >= 2:
 		_mover_portico(dt, trabaja)
+	if not _llenados.is_empty():
+		_dosificar(dt, trabaja)
 	if _tapa:
 		# la tapa se abre cuando la máquina espera material (se ve el rotor vacío esperando)
 		var objetivo := deg_to_rad(68.0) if estado == Estado.SIN_MATERIAL else 0.0
@@ -216,3 +243,34 @@ func _mover_portico(dt: float, trabaja: bool) -> void:
 	_carro.position.x = lerpf(_carro.position.x, destino.x, k)
 	if _pipeta:
 		_pipeta.position.y = lerpf(_pipeta.position.y, _pipeta_y0 - 0.12 * bajada, 1.0 - exp(-20.0 * dt))
+
+## Dosificadora: la bandeja lleva cada vial bajo la boquilla, la boquilla baja,
+## cae la gota, el nivel sube; al llenarse se pone el tapón. Al terminar la tanda
+## los viales salen (se vacían) y empieza otra.
+func _dosificar(dt: float, trabaja: bool) -> void:
+	var n := _llenados.size()
+	var t := _progreso * n
+	var actual := mini(int(t), n - 1)
+	var u := t - floorf(t)
+	var k := 1.0 - exp(-10.0 * dt)
+	# bandeja: el vial actual bajo la boquilla (la boquilla está en x = posición inicial de la bandeja)
+	var objetivo_x := _bandeja_x0 - _vial_x[actual]
+	_bandeja.position.x = lerpf(_bandeja.position.x, objetivo_x, k)
+	var llenando := trabaja and u > 0.2 and u < 0.85
+	var baja := 1.0 if (trabaja and u > 0.12 and u < 0.92) else 0.0
+	_boquilla.position.y = lerpf(_boquilla.position.y, _boquilla_y0 - 0.055 * baja, 1.0 - exp(-14.0 * dt))
+	for i in n:
+		var nivel := 0.0
+		if i < actual:
+			nivel = 1.0
+		elif i == actual:
+			nivel = clampf((u - 0.2) / 0.65, 0.0, 1.0)
+		var l := _llenados[i]
+		l.scale.y = maxf(nivel, 0.001)
+		l.visible = nivel > 0.002
+		for p in _taponados[i]:
+			(p as Node3D).visible = nivel >= 0.999 or (i == actual and u > 0.9)
+	if _gota:
+		_gota.visible = llenando
+		if llenando:
+			_gota.position.y = _gota_y0 - fmod(_t * 1.6, 0.06)

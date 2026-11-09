@@ -16,7 +16,7 @@ static func ajustar(raiz: Node) -> void:
 				continue
 			var nombre := m.resource_name
 			if nombre.begins_with("vidrio") or nombre.begins_with("cristal"):
-				mi.set_surface_override_material(i, _vidrio(m, 0.12))
+				mi.set_surface_override_material(i, _vidrio(m, 0.16))
 				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			elif nombre.begins_with("caldo"):
 				mi.set_surface_override_material(i, _caldo(m))
@@ -41,10 +41,8 @@ static func _vidrio(base: Material, alfa: float) -> StandardMaterial3D:
 	m.roughness = 0.12
 	m.metallic_specular = 0.5
 	m.rim_enabled = true
-	m.rim = 0.3
+	m.rim = 0.55
 	m.rim_tint = 0.6
-	m.rim = 0.2
-	m.rim_tint = 0.2
 	_cache[clave] = m
 	return m
 
