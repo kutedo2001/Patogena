@@ -15,7 +15,7 @@ const MODELOS := {
 	"paciente_infectado": "res://assets/personajes/character-female-d.glb",
 }
 const ESCALA := 0.62          # el pack mide ~1,45 m; el becario mide 0,9 casillas
-const C_SANGRE := Color(0.5, 0.02, 0.04)
+const C_SANGRE := Color(0.69, 0.12, 0.13)   # dentro del rango de la guía (#9E1B1B–#C42626)
 
 @export var variante := "investigador_m"
 @export var animacion := "idle"

@@ -40,3 +40,6 @@
 | 2026-11-09 | Marcas de interfaz en el mundo sin texto: anillo de selección pulsante y fantasma verde translúcido con su huella | Regla 6 |
 | 2026-11-09 | HUD v2: paneles como piezas del laboratorio (carcasa blanca biselada con tornillos, franja azul de proceso, pantallas iguales que las de las máquinas, bandejas hundidas, pulsadores físicos, franja de peligro) | Edu: el HUD oscuro genérico no tenía el estilo del juego |
 | 2026-11-09 | El mapa del mundo pasa a un monitor grande en la pared del fondo (sin ventanas en ese tramo) y sale de la barra superior | Propuesta de Edu: se lee mucho mejor y es parte del laboratorio |
+| 2026-11-09 | Rejilla única: casillas de 1 m [n, n+1]; máquinas 2×2 centradas en enteros, 1×1 y 3×3 en n+0,5; cintas corregidas (+0,5) | Las cintas iban media casilla desplazadas respecto al suelo y a las máquinas |
+| 2026-11-09 | Pantalla objetivo: laboratorio nivel 2 con dos cadenas reales (cepa al norte, vacunas al sur), corral de pruebas vallado bajo el monitor del mundo y palé de envío | Que la captura sea una fábrica que funciona, no un escaparate |
+| 2026-11-09 | Sangre más viva (#B01E20) para entrar en el rango de la guía | Rasgo 10 de las referencias |

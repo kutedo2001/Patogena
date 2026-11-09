@@ -61,6 +61,7 @@ var cura := 0.12
 var dia := 47
 var minuto := 8 * 60 + 40
 var _casillas: Array[Panel] = []
+var _ficha: Control
 var _ficha_titulo: Label
 var _ficha_desc: Label
 var _ficha_coste: Label
@@ -88,12 +89,17 @@ func _ready() -> void:
 	raiz.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	raiz.theme = _tema()
 	add_child(raiz)
+	# «-- --vista=general»: sin máquina seleccionada ni ficha de construcción (captura de conjunto)
+	var general := "--vista=general" in OS.get_cmdline_user_args()
 	_barra_superior(raiz)
 	_panel_objetivo(raiz)
-	_panel_maquina(raiz)
+	if not general:
+		_panel_maquina(raiz)
 	_barra_construccion(raiz)
 	_inventario(raiz)
 	_seleccionar(0)
+	if general:
+		_ficha.visible = false
 
 # ================================================================== piezas
 func _tema() -> Theme:
@@ -321,11 +327,11 @@ func _barra_superior(raiz: Control) -> void:
 	s.corner_radius_bottom_left = 12
 	s.corner_radius_bottom_right = 12
 	s.border_width_top = 0
-	s.content_margin_left = 16; s.content_margin_right = 16; s.content_margin_top = 6; s.content_margin_bottom = 10
+	s.content_margin_left = 14; s.content_margin_right = 14; s.content_margin_top = 4; s.content_margin_bottom = 6
 	barra.add_theme_stylebox_override("panel", s)
 	barra.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	raiz.add_child(barra)
-	var v := _columna(barra, 6)
+	var v := _columna(barra, 3)
 	var h := _fila(v, 14)
 	# placa de la empresa
 	var placa := PanelContainer.new()
@@ -356,23 +362,23 @@ func _barra_superior(raiz: Control) -> void:
 	_hueco(h)
 	# visores
 	var vd := _visor(h, tr("HUD_FONDOS"), "dinero", C_AMBAR)
-	_lbl_dinero = _texto(vd, "", 19, F_BOLD, P_TINTA)
+	_lbl_dinero = _texto(vd, "", 16, F_BOLD, P_TINTA)
 	_texto(vd, "+340" + tr("HUD_POR_MIN"), 12, F_SEMI, C_OK)
 	var ve := _visor(h, tr("HUD_ENERGIA"), "energia", C_AMARILLO)
-	_texto(ve, "%s/%d kW" % [String.num(energia.x, 1).replace(".", ","), int(energia.y)], 17, F_SEMI, P_TINTA)
+	_texto(ve, "%s/%d kW" % [String.num(energia.x, 1).replace(".", ","), int(energia.y)], 15, F_SEMI, P_TINTA)
 	_barra(ve, energia.x / energia.y, P_TINTA, 7, 60)
 	var vp := _visor(h, tr("HUD_PROPAGACION"), "cepa", C_ZOMBI)
-	_texto(vp, "%s %%" % String.num(propagacion * 100.0, 1).replace(".", ","), 17, F_BOLD, C_ZOMBI)
+	_texto(vp, "%s %%" % String.num(propagacion * 100.0, 1).replace(".", ","), 15, F_BOLD, C_ZOMBI)
 	var vc := _visor(h, tr("HUD_CURA"), "cura", C_CURA)
-	_texto(vc, "%d %%" % int(cura * 100), 17, F_SEMI, C_CURA)
+	_texto(vc, "%d %%" % int(cura * 100), 15, F_SEMI, C_CURA)
 	_barra(vc, cura, C_CURA, 7, 50)
 	var vf := _visor(h, tr("HUD_DIA") % dia, "fecha", P_TENUE)
-	_lbl_hora = _texto(vf, "", 17, F_SEMI, P_TINTA)
+	_lbl_hora = _texto(vf, "", 15, F_SEMI, P_TINTA)
 	_hueco(h)
 	# pulsadores de velocidad y de pantallas
 	var vel := _fila(h, 6)
 	for i in 4:
-		_pulsador(vel, ["pausa", "play", "rapido", "rapido"][i], [C_AMBAR, C_OK, C_ACENTO, C_ACENTO][i], 32, i == 1)
+		_pulsador(vel, ["pausa", "play", "rapido", "rapido"][i], [C_AMBAR, C_OK, C_ACENTO, C_ACENTO][i], 30, i == 1)
 	var sep := ColorRect.new()
 	sep.color = C_BISEL_SOMBRA
 	sep.custom_minimum_size = Vector2(2, 34)
@@ -380,7 +386,7 @@ func _barra_superior(raiz: Control) -> void:
 	h.add_child(sep)
 	var pant := _fila(h, 6)
 	for n in ["cepa", "mundo", "hitos", "produccion", "correo"]:
-		var b := _pulsador(pant, n, C_GRAFITO, 34)
+		var b := _pulsador(pant, n, C_GRAFITO, 30)
 		if n == "correo":
 			var led := Panel.new()
 			var lsb := StyleBoxFlat.new()
@@ -404,13 +410,13 @@ func _barra_superior(raiz: Control) -> void:
 	_texto(dir, tr("HUD_DIRECTO"), 11, F_BOLD, C_ROJO)
 	var visor := _pantalla(tt, 0)
 	visor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	visor.custom_minimum_size.y = 24
+	visor.custom_minimum_size.y = 20
 	var clip := Control.new()
 	clip.clip_contents = true
-	clip.custom_minimum_size = Vector2(0, 18)
+	clip.custom_minimum_size = Vector2(0, 16)
 	visor.add_child(clip)
-	_teletipo = _texto(clip, "      ◆      ".join([tr("HUD_NOTICIA_1"), tr("HUD_NOTICIA_2"), tr("HUD_NOTICIA_3")]), 13, F_SEMI, C_AMBAR)
-	_teletipo.position = Vector2(400, -1)
+	_teletipo = _texto(clip, "      ◆      ".join([tr("HUD_NOTICIA_1"), tr("HUD_NOTICIA_2"), tr("HUD_NOTICIA_3")]), 12, F_SEMI, C_AMBAR)
+	_teletipo.position = Vector2(400, -2)
 
 ## Visor: etiqueta serigrafiada en la carcasa + pantalla pequeña con icono. Devuelve la fila de valores.
 func _visor(padre: Control, titulo: String, icono: String, color: Color) -> HBoxContainer:
@@ -425,29 +431,29 @@ func _visor(padre: Control, titulo: String, icono: String, color: Color) -> HBox
 	m.add_theme_constant_override("margin_bottom", 2)
 	p.add_child(m)
 	var h := _fila(m, 8)
-	var ic := IconoHUD.new(icono, color, 18)
+	var ic := IconoHUD.new(icono, color, 16)
 	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	h.add_child(ic)
 	return _fila(h, 8)
 
 # ================================================================== objetivo
 func _panel_objetivo(raiz: Control) -> void:
-	var p := _carcasa(raiz, 14)
-	p.position = Vector2(16, 112)
-	p.custom_minimum_size = Vector2(380, 0)
+	var p := _carcasa(raiz, 12)
+	p.position = Vector2(14, 92)
+	p.custom_minimum_size = Vector2(286, 0)
 	var v := _columna(p, 10)
 	_franja(v, tr("HUD_OBJETIVO"), "hitos")
-	_texto(v, tr("HUD_FASE"), 17, F_BOLD)
+	_texto(v, tr("HUD_FASE"), 15, F_BOLD)
 	var pant := _pantalla(v, 10)
 	var lista := _columna(pant, 10)
 	for o in [["tubo_plasma", "HUD_OBJ_PLASMA", 34, 50], ["caja_vacunas", "HUD_OBJ_VACUNAS", 20, 20], ["vial_mutacion", "HUD_OBJ_MUTACION", 0, 1]]:
 		var f := _fila(lista, 10)
-		_bandeja(f, o[0], 40)
+		_bandeja(f, o[0], 34)
 		var c := _columna(f, 4)
 		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var arriba := _fila(c, 6)
 		var hecho: bool = o[2] >= o[3]
-		var l := _texto(arriba, tr(o[1]), 13, F_MED, P_TENUE if hecho else P_TINTA)
+		var l := _texto(arriba, tr(o[1]), 12, F_MED, P_TENUE if hecho else P_TINTA)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		if hecho:
@@ -457,15 +463,17 @@ func _panel_objetivo(raiz: Control) -> void:
 		_barra(c, float(o[2]) / o[3], C_OK if hecho else P_TINTA, 6)
 	var rec := _fila(v, 8)
 	rec.add_child(IconoHUD.new("flecha", C_TENUE_OSC, 13))
-	_texto(rec, tr("HUD_RECOMPENSA"), 12, F_MED, C_TENUE_OSC)
+	var lr := _texto(rec, tr("HUD_RECOMPENSA"), 11, F_MED, C_TENUE_OSC)
+	lr.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 # ================================================================== panel de máquina
 func _panel_maquina(raiz: Control) -> void:
 	var p := _carcasa(raiz, 14)
 	p.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	p.offset_left = -414
-	p.offset_right = -16
-	p.offset_top = 112
+	p.offset_left = -404
+	p.offset_right = -14
+	p.offset_top = 92
 	var v := _columna(p, 10)
 	var cab := _fila(v, 12)
 	_bandeja(cab, "centrifuga", 64)
@@ -556,6 +564,7 @@ func _barra_construccion(raiz: Control) -> void:
 	caja.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	# ficha: una pantalla con marco de carcasa, encima de la barra
 	var ficha := _carcasa(caja, 10)
+	_ficha = ficha
 	ficha.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	ficha.custom_minimum_size = Vector2(440, 0)
 	var fp := _pantalla(ficha, 12)
@@ -578,9 +587,9 @@ func _barra_construccion(raiz: Control) -> void:
 	fr.add_child(ek)
 	_ficha_kw = _texto(fr, "", 13, F_SEMI, P_TINTA)
 	# barra: carcasa con franja de pestañas y bandejas
-	var barra := _carcasa(caja, 12)
+	var barra := _carcasa(caja, 10)
 	barra.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var bv := _columna(barra, 8)
+	var bv := _columna(barra, 6)
 	var tabs := _fila(bv, 4)
 	for cat in CONSTRUCCIONES:
 		var t := PanelContainer.new()
@@ -610,7 +619,7 @@ func _barra_construccion(raiz: Control) -> void:
 	for i in lista.size():
 		var e: Array = lista[i]
 		var col := _columna(fila, 4)
-		var c := _bandeja(col, e[0], 76)
+		var c := _bandeja(col, e[0], 64)
 		c.mouse_filter = Control.MOUSE_FILTER_STOP
 		c.mouse_entered.connect(_seleccionar.bind(i))
 		_casillas.append(c)
@@ -619,13 +628,21 @@ func _barra_construccion(raiz: Control) -> void:
 		num.position = Vector2(6, 2)
 		if e[4]:
 			c.modulate = Color(0.6, 0.6, 0.6)
-			var cand := IconoHUD.new("candado", C_GRAFITO, 16)
-			cand.position = Vector2(54, 5)
+			var cand := IconoHUD.new("candado", C_GRAFITO, 14)
+			cand.position = Vector2(45, 4)
 			c.add_child(cand)
-		# precio en un visor diminuto bajo la bandeja
-		var pv := _pantalla(col, 0)
-		var pl := _texto(pv, "%s €" % _miles(e[2]), 12, F_BOLD, P_TENUE if e[4] else C_AMBAR)
-		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		# precio en una pastilla de visor dentro de la bandeja
+		var pv := PanelContainer.new()
+		var pvs := StyleBoxFlat.new()
+		pvs.bg_color = Color(P_FONDO, 0.92)
+		pvs.set_corner_radius_all(3)
+		pvs.content_margin_left = 3; pvs.content_margin_right = 3
+		pv.add_theme_stylebox_override("panel", pvs)
+		c.add_child(pv)
+		_texto(pv, "%s€" % _miles(e[2]), 10, F_BOLD, P_TENUE if e[4] else C_AMBAR)
+		pv.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 3)
+		pv.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		pv.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_anclar.call_deferred(caja, Control.PRESET_CENTER_BOTTOM)
 
 ## Franja amarilla y negra como la del zócalo de las máquinas.
@@ -634,7 +651,7 @@ func _franja_peligro(padre: Control) -> void:
 	t.texture = preload("res://assets/texturas/hud_peligro.png")
 	t.stretch_mode = TextureRect.STRETCH_TILE
 	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.custom_minimum_size = Vector2(0, 8)
+	t.custom_minimum_size = Vector2(0, 6)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	padre.add_child(t)
 
@@ -677,6 +694,9 @@ func _process(dt: float) -> void:
 	_lbl_hora.text = "%02d:%02d" % [m / 60, m % 60]
 	var ciclo := 3.0
 	var fr := fmod(_t, ciclo) / ciclo
+	if _barra_prog == null:
+		_teletipo.position.x = 400.0 - fmod(_t * 60.0, _teletipo.get_minimum_size().x + 800.0)
+		return
 	_barra_prog.value = fr
 	_lbl_prog.text = "%s s" % String.num(ciclo * (1.0 - fr), 1).replace(".", ",")
 	var ancho := _teletipo.get_minimum_size().x

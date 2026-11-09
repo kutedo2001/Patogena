@@ -11,17 +11,22 @@ const CICLO_VISUAL := {
 	PantallaMaquina.Tipo.MEZCLADORA: 7.0, PantallaMaquina.Tipo.ENVASADORA: 12.0, PantallaMaquina.Tipo.CEPA: 8.0,
 }
 
+## Laboratorio nivel 2 de la pantalla objetivo (P3.9): dos cadenas reales conectadas por cintas.
+## Casillas de 1 m [n, n+1]; las máquinas de 2×2 se centran en enteros, las de 1×1 y 3×3 en n+0,5.
+## Entrada siempre por −X y salida por +X (giro 0).
 const MAQUINAS := [
-	# [modelo, centro en metros (x, z), giro en grados, estado]
-	["res://assets/modelos/maquinas/centrifuga.glb", Vector2(-4.5, -2.5), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.CENTRIFUGA],
-	["res://assets/modelos/maquinas/centrifuga.glb", Vector2(-6.5, -2.5), 0.0, Maquina.Estado.AVERIA, PantallaMaquina.Tipo.CENTRIFUGA],
-	["res://assets/modelos/maquinas/centrifuga.glb", Vector2(-4.5, -4.5), 0.0, Maquina.Estado.SIN_MATERIAL, PantallaMaquina.Tipo.CENTRIFUGA],
-	["res://assets/modelos/maquinas/secuenciador.glb", Vector2(-2.0, -3.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.SECUENCIADOR],
-	["res://assets/modelos/maquinas/biorreactor.glb", Vector2(1.0, -3.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.BIORREACTOR],
-	["res://assets/modelos/maquinas/biorreactor.glb", Vector2(4.0, -3.0), 0.0, Maquina.Estado.AVERIA, PantallaMaquina.Tipo.BIORREACTOR],
-	["res://assets/modelos/maquinas/mezcladora.glb", Vector2(2.0, 1.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.MEZCLADORA],
-	["res://assets/modelos/maquinas/envasadora.glb", Vector2(5.0, 1.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.ENVASADORA],
-	["res://assets/modelos/maquinas/camara_cepa.glb", Vector2(8.5, -4.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.CEPA],
+	# [modelo, centro (x, z), giro, estado, pantalla]
+	# cadena de la cepa (norte): sangre → centrífugas → plasma → biorreactores → viales → cámara de cepa
+	["res://assets/modelos/maquinas/centrifuga.glb", Vector2(-8.5, -3.5), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.CENTRIFUGA],
+	["res://assets/modelos/maquinas/centrifuga.glb", Vector2(-8.5, -5.5), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.CENTRIFUGA],
+	["res://assets/modelos/maquinas/centrifuga.glb", Vector2(-8.5, -1.5), 0.0, Maquina.Estado.SIN_MATERIAL, PantallaMaquina.Tipo.CENTRIFUGA],
+	["res://assets/modelos/maquinas/biorreactor.glb", Vector2(-5.0, -4.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.BIORREACTOR],
+	["res://assets/modelos/maquinas/biorreactor.glb", Vector2(-5.0, -6.0), 0.0, Maquina.Estado.AVERIA, PantallaMaquina.Tipo.BIORREACTOR],
+	["res://assets/modelos/maquinas/camara_cepa.glb", Vector2(1.5, -3.5), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.CEPA],
+	# cadena de vacunas (sur): cultivo → secuenciador → ADN; agua + reactivo → mezcladora → suero; → envasadora → cajas
+	["res://assets/modelos/maquinas/secuenciador.glb", Vector2(-4.0, 1.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.SECUENCIADOR],
+	["res://assets/modelos/maquinas/mezcladora.glb", Vector2(-4.0, 4.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.MEZCLADORA],
+	["res://assets/modelos/maquinas/envasadora.glb", Vector2(1.0, 1.0), 0.0, Maquina.Estado.TRABAJANDO, PantallaMaquina.Tipo.ENVASADORA],
 ]
 
 ## Los productos se dibujan a 2,5× su tamaño real para que se lean con la cámara del juego.
@@ -31,26 +36,62 @@ const OBJETOS := []
 const PRODUCTOS := ["tubo_sangre", "tubo_plasma", "placa_petri", "tubo_adn", "garrafa_agua", "frasco_reactivo", "bolsa_suero",
 	"proteina", "vector", "neurotoxina", "capside", "nucleo_zombi", "vial_mutacion", "caja_vacunas"]
 
+## Recorrido en casillas; los objetos entran en la máquina al final y salen de la anterior al principio.
+const CINTAS := [
+	[[Vector2i(-12, -4), Vector2i(-11, -4), Vector2i(-10, -4)], ["tubo_sangre", "tubo_sangre", "tubo_sangre"]],
+	[[Vector2i(-12, -6), Vector2i(-11, -6), Vector2i(-10, -6)], ["tubo_sangre", "tubo_sangre"]],
+	[[Vector2i(-12, -2), Vector2i(-11, -2), Vector2i(-10, -2)], []],                                   # vacía: centrífuga sin material
+	[[Vector2i(-8, -4), Vector2i(-7, -4)], ["tubo_plasma", "tubo_plasma"]],
+	[[Vector2i(-8, -6), Vector2i(-7, -6)], ["tubo_plasma"]],
+	[[Vector2i(-4, -4), Vector2i(-3, -4), Vector2i(-2, -4), Vector2i(-1, -4)], ["vial_mutacion", "vial_mutacion"]],
+	[[Vector2i(-4, -6), Vector2i(-3, -6), Vector2i(-3, -5)], []],                                      # biorreactor averiado
+	[[Vector2i(-11, 1), Vector2i(-10, 1), Vector2i(-9, 1), Vector2i(-8, 1), Vector2i(-7, 1), Vector2i(-6, 1)], ["placa_petri", "placa_petri", "placa_petri", "placa_petri"]],
+	[[Vector2i(-3, 1), Vector2i(-2, 1), Vector2i(-2, 0), Vector2i(-1, 0)], ["tubo_adn", "tubo_adn"]],
+	[[Vector2i(-11, 4), Vector2i(-10, 4), Vector2i(-9, 4), Vector2i(-8, 4), Vector2i(-7, 4), Vector2i(-6, 4)], ["garrafa_agua", "frasco_reactivo", "garrafa_agua", "frasco_reactivo"]],
+	[[Vector2i(-3, 3), Vector2i(-2, 3), Vector2i(-2, 2)], ["bolsa_suero"]],
+	[[Vector2i(2, 1), Vector2i(3, 1), Vector2i(4, 1), Vector2i(5, 1), Vector2i(6, 1)], ["caja_vacunas", "caja_vacunas", "caja_vacunas"]],
+]
+
 func _montar_cintas() -> void:
-	# Mk1 en bucle con los 14 productos; Mk2 y Mk3 rectas con algunos, para comparar
-	var bucle: Array[Vector2i] = []
-	for x in range(-8, 0):
-		bucle.append(Vector2i(x, 3))
-	for z in range(4, 7):
-		bucle.append(Vector2i(-1, z))
-	for x in range(-2, -9, -1):
-		bucle.append(Vector2i(x, 6))
-	for z in range(5, 3, -1):
-		bucle.append(Vector2i(-8, z))
-	_linea(1, bucle, true, PRODUCTOS)
-	var r2: Array[Vector2i] = []
-	for x in range(1, 10):
-		r2.append(Vector2i(x, 4))
-	_linea(2, r2, false, ["tubo_plasma", "tubo_adn", "bolsa_suero", "vial_mutacion"])
-	var r3: Array[Vector2i] = []
-	for x in range(1, 10):
-		r3.append(Vector2i(x, 6))
-	_linea(3, r3, false, ["caja_vacunas", "nucleo_zombi", "capside"])
+	for c in CINTAS:
+		var celdas: Array[Vector2i] = []
+		celdas.assign(c[0])
+		_linea(1, celdas, false, c[1])
+	_palet_envio(Vector3(7.6, 0, 1.5))
+
+## Palé de cajas de vacunas al final de la línea (muelle de envío provisional).
+func _palet_envio(pos: Vector3) -> void:
+	var palet := Node3D.new()
+	palet.position = pos
+	add_child(palet)
+	var madera := StandardMaterial3D.new()
+	madera.albedo_color = Color(0.62, 0.48, 0.3)
+	madera.roughness = 0.85
+	for k in 3:
+		var t := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.9, 0.025, 0.16)
+		t.mesh = bm
+		t.material_override = madera
+		t.position = Vector3(0, 0.11, -0.36 + k * 0.36)
+		palet.add_child(t)
+		var taco := MeshInstance3D.new()
+		var tb := BoxMesh.new()
+		tb.size = Vector3(0.9, 0.1, 0.1)
+		taco.mesh = tb
+		taco.material_override = madera
+		taco.position = Vector3(0, 0.05, -0.36 + k * 0.36)
+		palet.add_child(taco)
+	var caja: PackedScene = load("res://assets/modelos/objetos/caja_vacunas.glb")
+	for i in 3:
+		for j in 3:
+			for h in 2 if (i + j) % 2 == 0 else 1:
+				var c: Node3D = caja.instantiate()
+				Materiales.ajustar(c)
+				c.scale = Vector3.ONE * ESCALA_OBJETOS
+				c.position = Vector3(-0.28 + i * 0.28, 0.125 + h * 0.2, -0.28 + j * 0.28)
+				c.rotation.y = randf_range(-0.08, 0.08)
+				palet.add_child(c)
 
 func _linea(nivel: int, celdas: Array[Vector2i], cerrada: bool, productos: Array) -> void:
 	var l := LineaCinta.new()
@@ -67,21 +108,22 @@ func _linea(nivel: int, celdas: Array[Vector2i], cerrada: bool, productos: Array
 ## Personajes de muestra (P3.7/P3.7b). Cada entrada: variante, pos (x, z), giro, animación y
 ## opciones: ruta (dos puntos), vel, estilo, amputado, rastro, rutina, alto.
 const GENTE := [
-	["investigador_m", Vector2(-4.5, -2.0), 180.0, "interact-right", {"rutina": [["interact-right", 4.0], ["pick-up", 1.6], ["interact-right", 3.0], ["emote-yes", 1.6]]}],
-	["investigador_f", Vector2(-0.75, -2.3), -90.0, "interact-left", {"rutina": [["interact-left", 5.0], ["holding-both", 2.5], ["interact-left", 3.0]]}],
-	["investigador_m", Vector2(1.0, -0.9), 0.0, "walk", {"ruta": [Vector2(-3.0, -0.9), Vector2(6.0, -0.9)]}],
+	["investigador_m", Vector2(-8.5, -2.95), 180.0, "interact-right", {"rutina": [["interact-right", 4.0], ["pick-up", 1.6], ["interact-right", 3.0], ["emote-yes", 1.6]]}],
+	["investigador_f", Vector2(-4.3, 2.3), 180.0, "interact-left", {"rutina": [["interact-left", 5.0], ["holding-both", 2.5], ["interact-left", 3.0]]}],
+	["investigador_m", Vector2(-1.0, -1.0), 0.0, "walk", {"ruta": [Vector2(-4.0, -1.0), Vector2(6.0, -1.0)]}],
+	["investigador_f", Vector2(1.3, 2.3), 180.0, "interact-right", {"rutina": [["interact-right", 3.5], ["pick-up", 1.6], ["interact-right", 4.0]]}],
 	["paciente_m", Vector2(-10.9, -2.7), 90.0, "sit", {"alto": 0.3}],
 	["paciente_f", Vector2(-10.9, -1.7), 90.0, "sit", {"alto": 0.3, "rutina": [["sit", 3.0], ["emote-no", 1.4]]}],
-	# horda del corral de pruebas
-	["zombi", Vector2(-9.0, 0.8), 30.0, "walk", {"ruta": [Vector2(-10.0, 0.4), Vector2(-7.0, 1.6)], "vel": 0.35, "estilo": "zombi"}],
-	["zombi", Vector2(-8.0, -0.3), 0.0, "walk", {"ruta": [Vector2(-10.2, -0.5), Vector2(-7.4, -0.1)], "vel": 0.3, "estilo": "zombi", "amputado": ["arm-left"], "rastro": true}],
-	["zombi", Vector2(-6.0, 1.9), 0.0, "idle", {"ruta": [Vector2(-6.8, 1.95), Vector2(-4.6, 1.75)], "vel": 0.12, "estilo": "arrastrar", "rastro": true}],
-	["investigador_infectado", Vector2(-6.0, 0.4), 0.0, "walk", {"ruta": [Vector2(-6.2, -0.3), Vector2(-4.8, 1.0)], "vel": 0.3, "estilo": "zombi", "rastro": true}],
-	["paciente_infectado", Vector2(-11.2, 1.2), 0.0, "walk", {"ruta": [Vector2(-11.3, 0.2), Vector2(-11.0, 2.2)], "vel": 0.28, "estilo": "zombi", "amputado": ["arm-right"]}],
-	["zombi", Vector2(-9.0, 2.1), 0.0, "walk", {"ruta": [Vector2(-9.8, 2.15), Vector2(-8.0, 2.05)], "vel": 0.25, "estilo": "zombi", "amputado": ["head"], "rastro": true}],
-	# mordisco: paciente en el suelo y zombi agachado encima
-	["paciente_m", Vector2(-3.4, 1.35), 70.0, "die", {"bucle": false}],
-	["zombi", Vector2(-3.45, 1.0), -20.0, "attack-melee-right", {"estilo": "comer", "vel_anim": 0.7}],
+	# corral de pruebas (bajo el monitor del mundo)
+	["zombi", Vector2(5.0, -5.5), 30.0, "walk", {"ruta": [Vector2(4.0, -5.8), Vector2(7.6, -5.0)], "vel": 0.35, "estilo": "zombi"}],
+	["zombi", Vector2(6.0, -4.0), 0.0, "walk", {"ruta": [Vector2(7.8, -3.8), Vector2(4.2, -4.2)], "vel": 0.3, "estilo": "zombi", "amputado": ["arm-left"], "rastro": true}],
+	["zombi", Vector2(8.0, -6.4), 0.0, "idle", {"ruta": [Vector2(8.6, -6.4), Vector2(6.4, -6.6)], "vel": 0.12, "estilo": "arrastrar", "rastro": true}],
+	["investigador_infectado", Vector2(9.0, -5.0), 0.0, "walk", {"ruta": [Vector2(9.2, -3.6), Vector2(8.8, -5.4)], "vel": 0.3, "estilo": "zombi", "rastro": true}],
+	["paciente_infectado", Vector2(4.0, -3.6), 0.0, "walk", {"ruta": [Vector2(3.6, -3.5), Vector2(5.6, -3.4)], "vel": 0.28, "estilo": "zombi", "amputado": ["arm-right"]}],
+	["zombi", Vector2(6.6, -5.4), 0.0, "walk", {"ruta": [Vector2(5.8, -6.0), Vector2(6.9, -4.7)], "vel": 0.25, "estilo": "zombi", "amputado": ["head"], "rastro": true}],
+	# mordisco
+	["paciente_m", Vector2(9.6, -4.4), 70.0, "die", {"bucle": false}],
+	["zombi", Vector2(9.45, -4.75), -20.0, "attack-melee-right", {"estilo": "comer", "vel_anim": 0.7}],
 ]
 var _caminantes: Array = []   # [nodo, a, b, t, sentido, vel]
 
@@ -106,14 +148,43 @@ func _montar_gente() -> void:
 		add_child(p)
 		if o.has("ruta"):
 			_caminantes.append([p, o.ruta[0], o.ruta[1], randf(), 1.0, o.get("vel", 0.9)])
+	_corral(Vector2i(3, -7), Vector2i(10, -2), 5)
 	# gore estilizado: charcos y salpicaduras en el corral y bajo el mordisco
-	for d in [[Vector3(-8.4, 0, 1.2), 0.8, "sangre_charco"], [Vector3(-9.8, 0, 0.3), 0.45, "sangre_salpicadura"],
-			[Vector3(-7.2, 0, 1.8), 0.4, "sangre_salpicadura"], [Vector3(-3.6, 0, 1.2), 1.0, "sangre_charco"],
-			[Vector3(-2.6, 0, 0.8), 0.5, "sangre_salpicadura"], [Vector3(-8.9, 0, 2.1), 0.5, "sangre_salpicadura"]]:
+	for d in [[Vector3(5.4, 0, -5.1), 0.8, "sangre_charco"], [Vector3(4.2, 0, -5.9), 0.45, "sangre_salpicadura"],
+			[Vector3(7.4, 0, -4.4), 0.4, "sangre_salpicadura"], [Vector3(9.4, 0, -4.5), 1.0, "sangre_charco"],
+			[Vector3(10.1, 0, -5.0), 0.5, "sangre_salpicadura"], [Vector3(6.6, 0, -5.4), 0.5, "sangre_salpicadura"]]:
 		var dc := Mancha.crear(load("res://assets/texturas/%s.png" % d[2]), d[1])
 		dc.position = d[0]
 		dc.rotation.y = randf() * TAU
 		add_child(dc)
+
+## Valla del corral de pruebas entre dos esquinas (casillas), con hueco de puerta en el lado sur.
+func _corral(a: Vector2i, b: Vector2i, puerta_x: int) -> void:
+	var tramo: PackedScene = load("res://assets/modelos/mobiliario/valla.glb")
+	var aviso: PackedScene = load("res://assets/modelos/mobiliario/valla_aviso.glb")
+	var poste: PackedScene = load("res://assets/modelos/mobiliario/valla_poste.glb")
+	var k := 0
+	for x in range(a.x, b.x):
+		for z in [a.y, b.y]:
+			if z == b.y and x == puerta_x:
+				continue
+			var t: Node3D = (aviso if k % 3 == 1 else tramo).instantiate()
+			t.position = Vector3(x + 0.5, 0, z)
+			if z == b.y:
+				t.rotation_degrees.y = 180
+			add_child(t)
+			k += 1
+	for z in range(a.y, b.y):
+		for x in [a.x, b.x]:
+			var t: Node3D = (aviso if k % 3 == 1 else tramo).instantiate()
+			t.position = Vector3(x, 0, z + 0.5)
+			t.rotation_degrees.y = 90 if x == a.x else -90
+			add_child(t)
+			k += 1
+	for c in [Vector2(a.x, a.y), Vector2(b.x, a.y), Vector2(a.x, b.y), Vector2(b.x, b.y), Vector2(puerta_x + 1, b.y)]:
+		var pp: Node3D = poste.instantiate()
+		pp.position = Vector3(c.x, 0, c.y)
+		add_child(pp)
 
 ## Marcas de interfaz en el mundo (sin texto): anillo de la máquina seleccionada en el HUD y
 ## fantasma verde de la construcción elegida en la barra, con su huella en el suelo.
@@ -135,9 +206,10 @@ func _seleccion_y_fantasma() -> void:
 	am.emission_energy_multiplier = 1.5
 	am.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_anillo.material_override = am
-	_anillo.position = Vector3(-4.5, 0.02, -2.5)
+	_anillo.position = Vector3(-8.5, 0.02, -3.5)
 	_anillo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_anillo)
+	_anillo.visible = not ("--vista=general" in OS.get_cmdline_user_args())
 	# fantasma
 	var f: Node3D = load("res://assets/modelos/maquinas/centrifuga.glb").instantiate()
 	_fantasma_mat = StandardMaterial3D.new()
@@ -151,7 +223,7 @@ func _seleccion_y_fantasma() -> void:
 	for mi in f.find_children("*", "MeshInstance3D", true, false):
 		(mi as MeshInstance3D).material_override = _fantasma_mat
 		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	f.position = Vector3(0.0, 0, 1.0)
+	f.position = Vector3(-6.0, 0, -1.0)
 	add_child(f)
 	# huella 2×2 en el suelo con borde
 	for i in 2:
@@ -165,7 +237,7 @@ func _seleccion_y_fantasma() -> void:
 			cm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			cm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			c.material_override = cm
-			c.position = Vector3(-0.5 + i, 0.015, 0.5 + j)
+			c.position = Vector3(-6.5 + i, 0.015, -1.5 + j)
 			add_child(c)
 
 func _process(dt: float) -> void:

@@ -59,7 +59,7 @@ func _construir() -> void:
 			sig = casillas[i + 1]
 		var d_in := c - prev
 		var d_out := sig - c
-		var centro := Vector3(c.x, 0, c.y)
+		var centro := Vector3(c.x + 0.5, 0, c.y + 0.5)   # casilla [n, n+1]: centro en n+0,5
 		var pieza: Node3D
 		var yaw := atan2(-float(d_in.y), float(d_in.x))
 		if d_in == d_out:

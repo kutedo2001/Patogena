@@ -10,7 +10,7 @@ Fábrica 3D isométrica de un laboratorio farmacéutico que provoca un apocalips
 - Documento de diseño: https://claude.ai/artifact/XVYRKWeQAvMiSUE9AbUn59 (copia en docs/diseno.md)
 - Hoja de ruta: https://claude.ai/artifact/8sb5FNiWcgFMr6jQvdGpbe (fuente en docs/hoja_de_ruta.html, slug 3fc02851-ded8-4547-9b89-502ae83981ed)
 - Prototipos de concepto (three.js, solo referencia): https://claude.ai/artifact/Q7pVRafGUfrY7P8g9AKu38
-- Puerta actual: 3 (pantalla objetivo) · Pantalla objetivo: docs/referencias/objetivo.png (pendiente)
+- Puerta actual: 3 (pantalla objetivo) · Pantalla objetivo: docs/referencias/objetivo.png y objetivo_detalle.png (pendiente del aprobado de Edu)
 
 ## Reglas
 1. Hoja de ruta primero: toda petición pasa a tareas con ficha antes de tocar código; se enseña a Edu y se empieza.

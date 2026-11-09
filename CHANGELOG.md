@@ -17,4 +17,6 @@ Lo que nota el jugador, por versión.
 - La máquina seleccionada se marca con un anillo y lo que vas a construir aparece como fantasma verde.
 - La sangre del suelo se ve también en la versión web.
 - La interfaz tiene el mismo estilo que las máquinas: carcasas blancas con tornillos, pantallas verdes y pulsadores.
+- El laboratorio ya es una fábrica conectada: sangre → centrífugas → biorreactores → cámara de cepa, y cultivo/agua/reactivo → secuenciador y mezcladora → envasadora → palé de vacunas.
+- Corral de pruebas vallado con los zombis.
 - Monitor grande en la pared con el mapa del mundo, la infección por región, la cura y rutas aéreas animadas.
