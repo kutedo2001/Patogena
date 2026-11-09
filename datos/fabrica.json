@@ -1,0 +1,30 @@
+{
+  "_nota": "Datos de la simulación de fábrica (P4.1). Casillas de 1 m. Las máquinas entran por su cara −X local y sacan por la cara +X, en la fila 'salida'. Tiempos en segundos.",
+  "cintas": {
+    "1": {"velocidad": 0.5, "separacion": 0.5},
+    "2": {"velocidad": 1.0, "separacion": 0.5},
+    "3": {"velocidad": 2.0, "separacion": 0.5}
+  },
+  "objetos": ["tubo_sangre", "tubo_plasma", "placa_petri", "tubo_adn", "garrafa_agua", "frasco_reactivo", "bolsa_suero",
+              "proteina", "vector", "neurotoxina", "capside", "nucleo_zombi", "vial_mutacion", "caja_vacunas"],
+  "maquinas": {
+    "centrifuga":   {"tam": [1, 1], "salida": 0, "recetas": ["plasma"]},
+    "secuenciador": {"tam": [2, 2], "salida": 1, "recetas": ["adn"]},
+    "mezcladora":   {"tam": [2, 2], "salida": 0, "recetas": ["suero"]},
+    "envasadora":   {"tam": [2, 2], "salida": 1, "recetas": ["vacunas"]},
+    "biorreactor":  {"tam": [2, 2], "salida": 1, "recetas": ["tos", "fiebre"]},
+    "camara_cepa":  {"tam": [3, 3], "salida": 1, "recetas": ["inyectar"]}
+  },
+  "recetas": {
+    "plasma":   {"entradas": {"tubo_sangre": 1}, "salidas": {"tubo_plasma": 1}, "tiempo": 3.0},
+    "adn":      {"entradas": {"placa_petri": 1}, "salidas": {"tubo_adn": 1}, "tiempo": 4.0},
+    "suero":    {"entradas": {"garrafa_agua": 1, "frasco_reactivo": 1}, "salidas": {"bolsa_suero": 2}, "tiempo": 3.0},
+    "vacunas":  {"entradas": {"tubo_adn": 1, "bolsa_suero": 1}, "salidas": {"caja_vacunas": 1}, "tiempo": 4.0},
+    "tos":      {"entradas": {"tubo_plasma": 2}, "salidas": {"vial_mutacion": 1}, "tiempo": 6.0},
+    "fiebre":   {"entradas": {"tubo_adn": 2}, "salidas": {"vial_mutacion": 1}, "tiempo": 6.0},
+    "inyectar": {"entradas": {"vial_mutacion": 1}, "salidas": {}, "tiempo": 2.0, "cuenta": "mutacion"}
+  },
+  "brazo":   {"ciclo": 1.2},
+  "almacen": {"capacidad": 50, "salida_cada": 0.5},
+  "divisor": {"cada": 0.25}
+}

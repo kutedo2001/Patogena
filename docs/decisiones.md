@@ -43,3 +43,9 @@
 | 2026-11-09 | Rejilla única: casillas de 1 m [n, n+1]; máquinas 2×2 centradas en enteros, 1×1 y 3×3 en n+0,5; cintas corregidas (+0,5) | Las cintas iban media casilla desplazadas respecto al suelo y a las máquinas |
 | 2026-11-09 | Pantalla objetivo: laboratorio nivel 2 con dos cadenas reales (cepa al norte, vacunas al sur), corral de pruebas vallado bajo el monitor del mundo y palé de envío | Que la captura sea una fábrica que funciona, no un escaparate |
 | 2026-11-09 | Sangre más viva (#B01E20) para entrar en el rango de la guía | Rasgo 10 de las referencias |
+| 2026-11-09 | Puerta 3 cerrada: Edu responde «sigue» a la pantalla objetivo (lámina p39_objetivo.jpg) | Aprobado de la puerta 3; se pasa a la fase 4 |
+| 2026-11-09 | Simulación separada del dibujo (scripts/sim/fabrica.gd) con datos en datos/fabrica.json, a 20 pasos/s; el bot la juega a ×600 | Diseño: datos puros, bot sin pantalla |
+| 2026-11-09 | Cintas Mk1–Mk3 a 0,5 / 1 / 2 casillas/s con separación 0,5 = 60 / 120 / 240 objetos/min; carga lateral a mitad de casilla | Ritmos del documento de diseño |
+| 2026-11-09 | Máquinas: entran por toda la cara −X local y sacan por la +X en su fila de salida; tolva de hasta 4 recetas por ingrediente; si la salida se llena, se paran en ámbar sin perder nada | Reglas simples y legibles; casan con las bocas de los modelos |
+| 2026-11-09 | Una cinta por ingrediente en los diseños de muestra (el reactivo y el suero entran por la otra casilla de la cara) | Mezclar ingredientes en una cinta puede atascar la máquina, como en Factorio; queda como reto del jugador |
+| 2026-11-09 | Fuentes provisionales hasta los extractores de P4.3 | Permiten probar las cadenas ya |
