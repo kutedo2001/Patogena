@@ -29,3 +29,4 @@
 | 2026-11-08 | Pantallas de máquina vivas (SubViewport) dibujadas con _draw(): números con unidades, iconos y gráficas, sin palabras | Petición de Edu (pantallas con información) sin romper la regla de no texto en el mundo |
 | 2026-11-08 | Torre de luces de 3 colores en las máquinas detalladas (sustituye a la baliza única) | Más legible y más de laboratorio/industria; el estado se lee por posición y color |
 | 2026-11-08 | Centrífuga con rotor de ángulo fijo (no basculante) | Los tubos a escala de juego no caben basculando en una cuba de 1 casilla |
+| 2026-11-09 | Paso a Godot 4.7 estable (antes 4.3) | Edu tiene la 4.7 y su editor ya había convertido el proyecto; trabajar con la misma versión evita conflictos |

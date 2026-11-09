@@ -10,3 +10,4 @@ Formato: síntoma · causa · arreglo · comprobación · cómo evitarlo.
 - Arreglo: `principal.gd::_igualar_renderizadores()` detecta Compatibility (sin RenderingDevice) y corrige fondo, ambiente y sol con valores medidos píxel a píxel.
 - Comprobación: misma escena en PC y en Chrome: suelo 203 vs 211, sombra 145 vs 135, fondo 24 vs 22 (diferencias ≤ 5 %).
 - Cómo evitarlo: toda captura de luz se hace por partida doble (PC y web); si se toca la luz, se vuelven a medir esos cuatro puntos.
+- 2026-11-09, Godot 4.7: Compatibility ya convierte bien fondo y ambiente; ahora solo sale un 14 % más claro. Arreglo nuevo: `adjustment_brightness = 0.88` en Compatibility (brillo medio 175,5 frente a 175,4 en Forward+).

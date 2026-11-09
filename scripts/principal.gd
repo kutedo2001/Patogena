@@ -48,12 +48,12 @@ func _ready() -> void:
 
 ## Compatibility (web/móvil) en Godot 4.3 no pasa a lineal el color de fondo ni
 ## el ambiente y no tiene SSAO: se compensa para que se vea como en PC (B1).
+const AJ_EXPOSICION := 0.88
+
 func _igualar_renderizadores() -> void:
 	if RenderingServer.get_rendering_device() != null:  # con RenderingDevice = Forward+ o Mobile
 		return
 	var env: Environment = $Entorno.environment
-	# valores medidos comparando capturas píxel a píxel con Forward+
-	env.background_color = env.background_color.srgb_to_linear() * 2.6
-	env.ambient_light_color = env.ambient_light_color.srgb_to_linear()
-	env.ambient_light_energy *= 1.75
-	$Sol.light_energy *= 0.4
+	# Godot 4.7: Compatibility sale un 14 % más claro; se iguala el brillo medio con Forward+ (B1)
+	env.adjustment_enabled = true
+	env.adjustment_brightness = AJ_EXPOSICION
