@@ -8,10 +8,12 @@ const ESCALA_OBJETOS := 2.5
 const MODELO_MAQUINA := {
 	"centrifuga": "res://assets/modelos/maquinas/centrifuga.glb", "secuenciador": "res://assets/modelos/maquinas/secuenciador.glb",
 	"mezcladora": "res://assets/modelos/maquinas/mezcladora.glb", "envasadora": "res://assets/modelos/maquinas/envasadora.glb",
-	"biorreactor": "res://assets/modelos/maquinas/biorreactor.glb", "camara_cepa": "res://assets/modelos/maquinas/camara_cepa.glb"}
+	"biorreactor": "res://assets/modelos/maquinas/biorreactor.glb", "camara_cepa": "res://assets/modelos/maquinas/camara_cepa.glb",
+	"centrifuga_ind": "res://assets/modelos/estaciones/centrifuga_ind.glb"}
 const PANTALLA := {"centrifuga": PantallaMaquina.Tipo.CENTRIFUGA, "secuenciador": PantallaMaquina.Tipo.SECUENCIADOR,
 	"mezcladora": PantallaMaquina.Tipo.MEZCLADORA, "envasadora": PantallaMaquina.Tipo.ENVASADORA,
-	"biorreactor": PantallaMaquina.Tipo.BIORREACTOR, "camara_cepa": PantallaMaquina.Tipo.CEPA}
+	"biorreactor": PantallaMaquina.Tipo.BIORREACTOR, "camara_cepa": PantallaMaquina.Tipo.CEPA,
+	"centrifuga_ind": PantallaMaquina.Tipo.CENTRIFUGA}
 
 var fab: Fabrica
 var juego: Juego
@@ -42,6 +44,14 @@ func centro(e: Fabrica.Entidad) -> Vector3:
 		s += Vector2(c)
 	s /= e.casillas.size()
 	return Vector3(s.x + 0.5, 0, s.y + 0.5)
+
+## Nodo de dibujo para una entidad suelta (fantasma de construcción, iconos).
+static func nodo_para(e: Fabrica.Entidad, pos: Vector3, j: Juego) -> Node3D:
+	if e is Fabrica.Estacion:
+		return EstacionVista.crear_estacion(e, pos, j)
+	if e is Fabrica.SalaEspera or e is Fabrica.Generador or e is Fabrica.Capsula or e is Fabrica.Deposito:
+		return PiezaVista.crear_pieza(e, pos, j)
+	return Provisional.crear(e, pos)
 
 static func giro_y(g: int) -> float:
 	return -g * PI * 0.5
@@ -88,6 +98,15 @@ func _crear(e: Fabrica.Entidad) -> Node3D:
 		return m
 	if e is Fabrica.Estacion:
 		return EstacionVista.crear_estacion(e, centro(e), juego)
+	if e is Fabrica.SalaEspera or e is Fabrica.Generador or e is Fabrica.Capsula or e is Fabrica.Deposito:
+		var pv := PiezaVista.crear_pieza(e, centro(e), juego)
+		if e is Fabrica.SalaEspera:
+			for o in fab.entidades:
+				if o == e:
+					break
+				if o is Fabrica.SalaEspera:
+					pv.indice_sala += 1
+		return pv
 	return Provisional.crear(e, centro(e))
 
 ## Dirección por la que entra el objeto en esta cinta: la de la cinta de detrás si apunta aquí,
@@ -114,6 +133,8 @@ func _apunta(v, c: Vector2i) -> bool:
 	return false
 
 func _crear_cinta(e: Fabrica.Cinta) -> Node3D:
+	if e is Fabrica.Tuberia:
+		return _crear_tuberia(e)
 	var d_in := Fabrica.DIRS[entrada_cinta(e)]
 	var d_out := Fabrica.DIRS[e.giro]
 	var nombre := "recta"
@@ -135,6 +156,32 @@ func _crear_cinta(e: Fabrica.Cinta) -> Node3D:
 			_mat_curva = _mat_banda.duplicate()
 			_mat_curva.albedo_texture = preload("res://assets/texturas/banda_curva.png")
 		(mi as MeshInstance3D).material_override = _mat_curva if nombre != "recta" else _mat_banda
+	return p
+
+## Tubería recta o codo (el codo de la izquierda es el de la derecha en espejo); la sangre de la
+## mirilla corre con un sombreado que avanza según lo llena que va.
+var _mat_sangre_tubo: ShaderMaterial
+func _crear_tuberia(e: Fabrica.Tuberia) -> Node3D:
+	var d_in := Fabrica.DIRS[entrada_cinta(e)]
+	var d_out := Fabrica.DIRS[e.giro]
+	var curva := d_in != d_out
+	var ruta := "res://assets/modelos/estaciones/tuberia_%s.glb" % ("curva" if curva else "recta")
+	if not _escenas.has(ruta):
+		_escenas[ruta] = load(ruta)
+	var p: Node3D = _escenas[ruta].instantiate()
+	Materiales.ajustar(p)
+	p.position = centro(e)
+	p.rotation.y = atan2(-float(d_in.y), float(d_in.x))
+	if curva and d_in.x * d_out.y - d_in.y * d_out.x < 0:
+		p.scale.z = -1.0
+	if _mat_sangre_tubo == null:
+		_mat_sangre_tubo = ShaderMaterial.new()
+		_mat_sangre_tubo.shader = preload("res://assets/shaders/sangre_tubo.gdshader")
+	var s := p.find_child("sangre", true, false) as MeshInstance3D
+	if s:
+		var m := _mat_sangre_tubo.duplicate() as ShaderMaterial
+		s.material_override = m
+		p.set_meta("mat_sangre", m)
 	return p
 
 # ------------------------------------------------------------------ objetos
@@ -160,6 +207,13 @@ func _objeto(nombre: String) -> Node3D:
 func _objetos_en_cintas() -> void:
 	_usados.clear()
 	for e in fab.entidades:
+		if e is Fabrica.Tuberia:
+			var vt: Node3D = _vis.get(e)
+			if vt and vt.has_meta("mat_sangre"):
+				var mt: ShaderMaterial = vt.get_meta("mat_sangre")
+				mt.set_shader_parameter("llenado", e.llenado())
+				mt.set_shader_parameter("t", _tiempo)
+			continue
 		if e is Fabrica.Cinta:
 			var c := centro(e)
 			var d_in := Vector2(Fabrica.DIRS[entrada_cinta(e)])

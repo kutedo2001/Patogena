@@ -143,6 +143,26 @@
      ""
     ]
    ]
+  },
+  "centrifuga_ind": {
+   "tam": [
+    2,
+    2
+   ],
+   "salida": 0,
+   "recetas": [
+    "plasma_ind"
+   ],
+   "entradas": [
+    [
+     0,
+     "sangre_l"
+    ],
+    [
+     1,
+     "sangre_l"
+    ]
+   ]
   }
  },
  "recetas": {
@@ -254,6 +274,15 @@
    },
    "tiempo": 8.0,
    "mutacion": "calor"
+  },
+  "plasma_ind": {
+   "entradas": {
+    "sangre_l": 2
+   },
+   "salidas": {
+    "tubo_plasma": 1
+   },
+   "tiempo": 1.0
   }
  },
  "brazo": {
@@ -314,8 +343,8 @@
   "camilla": {
    "objeto": "tubo_sangre",
    "trabajo": {
-    "mano": 3.0,
-    "maquina": 1.2
+    "mano": 4.0,
+    "maquina": 2.0
    },
    "necesita_paciente": true,
    "llegada": 5.0,
@@ -354,7 +383,8 @@
     "toma_agua",
     "secuenciador",
     "mezcladora",
-    "almacen"
+    "almacen",
+    "generador"
    ]
   },
   {
@@ -383,6 +413,7 @@
   "camilla",
   "centrifuga",
   "biorreactor",
-  "cinta"
+  "cinta",
+  "sala_espera"
  ]
 }

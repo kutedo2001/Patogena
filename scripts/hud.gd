@@ -400,6 +400,12 @@ func _panel_seleccion(sel) -> void:
 	if sel is Fabrica.Ascensor:
 		_panel_ascensor(sel)
 		return
+	if sel is Fabrica.SalaEspera:
+		_panel_sala()
+		return
+	if sel is Fabrica.Generador:
+		_panel_generador(sel)
+		return
 	if sel == null and juego.parcela_sel.x >= 0:
 		_panel_parcela(juego.parcela_sel)
 		return
@@ -556,12 +562,55 @@ func _panel_estacion(e: Fabrica.Estacion) -> void:
 	elif e.modo != "zombi":
 		_accion(_maq_caja, tr("TRABAJAR_" + e.tipo.to_upper()), "", true, func(): juego.encargar([["trabajar", e]]))
 	_texto(_maq_caja, tr("AYUDA_EST_" + e.modo.to_upper()), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if e.tipo == "camilla":
+		_pacientes_y_campanas()
 	# progresión: mejora con máquina → zombi
 	if e.modo == "mano":
 		var m: Array = Juego.MEJORA[e.tipo]
 		_accion(_maq_caja, tr(m[0]), "%s €" % _miles(m[1]), juego.fab.dinero >= float(m[1]), func(): juego.mejorar(e))
 	elif e.modo == "maquina":
 		_accion(_maq_caja, tr("HUD_ASIGNAR_ZOMBI"), tr("HUD_ZOMBIS") % juego.zombis_libres, juego.zombis_libres > 0, func(): juego.asignar_zombi(e))
+
+## Pacientes en la sala, ritmo de llegada y campañas para que vengan más (V1.8).
+func _pacientes_y_campanas() -> void:
+	var f := juego.fab
+	_franja(_maq_caja, tr("HUD_PACIENTES"))
+	var pe := _pantalla(_maq_caja, 8)
+	_texto(pe, tr("HUD_ESPERANDO") % [f.espera_pacientes, f.capacidad_espera()], 13, F_BOLD, P_TINTA)
+	var txt := tr("HUD_LLEGA_CADA") % String.num(f.llegada_cada(), 1).replace(".", ",")
+	if f.campana_t > 0.0:
+		txt += "  ·  " + tr("HUD_CAMPANA_QUEDA") % int(ceil(f.campana_t))
+	_texto(pe, txt, 11, F_SEMI, P_TENUE)
+	for c in Juego.CAMPANAS:
+		var cc: Array = c
+		_accion(_maq_caja, tr(cc[0]), "%s €" % _miles(cc[1]), f.dinero >= float(cc[1]) and juego.campana_disponible(cc), func(): juego.campana(cc))
+
+func _panel_sala() -> void:
+	_maq_panel.visible = true
+	var cab := _fila(_maq_caja, 12)
+	_bandeja(cab, "sala_espera", 64)
+	var cc := _columna(cab, 4)
+	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cc.alignment = BoxContainer.ALIGNMENT_CENTER
+	_texto(cc, tr("CONS_SALA_ESPERA"), 17, F_BOLD)
+	_pacientes_y_campanas()
+	_texto(_maq_caja, tr("AYUDA_SALA"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+func _panel_generador(g: Fabrica.Generador) -> void:
+	_maq_panel.visible = true
+	var cab := _fila(_maq_caja, 12)
+	_bandeja(cab, g.tipo, 64)
+	var cc := _columna(cab, 4)
+	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cc.alignment = BoxContainer.ALIGNMENT_CENTER
+	_texto(cc, tr("CONS_" + g.tipo.to_upper()), 17, F_BOLD)
+	_maq_estado = _texto(cc, "%d kW" % int(g.kw_actual), 11, F_BOLD, Color(0.15, 0.6, 0.3))
+	var pe := _pantalla(_maq_caja, 8)
+	var f := juego.fab
+	_texto(pe, tr("HUD_RED") % [String.num(f.demanda_kw, 1).replace(".", ","), String.num(f.capacidad_kw(), 0)], 13, F_BOLD, P_TINTA)
+	if g.tipo == "biogas":
+		_texto(pe, tr("HUD_COMBUSTIBLE") % g.combustible, 11, F_SEMI, P_TENUE)
+	_texto(_maq_caja, tr("AYUDA_" + g.tipo.to_upper()), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 func _panel_ascensor(a: Fabrica.Ascensor) -> void:
 	_maq_panel.visible = true
@@ -773,11 +822,11 @@ func _process(dt: float) -> void:
 	var f := juego.fab
 	_lbl_dinero.text = "%s €" % _miles(f.dinero)
 	_lbl_ingresos.text = ("+%s" % _miles(juego.ingresos_min)) + tr("HUD_POR_MIN")
-	var kw := 0.0
-	for e in f.entidades:
-		kw += _kw(e)
-	_lbl_energia.text = "%s/60 kW" % String.num(kw, 1).replace(".", ",")
-	_bar_energia.value = kw / 60.0
+	var kw := f.demanda_kw
+	var cap := f.capacidad_kw()
+	_lbl_energia.text = "%s/%s kW" % [String.num(kw, 1).replace(".", ","), String.num(cap, 0)]
+	_bar_energia.value = kw / maxf(cap, 1.0)
+	_lbl_energia.add_theme_color_override("font_color", C_ROJO if kw > cap else P_TINTA)
 	_lbl_prop.text = "%s %%" % String.num(juego.propagacion * 100.0, 2).replace(".", ",")
 	_lbl_cura.text = "%d %%" % int(juego.cura * 100)
 	_bar_cura.value = juego.cura
@@ -874,6 +923,9 @@ func _ficha_mundo() -> void:
 	_ficha_flotante.position = Vector2(clampf(m.x + 22, 0, vp.x - tam.x - 8), clampf(m.y + 22, 0, vp.y - tam.y - 8))
 
 func _kw(e) -> float:
+	return Juego.kw_de(e)
+
+func _kw_viejo(e) -> float:
 	if e is Fabrica.Cinta:
 		return 0.1
 	for cat in Juego.CATALOGO:

@@ -13,6 +13,8 @@ func _initialize() -> void:
 	_brazo_divisor_almacen()
 	_bloqueo()
 	_ascensor_y_hub()
+	_pacientes_y_energia()
+	_tuberias_y_capsulas()
 	if hechas < 16:
 		fallos += 1
 		print("  FALLO solo se hicieron %d comprobaciones de 12" % hechas)
@@ -147,3 +149,67 @@ func _ascensor_y_hub() -> void:
 	for i in 10:
 		h.aceptar(f, "caja_vacunas:tos", 0, Vector2i(5, 5))
 	comprobar(f.vendidas_con.get("tos", 0) == 10 and h.viajes == 1, "10 vacunas de tos vendidas, una furgoneta sale (%d €)" % int(f.ingresos))
+
+## V1.8: sala de espera, campañas y energía.
+func _pacientes_y_energia() -> void:
+	var f := Fabrica.new()
+	f.espera_pacientes = 0
+	_simular(f, 30.0)
+	comprobar(f.espera_pacientes == 2, "sin sala caben 2 esperando (hay %d)" % f.espera_pacientes)
+	f.poner_sala_espera(Vector2i(0, 0), 0)
+	_simular(f, 30.0)
+	comprobar(f.espera_pacientes == 6, "con una sala caben 6 (hay %d)" % f.espera_pacientes)
+	var cam := f.poner_estacion("camilla", Vector2i(0, 3), 0)
+	_simular(f, 0.1)
+	comprobar(cam.llamado and f.espera_pacientes == 5, "la camilla llama a uno de la sala")
+	_simular(f, 6.0)
+	comprobar(cam.paciente, "el paciente llega andando y se tumba")
+	var antes := f.llegada_cada()
+	f.lanzar_campana(2.0, 60.0)
+	comprobar(is_equal_approx(f.llegada_cada(), antes / 2.0), "la campaña duplica las llegadas")
+	_simular(f, 61.0)
+	comprobar(is_equal_approx(f.llegada_cada(), antes), "la campaña se acaba")
+	f.demanda_kw = 40.0
+	_simular(f, 0.1)
+	comprobar(is_equal_approx(f.factor_energia, 0.5), "con 40 kW de 20 todo va a la mitad")
+	f.poner_generador("generador", Vector2i(5, 5), 0)
+	_simular(f, 0.1)
+	comprobar(is_equal_approx(f.factor_energia, 1.0), "con un generador diésel vuelve a ir bien")
+	var bio := f.poner_generador("biogas", Vector2i(8, 5), 0)
+	comprobar(f.entregar(Vector2i(8, 5), "tubo_sangre", 0), "el biogás acepta sangre")
+	_simular(f, 0.2)
+	comprobar(bio.kw_actual == 150.0, "el biogás quemando da 150 kW")
+	_simular(f, 4.0)
+	comprobar(bio.kw_actual == 0.0, "sin sangre el biogás se apaga")
+
+## V1.9: cápsula → tubería → centrífuga industrial → cinta con plasma; depósito.
+func _tuberias_y_capsulas() -> void:
+	var f := Fabrica.new()
+	f.espera_pacientes = 4
+	var cap := f.poner_capsula("capsula", Vector2i(0, 0), 0)
+	f.poner_linea_tuberia([Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)])
+	var ci := f.poner_maquina("centrifuga_ind", Vector2i(4, 0), 0)
+	ci.poner_receta("plasma_ind")
+	var al := f.poner_almacen(Vector2i(6, 0), -1)
+	for i in 3:
+		cap.aceptar(f, "bolsa_suero", -1, Vector2i.ZERO)
+	_simular(f, 30.0)
+	comprobar(cap.humanos == 1, "la cápsula retiene a un paciente")
+	comprobar(f.producido.get("sangre_l", 0) >= 25, "la cápsula da sangre por la tubería (%d l)" % f.producido.get("sangre_l", 0))
+	comprobar(al.contenido.count("tubo_plasma") >= 10, "la centrífuga industrial saca plasma (%d)" % al.contenido.count("tubo_plasma"))
+	comprobar(not f.entregar(Vector2i(1, 0), "tubo_sangre", 0), "por una tubería no entran objetos")
+	var c2 := f.poner_cinta(Vector2i(0, 5), 0)
+	comprobar(not c2.aceptar(f, "sangre_l", 0, Vector2i(0, 5)), "por una cinta no entran líquidos")
+	_simular(f, 60.0)
+	comprobar(not cap.activa(), "sin suero la cápsula para")
+	var dep := f.poner_deposito(Vector2i(0, 8), 0)
+	for i in 50:
+		dep.aceptar(f, "sangre_l", -1, Vector2i.ZERO)
+	f.poner_linea_tuberia([Vector2i(1, 8), Vector2i(2, 8)])
+	var al2 := f.poner_generador("biogas", Vector2i(3, 8), 0)
+	_simular(f, 5.0)
+	comprobar(dep.litros < 50, "el depósito suelta sangre a la tubería")
+	var granja := f.poner_capsula("granja", Vector2i(0, 12), 0)
+	f.espera_pacientes = 4
+	_simular(f, 1.0)
+	comprobar(granja.humanos == 4 and granja.casillas.size() == 4, "la granja ocupa 4 casillas y retiene a 4")

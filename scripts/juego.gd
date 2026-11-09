@@ -31,11 +31,15 @@ const CATALOGO := {
 		["camilla", "camilla", "EST_CAMILLA", 100, 0.0, "estacion", "camilla"],
 		["incubadora", "incubadora", "EST_INCUBADORA", 150, 1.0, "estacion", "incubadora"],
 		["toma_agua", "toma_agua", "EST_TOMA_AGUA", 80, 0.5, "estacion", "toma_agua"],
+		["sala_espera", "sala_espera", "CONS_SALA_ESPERA", 120, 0.0, "sala_espera", ""],
+		["capsula", "capsula", "CONS_CAPSULA", 900, 2.0, "capsula", "capsula"],
+		["granja", "granja", "CONS_GRANJA", 4000, 6.0, "capsula", "granja"],
 	],
 	"HUD_CAT_PROCESADO": [
 		["centrifuga", "centrifuga", "MAQ_CENTRIFUGA", 300, 4.5, "maquina", "centrifuga"],
 		["secuenciador", "secuenciador", "MAQ_SECUENCIADOR", 500, 6.0, "maquina", "secuenciador"],
 		["mezcladora", "mezcladora", "MAQ_MEZCLADORA", 400, 3.0, "maquina", "mezcladora"],
+		["centrifuga_ind", "centrifuga_ind", "MAQ_CENTRIFUGA_IND", 1800, 12.0, "maquina", "centrifuga_ind"],
 	],
 	"HUD_CAT_PRODUCTO": [
 		["biorreactor", "biorreactor", "MAQ_BIORREACTOR", 600, 9.0, "maquina", "biorreactor"],
@@ -46,9 +50,16 @@ const CATALOGO := {
 		["brazo", "brazo", "CONS_BRAZO", 50, 0.5, "brazo", ""],
 		["divisor", "divisor", "CONS_DIVISOR", 40, 0.2, "divisor", ""],
 		["almacen", "almacen", "CONS_ALMACEN", 80, 0.0, "almacen", ""],
+		["tuberia", "tuberia", "CONS_TUBERIA", 12, 0.0, "tuberia", ""],
+		["deposito", "deposito", "CONS_DEPOSITO", 200, 0.0, "deposito", ""],
 	],
-	"HUD_CAT_ENERGIA": [],
+	"HUD_CAT_ENERGIA": [
+		["generador", "generador", "CONS_GENERADOR", 400, 0.0, "generador", "generador"],
+		["biogas", "biogas", "CONS_BIOGAS", 1500, 0.0, "generador", "biogas"],
+	],
 }
+## Campañas de donantes: [clave, coste, multiplicador de llegada, segundos (0 = permanente)]
+const CAMPANAS := [["CAMP_BOCADILLO", 60, 2.0, 60.0], ["CAMP_ANALISIS", 250, 3.0, 120.0], ["CAMP_HOSPITAL", 1500, 1.5, 0.0]]
 const MEJORA := {"camilla": ["MEJ_EXTRACTOR", 250], "incubadora": ["MEJ_RECOLECTOR", 250], "toma_agua": ["MEJ_BOMBA", 150]}
 ## [objeto contado, cantidad, clave, premio de Dirección]
 const HITOS := [["tubo_plasma", 10, "HUD_OBJ_PLASMA", 500], ["mutacion", 1, "HUD_OBJ_MUTACION", 1000], ["fase_ascensor", 1, "HUD_OBJ_ASCENSOR", 800]]
@@ -154,6 +165,15 @@ func _ready() -> void:
 	tutorial = Tutorial.new()
 	tutorial.juego = self
 	add_child(tutorial)
+	if "--demo_piezas" in OS.get_cmdline_user_args():
+		_demo_piezas()
+	if "--demo_camilla" in OS.get_cmdline_user_args():
+		_demo = fab.poner_estacion("camilla", Vector2i(-2, 1), 0)
+		pos = Vector2(-1.5, 2.5)
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--demo_k="):
+				_demo_k = float(a.trim_prefix("--demo_k="))
+				_demo.paciente = true
 
 func _mat_fantasma(c: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
@@ -284,11 +304,32 @@ func _revisar_fases() -> void:
 		_marcar_parcelas()
 
 var _fases_vistas := 0
+var _demo: Fabrica.Estacion
+var _apagon := false
+var _demo_k := -1.0
 
 # ------------------------------------------------------------------ bucle
 func _process(dt: float) -> void:
+	if _demo and _demo_k >= 0.0 and _demo.paciente:
+		_demo.progreso = _demo_k * _demo.duracion()
+		velocidad = 0.0
+		_trabajando = _demo
 	var dtj := dt * velocidad
+	var kw := 0.0
+	for e in fab.entidades:
+		kw += kw_de(e)
+	fab.demanda_kw = kw
+	if kw > fab.capacidad_kw() + 0.01 and not _apagon:
+		_apagon = true
+		anuncio.emit(tr("ANUNCIO_ENERGIA_T"), tr("ANUNCIO_ENERGIA"))
+	elif kw <= fab.capacidad_kw():
+		_apagon = false
 	fab.avanzar(dtj)
+	_cola_puerta()
+	if _demo and _demo.paciente and _trabajando == null and _tareas.is_empty() and _ruta.is_empty():
+		if _demo.listo != "":
+			_demo.listo = ""
+		encargar([["trabajar", _demo]])
 	_mover_cientifico(dt)
 	if _trabajando:
 		if _trabajando.listo != "":
@@ -485,12 +526,91 @@ func _mover_cientifico(dt: float) -> void:
 		pos = nueva
 		cientifico.rotation.y = atan2(dir.x, dir.y)
 	cientifico.position = Vector3(pos.x, 0, pos.y)
+	if mov == Vector2.ZERO and _trabajando:
+		var cen := Vector2(_trabajando.casillas[0]) + Vector2(0.5, 0.5)
+		var lt = _lado_trabajo(_trabajando)
+		if lt != null:
+			# pegado al borde de la camilla, junto al brazo del paciente
+			var d := Vector2(Fabrica.DIRS[(_trabajando.giro + 1) % 4])
+			var punto := cen + d * 0.56 + Vector2(-d.y, d.x) * 0.05
+			pos = pos.lerp(punto, minf(1.0, dt * 6.0))
+			cientifico.position = Vector3(pos.x, 0, pos.y)
+		cientifico.rotation.y = lerp_angle(cientifico.rotation.y, atan2(cen.x - pos.x, cen.y - pos.y), minf(1.0, dt * 10.0))
 	var anim := "walk" if mov != Vector2.ZERO else ("interact-right" if _trabajando and _trabajando.trabajando else ("holding-both" if mano_n > 0 else "idle"))
 	if cientifico.animacion != anim:
 		cientifico.animacion = anim
 		cientifico.poner(anim)
 
 ## Camino por casillas (BFS) hasta la casilla destino o hasta una vecina de la entidad.
+## Muestra de las piezas de la etapa 1–3 para láminas y capturas.
+func _demo_piezas() -> void:
+	for p in [Vector2i(1, 1), Vector2i(4, 1), Vector2i(1, 2), Vector2i(4, 2), Vector2i(2, 3), Vector2i(3, 3)]:
+		compradas[p] = true
+	fab.espera_pacientes = 6
+	fab.poner_sala_espera(Vector2i(-6, -3), 0)
+	fab.poner_generador("generador", Vector2i(-6, 0), 0)
+	var bio := fab.poner_generador("biogas", Vector2i(-6, 3), 0)
+	for i in 6:
+		bio.aceptar(fab, "tubo_sangre", -1, Vector2i.ZERO)
+	var cap := fab.poner_capsula("capsula", Vector2i(-2, -3), 0)
+	for i in 4:
+		cap.aceptar(fab, "bolsa_suero", -1, Vector2i.ZERO)
+	fab.poner_linea_tuberia([Vector2i(-1, -3), Vector2i(0, -3), Vector2i(0, -2)])
+	var ci := fab.poner_maquina("centrifuga_ind", Vector2i(0, -1), 0)
+	ci.poner_receta("plasma_ind")
+	var gr := fab.poner_capsula("granja", Vector2i(-3, 1), 0)
+	for i in 16:
+		gr.aceptar(fab, "bolsa_suero", -1, Vector2i.ZERO)
+	fab.poner_linea_tuberia([Vector2i(-2, 1), Vector2i(-1, 1), Vector2i(0, 1), Vector2i(0, 2), Vector2i(1, 2)])
+	var dep := fab.poner_deposito(Vector2i(2, 2), 0)
+	fab.poner_estacion("camilla", Vector2i(3, -3), 0)
+
+## Por dónde entran y salen los pacientes (en la demo de la camilla, cerca para el GIF).
+func puerta_pacientes() -> Vector3:
+	if _demo:
+		return Vector3(-5.5, 0, 2.5)
+	return Vector3(PUERTA.x, 0, PUERTA.y)
+
+## De dónde sale el paciente que llama una camilla: la sala de espera más cercana o la puerta.
+func origen_paciente(cerca_de: Vector3) -> Vector3:
+	var mejor := puerta_pacientes()
+	var d := INF
+	for e in fab.entidades:
+		if e is Fabrica.SalaEspera:
+			var c := vista.centro(e) + Vector3(0, 0, 0.6).rotated(Vector3.UP, VistaFabrica.giro_y(e.giro))
+			if c.distance_to(cerca_de) < d:
+				d = c.distance_to(cerca_de)
+				mejor = c
+	return mejor
+
+## Los que esperan sin asiento hacen cola de pie junto a la puerta.
+var _cola: Array[Personaje] = []
+func _cola_puerta() -> void:
+	var salas := 0
+	for e in fab.entidades:
+		if e is Fabrica.SalaEspera:
+			salas += 1
+	var n := clampi(fab.espera_pacientes - salas * Fabrica.SalaEspera.ASIENTOS, 0, 4)
+	while _cola.size() < n:
+		var p := Personaje.new()
+		p.variante = ["paciente_m", "paciente_f"][randi() % 2]
+		p.animacion = "idle"
+		add_child(p)
+		var k := _cola.size()
+		p.position = puerta_pacientes() + Vector3(1.0 + k * 0.45, 0, 0.6 + (k % 2) * 0.15)
+		p.rotation.y = -PI * 0.5
+		_cola.append(p)
+	while _cola.size() > n:
+		_cola.pop_back().queue_free()
+
+## La camilla se trabaja desde su lado de trabajo (donde el paciente extiende el brazo).
+func _lado_trabajo(e: Fabrica.Entidad):
+	if e is Fabrica.Estacion and e.tipo == "camilla" and e.modo == "mano":
+		var c: Vector2i = e.casillas[0] + Fabrica.DIRS[(e.giro + 1) % 4]
+		if andable(c):
+			return c
+	return null
+
 func ir_a(destino: Vector2i, e: Fabrica.Entidad = null) -> void:
 	_trabajando = null
 	_objetivo = e
@@ -502,8 +622,11 @@ func ir_a(destino: Vector2i, e: Fabrica.Entidad = null) -> void:
 					metas[c + d] = true
 	elif andable(destino):
 		metas[destino] = true
+	var lado_trabajo = _lado_trabajo(e)
+	if lado_trabajo != null:
+		metas = {lado_trabajo: true}
 	var inicio := _celda(pos)
-	if metas.has(inicio) or (e != null and cerca(e)):
+	if metas.has(inicio) or (e != null and lado_trabajo == null and cerca(e)):
 		_ruta.clear()
 		_llegar()
 		return
@@ -812,7 +935,7 @@ func _pulsar() -> void:
 		_quitar(_cel)
 		return
 	if not herramienta.is_empty():
-		if herramienta[5] == "cinta":
+		if herramienta[5] in ["cinta", "tuberia"]:
 			_arrastre = true
 			_inicio = _cel
 		else:
@@ -846,7 +969,10 @@ func _soltar() -> void:
 		aviso.emit("AVISO_SIN_DINERO")
 		return
 	fab.dinero -= coste
-	fab.poner_linea(ruta, 1, giro if ruta.size() == 1 else -1)
+	if herramienta[5] == "tuberia":
+		fab.poner_linea_tuberia(ruta, giro if ruta.size() == 1 else -1)
+	else:
+		fab.poner_linea(ruta, 1, giro if ruta.size() == 1 else -1)
 
 func _ruta_cinta(a: Vector2i, b: Vector2i) -> Array:
 	var r: Array = [a]
@@ -877,6 +1003,15 @@ func casillas_de(entrada: Array, origen: Vector2i, g := -1) -> Array:
 			for j in h:
 				cs.append(origen + Vector2i(i, j))
 		return cs
+	if entrada[5] == "sala_espera":
+		return [origen, origen + Fabrica.girar(Vector2i(1, 0), g)]
+	if entrada[5] == "capsula" and entrada[6] == "granja":
+		var cs2: Array = []
+		for i in 4:
+			cs2.append(origen + Fabrica.girar(Vector2i(0, i), g))
+		return cs2
+	if entrada[5] == "generador":
+		return [origen, origen + Vector2i(1, 0), origen + Vector2i(0, 1), origen + Vector2i(1, 1)]
 	return [origen]
 
 func _valido(entrada: Array, origen: Vector2i) -> bool:
@@ -900,6 +1035,10 @@ func _construir(c: Vector2i) -> void:
 		"brazo": e = fab.poner_brazo(c, giro)
 		"divisor": e = fab.poner_divisor(c, giro)
 		"almacen": e = fab.poner_almacen(c, giro)
+		"sala_espera": e = fab.poner_sala_espera(c, giro)
+		"capsula": e = fab.poner_capsula(herramienta[6], c, giro)
+		"deposito": e = fab.poner_deposito(c, giro)
+		"generador": e = fab.poner_generador(herramienta[6], c, giro)
 	if e:
 		fab.dinero -= float(herramienta[3])
 
@@ -910,9 +1049,44 @@ func coste_de(e: Fabrica.Entidad) -> float:
 	for cat in CATALOGO:
 		for en in CATALOGO[cat]:
 			if (e is Fabrica.MaquinaSim and en[6] == e.tipo) or (e is Fabrica.Estacion and en[6] == e.tipo) \
-					or (e is Fabrica.Cinta and en[5] == "cinta") or (e is Fabrica.Brazo and en[5] == "brazo") \
-					or (e is Fabrica.Divisor and en[5] == "divisor") or (e is Fabrica.Almacen and en[5] == "almacen"):
+					or (e is Fabrica.Cinta and not e is Fabrica.Tuberia and en[5] == "cinta") or (e is Fabrica.Brazo and en[5] == "brazo") \
+					or (e is Fabrica.Divisor and en[5] == "divisor") or (e is Fabrica.Almacen and en[5] == "almacen") \
+					or (e is Fabrica.SalaEspera and en[5] == "sala_espera") or (e is Fabrica.Generador and en[6] == e.tipo) \
+					or (e is Fabrica.Capsula and en[6] == e.tipo) or (e is Fabrica.Deposito and en[5] == "deposito") \
+					or (e is Fabrica.Tuberia and en[5] == "tuberia"):
 				return float(en[3]) + extra
+	return 0.0
+
+func campana_disponible(c: Array) -> bool:
+	if float(c[3]) <= 0.0:
+		return fab.contrato_mult < 3.3       # hasta tres contratos
+	return fab.campana_t <= 0.0
+
+func campana(c: Array) -> void:
+	if fab.dinero < float(c[1]) or not campana_disponible(c):
+		return
+	fab.dinero -= float(c[1])
+	if float(c[3]) <= 0.0:
+		fab.contrato_mult *= float(c[2])
+	else:
+		fab.lanzar_campana(float(c[2]), float(c[3]))
+	aviso.emit("AVISO_CAMPANA")
+
+## kW que consume una entidad (las estaciones solo con la máquina puesta).
+static func kw_de(e) -> float:
+	if e is Fabrica.Tuberia:
+		return 0.0
+	if e is Fabrica.Cinta:
+		return 0.1
+	if e is Fabrica.Capsula:
+		return 2.0 * e.plazas if e.humanos > 0 else 0.0
+	if e is Fabrica.Estacion and e.modo == "mano":
+		return 0.0
+	for cat in CATALOGO:
+		for en in CATALOGO[cat]:
+			if (e is Fabrica.MaquinaSim and en[6] == e.tipo) or (e is Fabrica.Brazo and en[5] == "brazo") \
+					or (e is Fabrica.Divisor and en[5] == "divisor") or (e is Fabrica.Estacion and en[6] == e.tipo):
+				return float(en[4]) + (1.5 if e is Fabrica.Estacion else 0.0)
 	return 0.0
 
 ## Quitar devuelve el 100 % (lo pidió Edu); lo que llevaba dentro se pierde salvo en cintas.
@@ -968,6 +1142,7 @@ func _crear_fantasma() -> void:
 	match herramienta[5]:
 		"maquina": n = load(VistaFabrica.MODELO_MAQUINA[herramienta[6]]).instantiate()
 		"cinta": n = load("res://assets/modelos/cintas/cinta_recta_mk1.glb").instantiate()
+		"tuberia": n = load("res://assets/modelos/estaciones/tuberia_recta.glb").instantiate()
 		_:
 			var e: Fabrica.Entidad
 			match herramienta[5]:
@@ -975,7 +1150,11 @@ func _crear_fantasma() -> void:
 				"divisor": e = Fabrica.Divisor.new(Vector2i.ZERO, 0)
 				"almacen": e = Fabrica.Almacen.new(Vector2i.ZERO, 0)
 				"estacion": e = Fabrica.Estacion.new(herramienta[6], Vector2i.ZERO, 0)
-			n = Provisional.crear(e, Vector3.ZERO)
+				"sala_espera": e = Fabrica.SalaEspera.new(Vector2i.ZERO, 0)
+				"generador": e = Fabrica.Generador.new(herramienta[6], Vector2i.ZERO, 0)
+				"capsula": e = Fabrica.Capsula.new(herramienta[6], Vector2i.ZERO, 0)
+				"deposito": e = Fabrica.Deposito.new(Vector2i.ZERO, 0)
+			n = VistaFabrica.nodo_para(e, Vector3.ZERO, null)
 	_fantasma = n
 	add_child(n)
 	for c in casillas_de(herramienta, Vector2i.ZERO):

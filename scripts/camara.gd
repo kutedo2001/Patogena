@@ -5,7 +5,7 @@ extends Node3D
 
 const INCLINACION := 50.0
 const FOV := 30.0
-const DIST_MIN := 4.0    # ~4 casillas de ancho: zoom de detalle
+const DIST_MIN := 2.5    # ~2,5 casillas de ancho: zoom de detalle (se ve la aguja entrar)
 const DIST_MAX := 42.0   # ~40 casillas de ancho
 const VEL_MOVER := 14.0
 

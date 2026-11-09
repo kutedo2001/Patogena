@@ -226,3 +226,35 @@ HUD_OBJ_ASCENSOR,Completar la fase 1 del ascensor,Complete elevator phase 1
 CORREO_ASCENSOR_T,El ascensor de pedidos,The order elevator
 CORREO_ASCENSOR,"Ese armatoste del rincón es un ascensor de carga. He contactado con proveedores que nos venderán máquinas nuevas a cambio de lotes grandes de lo que fabricamos. La primera fase pide 30 plasmas: llévelos a mano o, mejor, con una cinta. Clic derecho en el ascensor para ver lo que pide.","That contraption in the corner is a cargo elevator. I contacted suppliers who will sell us new machines in exchange for big batches of what we make. Phase one asks for 30 plasma: bring them by hand or, better, by belt. Right-click the elevator to see what it asks for."
 PASO_ASCENSOR,Lleva 30 plasmas al ascensor de pedidos (clic derecho en él para ver lo que pide).,Bring 30 plasma to the order elevator (right-click it to see what it asks).
+CONS_SALA_ESPERA,Sala de espera,Waiting room
+DESC_SALA_ESPERA,Cuatro asientos más para los pacientes que esperan. Las camillas los llaman de aquí.,Four more seats for waiting patients. Beds call them from here.
+CONS_GENERADOR,Generador diésel,Diesel generator
+DESC_GENERADOR,"Da 40 kW más a la red. Ruidoso, humeante, fiable.","Adds 40 kW to the grid. Noisy, smoky, reliable."
+CONS_BIOGAS,Generador de biogás,Biogas generator
+DESC_BIOGAS,"Quema tubos de sangre y da 150 kW mientras le lleguen. Energía renovable, técnicamente.","Burns blood tubes and gives 150 kW while they keep coming. Renewable energy, technically."
+ANUNCIO_ENERGIA_T,Falta energía,Power shortage
+ANUNCIO_ENERGIA,Las máquinas piden más kW de los que da la red y van más lentas. Construye un generador (Energía).,Machines need more kW than the grid gives and slow down. Build a generator (Power).
+HUD_PACIENTES,Pacientes,Patients
+HUD_ESPERANDO,%d esperando (caben %d),%d waiting (room for %d)
+HUD_LLEGA_CADA,Llega uno cada %s s,One arrives every %s s
+HUD_CAMPANA_QUEDA,campaña: %d s,campaign: %d s
+CAMP_BOCADILLO,"Campaña: bocadillo gratis (×2, 1 min)","Campaign: free sandwich (×2, 1 min)"
+CAMP_ANALISIS,"Campaña: análisis gratuito (×3, 2 min)","Campaign: free check-up (×3, 2 min)"
+CAMP_HOSPITAL,Contrato con un hospital (+50 % para siempre),Hospital contract (+50% forever)
+AYUDA_SALA,"Los pacientes llegan por la puerta y esperan aquí. Si no caben, se van a casa.","Patients come in through the door and wait here. If there is no room, they go home."
+HUD_RED,Red: %s / %s kW,Grid: %s / %s kW
+HUD_COMBUSTIBLE,Sangre en la tolva: %d,Blood in the hopper: %d
+AYUDA_GENERADOR,"Siempre en marcha. Si la red se queda corta, todas las máquinas van más lentas.","Always running. If the grid falls short, every machine slows down."
+AYUDA_BIOGAS,Échale sangre por la tolva (cinta o a mano). Sin sangre no da nada.,"Feed it blood through the hopper (belt or by hand). No blood, no power."
+AVISO_CAMPANA,Campaña lanzada: vienen más pacientes.,Campaign launched: more patients are coming.
+MAQ_CENTRIFUGA_IND,Centrífuga industrial,Industrial centrifuge
+DESC_CENTRIFUGA_IND,Separadora de discos: le entra sangre por tubería y saca tubos de plasma a la cinta. 2 l por tubo.,"Disc separator: blood comes in by pipe, plasma tubes go out on the belt. 2 l per tube."
+CONS_TUBERIA,Tubería,Pipe
+DESC_TUBERIA,"Lleva líquidos (sangre) a 8 l/s. Se tiende arrastrando, como las cintas.","Carries liquids (blood) at 8 l/s. Drag to lay it, like belts."
+CONS_DEPOSITO,Depósito de sangre,Blood tank
+DESC_DEPOSITO,Guarda 200 l y los suelta a la tubería a la que mira.,Stores 200 l and releases them into the pipe it faces.
+CONS_CAPSULA,Cápsula de donante,Donor capsule
+DESC_CAPSULA,Retiene a un paciente y le saca sangre sin parar (1 l/s) mientras le llegue suero: una bolsa cada 20 s.,Keeps one patient and drains blood nonstop (1 l/s) while it gets saline: one bag every 20 s.
+CONS_GRANJA,Granja de humanos,Human farm
+DESC_GRANJA,Cuatro cápsulas en hilera con colector común: 4 l/s de sangre y cuatro bolsas de suero cada 20 s.,Four capsules in a row with a shared manifold: 4 l/s of blood and four saline bags every 20 s.
+OBJ_SANGRE_L,Sangre (líquida),Blood (liquid)

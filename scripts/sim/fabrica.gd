@@ -7,6 +7,11 @@ extends RefCounted
 ## El dibujo (escena 3D) solo lee el estado; el bot la juega sin pantalla y muy rápido.
 
 const PASO := 1.0 / 20.0
+## Líquidos (V1.9): solo van por tuberías, nunca por cintas.
+const FLUIDOS := ["sangre_l"]
+
+static func es_fluido(o: String) -> bool:
+	return Fabrica.base(o) in FLUIDOS
 const DIRS: Array[Vector2i] = [Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)]
 
 static var datos := {}
@@ -22,6 +27,35 @@ var vendido := {}
 var ingresos := 0.0              # lo cobrado por ventas
 var vendidas_con := {}           # mutación → cajas de vacunas vendidas con ella
 var desechados := 0              # viales con una mutación repetida (se tiran)
+# --- pacientes (V1.8): llegan por la puerta a la sala de espera; las camillas los llaman
+const LLEGADA_BASE := 7.0        # s entre pacientes sin campañas
+var espera_pacientes := 1        # sentados esperando (el primero ya está)
+var llegados := 0
+var _t_llegada := 0.0
+var campana_mult := 1.0          # campaña en curso (multiplica la llegada)
+var campana_t := 0.0             # s que le quedan
+var contrato_mult := 1.0         # contratos con hospitales (permanente)
+# --- energía (V1.8): la red da 20 kW; los generadores suman. Si falta, todo va más lento.
+const RED_KW := 20.0
+var demanda_kw := 0.0
+var factor_energia := 1.0
+
+func capacidad_espera() -> int:
+	var n := 2
+	for e in entidades:
+		if e is SalaEspera:
+			n += SalaEspera.ASIENTOS
+	return n
+
+func llegada_cada() -> float:
+	return LLEGADA_BASE / (campana_mult * contrato_mult)
+
+func capacidad_kw() -> float:
+	var kw := RED_KW
+	for e in entidades:
+		if e is Generador:
+			kw += e.kw_actual
+	return kw
 
 static func base(objeto: String) -> String:
 	var i := objeto.find(":")
@@ -107,6 +141,30 @@ func poner_muelle_envio(c: Vector2i) -> MuelleEnvio:
 func poner_ascensor(c: Vector2i) -> Ascensor:
 	return _alta(Ascensor.new(c)) as Ascensor
 
+func poner_tuberia(c: Vector2i, giro: int) -> Tuberia:
+	return _alta(Tuberia.new(c, giro)) as Tuberia
+
+func poner_linea_tuberia(cs: Array, giro_final := -1) -> void:
+	for i in cs.size():
+		var g: int = giro_final
+		if i < cs.size() - 1:
+			g = DIRS.find(cs[i + 1] - cs[i])
+		elif g < 0 and cs.size() > 1:
+			g = DIRS.find(cs[i] - cs[i - 1])
+		poner_tuberia(cs[i], maxi(g, 0))
+
+func poner_capsula(tipo: String, c: Vector2i, giro: int) -> Capsula:
+	return _alta(Capsula.new(tipo, c, giro)) as Capsula
+
+func poner_deposito(c: Vector2i, giro: int) -> Deposito:
+	return _alta(Deposito.new(c, giro)) as Deposito
+
+func poner_sala_espera(c: Vector2i, giro: int) -> SalaEspera:
+	return _alta(SalaEspera.new(c, giro)) as SalaEspera
+
+func poner_generador(tipo: String, c: Vector2i, giro: int) -> Generador:
+	return _alta(Generador.new(tipo, c, giro)) as Generador
+
 func quitar(c: Vector2i) -> Entidad:
 	var e: Entidad = celdas.get(c)
 	if e == null:
@@ -145,8 +203,36 @@ func avanzar(dt: float) -> void:
 
 func paso() -> void:
 	tiempo += PASO
+	_pacientes(PASO)
+	var cap := capacidad_kw()
+	factor_energia = 1.0 if demanda_kw <= cap else clampf(cap / maxf(demanda_kw, 0.01), 0.2, 1.0)
 	for e in entidades:
 		e.paso(self, PASO)
+
+func _pacientes(dt: float) -> void:
+	if campana_t > 0.0:
+		campana_t -= dt
+		if campana_t <= 0.0:
+			campana_mult = 1.0
+	if espera_pacientes >= capacidad_espera():
+		_t_llegada = 0.0
+		return
+	_t_llegada += dt
+	if _t_llegada >= llegada_cada():
+		_t_llegada = 0.0
+		espera_pacientes += 1
+		llegados += 1
+
+## Una camilla libre llama al siguiente de la sala de espera.
+func llamar_paciente() -> bool:
+	if espera_pacientes <= 0:
+		return false
+	espera_pacientes -= 1
+	return true
+
+func lanzar_campana(mult: float, segundos: float) -> void:
+	campana_mult = maxf(campana_mult, mult)
+	campana_t = maxf(campana_t, segundos)
 
 ## Entrega un objeto a la casilla c viniendo en la dirección d (giro). true si lo acepta.
 func entregar(c: Vector2i, objeto: String, d: int) -> bool:
@@ -191,6 +277,8 @@ class Cinta extends Entidad:
 	func aceptar(_f: Fabrica, o: String, d: int, _c: Vector2i) -> bool:
 		if d == posmod(giro + 2, 4):
 			return false                       # no se entra por la salida
+		if Fabrica.es_fluido(o) != (self is Tuberia):
+			return false                       # líquidos por tubería; objetos por cinta
 		var entra := 0.0 if d == giro else 0.5 # carga lateral: a mitad de casilla
 		for x in objetos:
 			if absf(float(x[1]) - entra) < sep:
@@ -304,7 +392,7 @@ class MaquinaSim extends Entidad:
 			estado = Estado.SIN_MATERIAL if not hay else (Estado.SALIDA_LLENA if not sitio else Estado.TRABAJANDO)
 		if progreso >= 0.0:
 			estado = Estado.TRABAJANDO
-			progreso += dt
+			progreso += dt * f.factor_energia
 			if progreso >= float(_r.tiempo):
 				progreso = -1.0
 				var heredada := ""
@@ -500,6 +588,7 @@ class Estacion extends Entidad:
 	var espera := 0.0            # camilla: tiempo hasta que llega el siguiente
 	var atendidos := 0
 	var trabajando := false      # el científico está trabajando en ella este paso
+	var llamado := false         # camilla: un paciente viene andando desde la sala de espera
 	var _d := {}
 	func _init(t: String, c: Vector2i, g: int) -> void:
 		tipo = t
@@ -527,7 +616,7 @@ class Estacion extends Entidad:
 	func _avanzar(f: Fabrica, dt: float) -> void:
 		if not lista_para_trabajar():
 			return
-		progreso += dt
+		progreso += dt * (f.factor_energia if modo != "mano" else 1.0)
 		if progreso >= duracion():
 			progreso = 0.0
 			listo = objeto
@@ -535,14 +624,18 @@ class Estacion extends Entidad:
 			if tipo == "camilla":
 				paciente = false
 				atendidos += 1
-				espera = float(_d.llegada)
 			elif tipo == "incubadora":
 				crecimiento = 0.0
 	func paso(f: Fabrica, dt: float) -> void:
 		if tipo == "camilla" and not paciente:
-			espera -= dt
-			if espera <= 0.0:
-				paciente = true
+			if not llamado and listo == "" and f.llamar_paciente():
+				llamado = true
+				espera = float(_d.llegada)
+			if llamado:
+				espera -= dt
+				if espera <= 0.0:
+					paciente = true
+					llamado = false
 		if tipo == "incubadora" and crecimiento < _crece():
 			crecimiento += dt
 		if modo == "zombi":
@@ -598,3 +691,122 @@ class Ascensor extends Entidad:
 			fase += 1
 			entregado.clear()
 			subiendo = 6.0
+
+## Sala de espera (V1.8): 2×1, cuatro asientos más para los pacientes que llegan por la puerta.
+class SalaEspera extends Entidad:
+	const ASIENTOS := 4
+	func _init(c: Vector2i, g: int) -> void:
+		giro = g
+		casillas = [c, c + Fabrica.girar(Vector2i(1, 0), g)]
+
+## Generadores (V1.8). Diésel: 2×2, 40 kW siempre. Biogás: 2×2, quema un tubo de sangre cada 3 s
+## y da 150 kW mientras tenga (acepta sangre por cualquier lado, hasta 10 en la tolva).
+class Generador extends Entidad:
+	var tipo := ""
+	var kw_actual := 0.0
+	var combustible := 0
+	var quemando := 0.0
+	func _init(t: String, c: Vector2i, g: int) -> void:
+		tipo = t
+		giro = g
+		casillas = [c, c + Vector2i(1, 0), c + Vector2i(0, 1), c + Vector2i(1, 1)]
+		kw_actual = 40.0 if t == "generador" else 0.0
+	func aceptar(_f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
+		if tipo == "biogas" and Fabrica.base(o) in ["tubo_sangre", "sangre_l"] and combustible < 10:
+			combustible += 1
+			return true
+		return false
+	func paso(_f: Fabrica, dt: float) -> void:
+		if tipo != "biogas":
+			return
+		if quemando <= 0.0 and combustible > 0:
+			combustible -= 1
+			quemando = 3.0
+		if quemando > 0.0:
+			quemando -= dt
+			kw_actual = 150.0
+		else:
+			kw_actual = 0.0
+
+## Tubería (V1.9): como una cinta pero solo para líquidos y mucho más rápida (8 l/s).
+class Tuberia extends Cinta:
+	func _init(c: Vector2i, g: int) -> void:
+		casillas = [c]
+		giro = g
+		nivel = 9
+		v = 2.0
+		sep = 0.25
+	func llenado() -> float:
+		return clampf(objetos.size() / 4.0, 0.0, 1.0)
+
+## Cápsula de donante (V1.9): retiene a un paciente de la sala de espera y le saca sangre sin parar
+## (1 l/s por la boca de salida a una tubería) mientras le llegue suero (una bolsa cada 20 s).
+## La granja (V1.10) es una hilera de cuatro: 4×1, cuatro humanos, cuatro veces todo.
+class Capsula extends Entidad:
+	const SUERO_CADA := 20.0
+	var tipo := "capsula"
+	var humanos := 0
+	var plazas := 1
+	var suero := 0               # bolsas en la tolva
+	var nutricion := 0.0         # s de suero que le quedan
+	var _t := 0.0
+	var producido := 0
+	func _init(t: String, c: Vector2i, g: int) -> void:
+		tipo = t
+		giro = g
+		plazas = 4 if t == "granja" else 1
+		casillas = [c]
+		for i in range(1, plazas):
+			casillas.append(c + Fabrica.girar(Vector2i(0, i), g))
+	func salida() -> Vector2i:
+		return casillas[0] + Fabrica.DIRS[giro]
+	func activa() -> bool:
+		return humanos > 0 and nutricion > 0.0
+	func aceptar(_f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
+		if Fabrica.base(o) == "bolsa_suero" and suero < 4 * plazas:
+			suero += 1
+			return true
+		return false
+	func paso(f: Fabrica, dt: float) -> void:
+		if humanos < plazas and f.llamar_paciente():
+			humanos += 1
+		if nutricion <= 0.0 and suero > 0 and humanos > 0:
+			suero -= 1
+			nutricion += SUERO_CADA          # una bolsa = 20 s de un humano
+		if not activa():
+			return
+		nutricion -= dt * float(humanos)
+		_t += dt * float(humanos)
+		while _t >= 1.0:
+			if not f.entregar(salida(), "sangre_l", giro):
+				_t = 1.0
+				break
+			_t -= 1.0
+			producido += 1
+			f.anotar("sangre_l")
+	func sacar(_filtro: String) -> String:
+		return ""
+
+## Depósito de líquido (V1.9): guarda hasta 200 l y los suelta a la tubería a la que mira.
+class Deposito extends Entidad:
+	var litros := 0
+	const CAPACIDAD := 200
+	var _t := 0.0
+	func _init(c: Vector2i, g: int) -> void:
+		casillas = [c]
+		giro = g
+	func aceptar(_f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
+		if Fabrica.es_fluido(o) and litros < CAPACIDAD:
+			litros += 1
+			return true
+		return false
+	func paso(f: Fabrica, dt: float) -> void:
+		_t += dt
+		while _t >= 0.125 and litros > 0:
+			_t -= 0.125
+			if not f.entregar(casillas[0] + Fabrica.DIRS[giro], "sangre_l", giro):
+				_t = 0.0
+				break
+			litros -= 1
+		if litros == 0:
+			_t = 0.0

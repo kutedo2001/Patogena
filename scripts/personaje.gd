@@ -28,6 +28,9 @@ const C_SANGRE := Color(0.69, 0.12, 0.13)   # dentro del rango de la guía (#9E1
 @export var rastro_sangre := false      # deja gotas en el suelo al moverse
 ## secuencia de animaciones que se alternan: [[nombre, segundos], ...]
 @export var rutina: Array = []
+## tumbado: 0..1 intensidad del respingo al pincharle; mirar_brazo: gira la cabeza hacia el brazo
+var sobresalto := 0.0
+var mirar_brazo := 0.0
 
 var _ap: AnimationPlayer
 var _esq: Skeleton3D
@@ -180,6 +183,16 @@ func _rastro() -> void:
 	if _gotas.size() > 40:
 		_gotas.pop_front().queue_free()
 
+## Punto del brazo en coordenadas globales: t = 0 hombro, 1 mano. El pack tiene un solo hueso
+## por brazo y en reposo el brazo va a lo largo de X (izquierdo +X, derecho −X).
+func punto_brazo(derecho: bool, t: float) -> Vector3:
+	if _esq == null:
+		return global_position
+	var i: int = _hueso["arm-right" if derecho else "arm-left"]
+	var p := _esq.get_bone_global_pose(i)
+	var local := p.origin + p.basis * Vector3((-0.27 if derecho else 0.27) * t, 0.0, 0.0)
+	return _esq.global_transform * local
+
 # ------------------------------------------------------------------ animación por hueso
 func _rot(h: String, eje: Vector3, grados: float) -> void:
 	var i: int = _hueso.get(h, -1)
@@ -244,6 +257,30 @@ func _process(dt: float) -> void:
 			_fijar("leg-left", _q(Vector3.RIGHT, -45.0))
 			_fijar("leg-right", _q(Vector3.RIGHT, -25.0))
 			_modelo.position.y = -0.02
+		"tumbado":
+			# boca arriba en la camilla; brazo derecho extendido hacia el lado de trabajo
+			# (sobre el reposabrazos) y el izquierdo junto al cuerpo. «sobresalto» (0..1) = pinchazo.
+			var s := sobresalto
+			_fijar("root", _q(Vector3.RIGHT, -90.0))
+			_fijar("torso", _q(Vector3.RIGHT, -4.0 + sin(_t * 1.6) * 1.2))
+			_fijar("head", _q(Vector3.FORWARD, -18.0 * mirar_brazo - s * 10.0 * sin(_t * 40.0)) * _q(Vector3.RIGHT, -12.0 - s * 14.0))
+			_fijar("arm-left", _q(Vector3.BACK, -78.0))
+			_fijar("arm-right", _q(Vector3.BACK, -8.0 + s * 6.0 * sin(_t * 33.0)) * _q(Vector3.UP, 4.0))
+			_fijar("leg-left", _q(Vector3.FORWARD, 3.0))
+			_fijar("leg-right", _q(Vector3.FORWARD, -3.0))
+		"incorporado":
+			# sentado en el borde de la camilla tras la extracción, mareado: cabeza que se balancea
+			_rot("head", Vector3.FORWARD, sin(_t * 2.1) * 14.0)
+			_rot("head", Vector3.RIGHT, 18.0 + sin(_t * 1.3) * 8.0)
+			_rot("torso", Vector3.FORWARD, sin(_t * 1.7 + 0.5) * 9.0)
+			_fijar("arm-left", _q(Vector3.BACK, 70.0))
+			_fijar("arm-right", _q(Vector3.RIGHT, 30.0) * _q(Vector3.UP, 70.0))   # se sujeta el brazo pinchado
+		"mareado":
+			# andar inseguro: tronco que se tambalea y cabeza caída
+			_rot("torso", Vector3.FORWARD, sin(_t * 2.6) * 10.0)
+			_rot("head", Vector3.RIGHT, 14.0)
+			_rot("head", Vector3.FORWARD, sin(_t * 1.9 + 1.0) * 12.0)
+			_rot("arm-right", Vector3.UP, 55.0)
 	for h in amputado:
 		if h == "legs":
 			_ocultar("leg-left")
