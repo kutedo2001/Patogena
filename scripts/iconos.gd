@@ -43,8 +43,12 @@ func _ready() -> void:
 	var cam := Camera3D.new()
 	cam.fov = 22
 	vp.add_child(cam)
-	for r in rutas:
-		var n: Node3D = load(r).instantiate()
+	# piezas provisionales (puerta 4): brazo, divisor y almacén
+	Fabrica.cargar_datos()
+	var prov := {"brazo": Fabrica.Brazo.new(Vector2i.ZERO, 0, ""), "divisor": Fabrica.Divisor.new(Vector2i.ZERO, 0),
+		"almacen": Fabrica.Almacen.new(Vector2i.ZERO, 0)}
+	for r in rutas + prov.keys():
+		var n: Node3D = Provisional.crear(prov[r], Vector3.ZERO) if prov.has(r) else load(r).instantiate()
 		Materiales.ajustar(n)
 		vp.add_child(n)
 		await get_tree().process_frame
@@ -57,7 +61,7 @@ func _ready() -> void:
 		for i in 4:
 			await RenderingServer.frame_post_draw
 		var img := vp.get_texture().get_image()
-		var nombre := r.get_file().get_basename()
+		var nombre: String = r if prov.has(r) else r.get_file().get_basename()
 		img.save_png("res://assets/iconos/%s.png" % nombre)
 		print("icono ", nombre)
 		n.queue_free()

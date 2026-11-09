@@ -49,3 +49,11 @@
 | 2026-11-09 | Máquinas: entran por toda la cara −X local y sacan por la +X en su fila de salida; tolva de hasta 4 recetas por ingrediente; si la salida se llena, se paran en ámbar sin perder nada | Reglas simples y legibles; casan con las bocas de los modelos |
 | 2026-11-09 | Una cinta por ingrediente en los diseños de muestra (el reactivo y el suero entran por la otra casilla de la cara) | Mezclar ingredientes en una cinta puede atascar la máquina, como en Factorio; queda como reto del jugador |
 | 2026-11-09 | Fuentes provisionales hasta los extractores de P4.3 | Permiten probar las cadenas ya |
+| 2026-11-09 | Puerta 4 sin personaje controlable: se juega con el ratón (mantener clic en un nodo para extraer; clic en una máquina para echar lo del inventario y recoger lo hecho) | Lo más rápido de probar; el becario caminando del diseño queda para después si Edu lo pide (decisión suya) |
+| 2026-11-09 | Nivel 1 de prueba: sótano 16 × 12 con 2 donantes, incubadora, toma de agua, terminal de pedidos, muelle de carga, muelle de envío y cámara de cepa fijos; 2 000 € iniciales | Mínimo para jugar el bucle completo |
+| 2026-11-09 | Costes iniciales: centrífuga 300, secuenciador 500, mezcladora 400, biorreactor 800, envasadora 600, extractores 150–200, cinta 5, brazo 50, divisor 40, almacén 80; caja de vacunas 30 €; 4 reactivos 14 € | Que la primera mutación sea alcanzable sin vender; se equilibra tras la prueba de Edu |
+| 2026-11-09 | Seis mutaciones de nivel 1 en el biorreactor: tos y estornudos (2 plasma), fiebre y náuseas (2 ADN), frío y calor (plasma + ADN); un vial repetido se desecha | Diseño (N1) y para que no se atasque la línea |
+| 2026-11-09 | Brazo, divisor, almacén, extractores, muelles y nodos con piezas provisionales sencillas | La puerta 4 se prueba en gris; se modelan con detalle en la puerta 5 |
+| 2026-11-09 | Consejo del momento en el panel de objetivo | Hecho cuando de P4.3: que se juegue sin explicaciones |
+| 2026-11-09 | Cámara: el arrastre pasa al botón central; el derecho cancela o quita | El derecho se usaba para las dos cosas |
+| 2026-11-09 | La pantalla objetivo se conserva como «escaparate» (`-- --escaparate`) con su HUD de datos de muestra | Referencia visual de la puerta 3 |

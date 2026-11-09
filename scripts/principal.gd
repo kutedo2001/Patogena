@@ -241,6 +241,8 @@ func _seleccion_y_fantasma() -> void:
 			add_child(c)
 
 func _process(dt: float) -> void:
+	if not escaparate:
+		return
 	if _anillo:
 		var k := 1.0 + 0.04 * sin(Time.get_ticks_msec() * 0.004)
 		_anillo.scale = Vector3(k, 0.05, k)
@@ -260,14 +262,26 @@ func _process(dt: float) -> void:
 		var dir: Vector2 = (b - a) * float(c[4])
 		p.rotation.y = atan2(dir.x, dir.y)
 
+## «-- --escaparate»: la pantalla objetivo de la puerta 3 (nivel 2 de muestra, datos falsos).
+## Sin él: la partida (puerta 4), con el laboratorio nivel 1 vacío para construir.
+var escaparate := "--escaparate" in OS.get_cmdline_user_args()
+
+func _enter_tree() -> void:
+	if not escaparate:
+		$Sala.ancho = Juego.ANCHO
+		$Sala.fondo = Juego.FONDO
+
 func _ready() -> void:
-	add_child(HUD.new())
+	_igualar_renderizadores()
+	sala.camara = camara
+	if not escaparate:
+		_partida()
+		return
+	add_child(HUDEscaparate.new())
 	_seleccion_y_fantasma()
 	var monitor := MonitorMundo.new()
 	monitor.position = Vector3(4.0, 0, -8.0)
 	add_child(monitor)
-	_igualar_renderizadores()
-	sala.camara = camara
 	for e in MAQUINAS:
 		var m := Maquina.new()
 		m.modelo = load(e[0])
@@ -286,6 +300,29 @@ func _ready() -> void:
 		n.rotation_degrees.y = o[2]
 		n.scale = Vector3.ONE * ESCALA_OBJETOS
 		add_child(n)
+
+func _partida() -> void:
+	var juego := Juego.new()
+	juego.camara = camara
+	add_child(juego)
+	var hud := HUD.new()
+	hud.juego = juego
+	add_child(hud)
+	if "--prueba_raton" in OS.get_cmdline_user_args():
+		var pr := PruebaRaton.new()
+		pr.juego = juego
+		add_child(pr)
+	var monitor := MonitorMundo.new()
+	monitor.juego = juego
+	monitor.position = Vector3(2.0, 0, -Juego.FONDO / 2.0)
+	add_child(monitor)
+	var tieso := false
+	for a in OS.get_cmdline_user_args():
+		tieso = tieso or a.begins_with("--centro=") or a.begins_with("--dist=")
+	if not tieso:
+		camara.position = Vector3(0, 0, 0.5)
+		camara.distancia = 21.0
+		camara._dist_obj = 21.0
 
 ## Compatibility (web/móvil) en Godot 4.3 no pasa a lineal el color de fondo ni
 ## el ambiente y no tiene SSAO: se compensa para que se vea como en PC (B1).

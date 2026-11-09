@@ -21,6 +21,7 @@ const RUTAS := [[0, 1], [0, 2], [1, 3], [0, 3]]
 const REGIONES := [0.62, 0.41, 0.18, 0.09, 0.05, 0.03, 0.02, 0.01, 0.0, 0.0, 0.0, 0.0]
 
 var propagacion := 0.032
+var real := false          # con partida: los focos y las regiones salen de la propagación
 var cura := 0.12
 var _t := 0.0
 
@@ -74,7 +75,7 @@ func _draw() -> void:
 	var yr := yc + 34 * u
 	var alto_b := 9.0 * u
 	for i in REGIONES.size():
-		var v: float = REGIONES[i]
+		var v: float = REGIONES[i] * (clampf(propagacion * 8.0, 0.0, 1.0) if real else 1.0)
 		var yy := yr + i * (alto_b + 5 * u)
 		draw_circle(Vector2(cx + 6 * u, yy + alto_b / 2), 3 * u, ZOMBI if v > 0.0 else SANO)
 		var rr := Rect2(cx + 16 * u, yy, cw - 66 * u, alto_b)
@@ -101,6 +102,7 @@ func _mapa(area: Rect2, u: float) -> void:
 	var paso := minf(area.size.x / cols, area.size.y / filas)
 	var o := area.position + (area.size - Vector2(cols, filas) * paso) * 0.5 + Vector2(paso, paso) * 0.5
 	var crece := 1.0 + 0.06 * sin(_t * 0.7)
+	var k_real := clampf(propagacion * 25.0, 0.0, 1.0) if real else 1.0
 	for yy in filas:
 		var fila: String = MapaHUD.MAPA[yy]
 		for xx in cols:
@@ -109,17 +111,23 @@ func _mapa(area: Rect2, u: float) -> void:
 			var c := SANO
 			for f in FOCOS:
 				var d := Vector2(xx, yy * 1.15).distance_to(Vector2(f[0], f[1] * 1.15))
-				var radio: float = (0.8 + f[2] * 5.0) * crece
+				var radio: float = (0.8 + f[2] * 5.0) * crece * k_real
+				if radio <= 0.05:
+					continue
 				if d < radio:
 					c = c.lerp(ZOMBI, clampf((radio - d) / 1.6, 0.0, 1.0))
 			draw_circle(o + Vector2(xx, yy) * paso, paso * 0.36, c)
 	# pulsos en los focos
 	for i in FOCOS.size():
 		var f: Array = FOCOS[i]
+		if k_real <= 0.0 or (real and i > 0 and k_real < 0.5):
+			continue
 		var pc := o + Vector2(f[0], f[1]) * paso
 		var k := fmod(_t * 0.6 + i * 0.27, 1.0)
 		draw_arc(pc, paso * (1.0 + k * (3.0 + f[2] * 5.0)), 0, TAU, 32, Color(ZOMBI, 0.8 * (1.0 - k)), 1.5 * u, true)
 	# rutas aéreas: arco discontinuo y un avión (punto) recorriéndolo
+	if k_real < 0.3:
+		return
 	for i in RUTAS.size():
 		var a: Array = FOCOS[RUTAS[i][0]]
 		var b: Array = FOCOS[RUTAS[i][1]]

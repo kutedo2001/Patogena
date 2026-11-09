@@ -18,3 +18,16 @@ Formato: síntoma · causa · arreglo · comprobación · cómo evitarlo.
 - **Arreglo:** `Mancha.crear()` usa Decal en Forward+ y un plano transparente pegado al suelo en Compatibility.
 - **Comprobación:** captura compat de la horda con charcos y rastros visibles.
 - **Cómo evitarlo:** todo efecto nuevo se captura también en compat antes de cerrarlo.
+
+## B3 · Clics que no llegan al mundo en mitad de la pantalla — resuelto (P4.2)
+- **Síntoma:** a veces un clic en el suelo no construía, no quitaba o no cancelaba.
+- **Causa:** al rehacer la barra de construcción, los nodos viejos seguían dentro hasta el fotograma siguiente; el contenedor crecía hacia arriba y, como los contenedores de maquetación atrapan el ratón, tapaba el centro de la pantalla.
+- **Arreglo:** los hijos se sacan al momento al rehacer un panel y los contenedores de maquetación ignoran el ratón (solo las carcasas lo paran).
+- **Comprobación:** prueba con ratón real (tools: `-- --prueba_raton`), 16/16.
+- **Cómo evitarlo:** todo panel nuevo del HUD se prueba con la prueba de ratón.
+
+## B4 · Cámara de cepa atascada con un vial repetido — resuelto (P4.4)
+- **Síntoma:** al cambiar de mutación, el nuevo vial no entraba nunca.
+- **Causa:** la cámara rechazaba el vial repetido y se quedaba primero en la cinta, bloqueando los de detrás.
+- **Arreglo:** la cámara acepta el vial repetido y lo desecha (con aviso en el teletipo).
+- **Comprobación:** prueba de ratón: segunda mutación tras cambiar la receta.

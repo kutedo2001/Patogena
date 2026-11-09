@@ -39,7 +39,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 			_dist_obj = clampf(_dist_obj * 0.88, DIST_MIN, DIST_MAX)
 		elif ev.button_index == MOUSE_BUTTON_WHEEL_DOWN and ev.pressed:
 			_dist_obj = clampf(_dist_obj / 0.88, DIST_MIN, DIST_MAX)
-		elif ev.button_index in [MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_RIGHT]:
+		elif ev.button_index == MOUSE_BUTTON_MIDDLE:   # el derecho es cancelar/quitar en la partida
 			_arrastrando = ev.pressed
 	elif ev is InputEventMouseMotion and _arrastrando:
 		_mover_pantalla(ev.relative)

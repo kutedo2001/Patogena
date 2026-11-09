@@ -3,6 +3,8 @@ extends Node3D
 ## Monitor del mundo colgado en la pared: modelo de Blender + pantalla viva (PantallaMundo).
 
 var _baliza: Node3D
+var juego: Juego
+var _ui: PantallaMundo
 
 func _ready() -> void:
 	var m: Node3D = load("res://assets/modelos/mobiliario/monitor_mundo.glb").instantiate()
@@ -17,6 +19,7 @@ func _ready() -> void:
 	vp.disable_3d = true
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	var ui := PantallaMundo.new()
+	_ui = ui
 	ui.size = Vector2(vp.size)
 	vp.add_child(ui)
 	add_child(vp)
@@ -33,3 +36,7 @@ func _ready() -> void:
 func _process(dt: float) -> void:
 	if _baliza:
 		_baliza.rotate_y(dt * 5.0)
+	if juego and _ui:
+		_ui.propagacion = juego.propagacion
+		_ui.cura = juego.cura
+		_ui.real = true

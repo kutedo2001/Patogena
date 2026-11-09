@@ -15,6 +15,20 @@ var celdas := {}                 # Vector2i → Entidad
 var entidades: Array = []        # en orden de actualización
 var producido := {}              # objeto → unidades fabricadas
 var mutaciones := 0
+var mutaciones_hechas: Array[String] = []   # en orden de inyección
+var nodos := {}                  # Vector2i → tipo de nodo de extracción ("donante", "incubadora", "agua")
+var dinero := 0.0
+var vendido := {}
+var ingresos := 0.0              # lo cobrado por ventas
+var desechados := 0              # viales con una mutación repetida (se tiran)
+
+static func base(objeto: String) -> String:
+	var i := objeto.find(":")
+	return objeto if i < 0 else objeto.left(i)
+
+static func etiqueta(objeto: String) -> String:
+	var i := objeto.find(":")
+	return "" if i < 0 else objeto.substr(i + 1)
 var tiempo := 0.0
 var _acum := 0.0
 
@@ -77,6 +91,14 @@ func poner_almacen(c: Vector2i, giro := -1) -> Almacen:
 
 func poner_fuente(c: Vector2i, giro: int, objeto: String, cada: float) -> Fuente:
 	return _alta(Fuente.new(c, giro, objeto, cada)) as Fuente
+
+func poner_extractor(c: Vector2i, giro: int) -> Extractor:
+	if not nodos.has(c):
+		return null
+	return _alta(Extractor.new(c, giro, nodos[c])) as Extractor
+
+func poner_muelle_envio(c: Vector2i) -> MuelleEnvio:
+	return _alta(MuelleEnvio.new(c)) as MuelleEnvio
 
 func quitar(c: Vector2i) -> Entidad:
 	var e: Entidad = celdas.get(c)
@@ -210,15 +232,26 @@ class MaquinaSim extends Entidad:
 		receta = r
 		_r = Fabrica.datos.recetas[r]
 		entrada.clear()
+		progreso = -1.0
 	func duracion() -> float:
 		return float(_r.tiempo)
+	var etiquetas: Array[String] = []   # mutaciones de los viales en la tolva (cámara de cepa)
 	func _cabe(o: String) -> bool:
-		var n: int = _r.entradas.get(o, 0)
-		return n > 0 and entrada.get(o, 0) < maxi(4 * n, 4)   # tolva: hasta 4 recetas
-	func aceptar(_f: Fabrica, o: String, d: int, _c: Vector2i) -> bool:
-		if d != giro or not _cabe(o):
+		var n: int = _r.entradas.get(Fabrica.base(o), 0)
+		return n > 0 and entrada.get(Fabrica.base(o), 0) < maxi(4 * n, 4)   # tolva: hasta 4 recetas
+	## También lo usa el jugador al echar objetos a mano (d = −1: entra por cualquier lado).
+	func aceptar(f: Fabrica, o: String, d: int, _c: Vector2i) -> bool:
+		if (d != giro and d != -1) or not _cabe(o):
 			return false
-		entrada[o] = entrada.get(o, 0) + 1
+		if _r.has("cuenta"):
+			var et := Fabrica.etiqueta(o)
+			if et == "":
+				return false
+			if et in f.mutaciones_hechas or et in etiquetas:
+				f.desechados += 1               # mutación ya registrada: el vial se desecha y no atasca
+				return true
+			etiquetas.append(et)
+		entrada[Fabrica.base(o)] = entrada.get(Fabrica.base(o), 0) + 1
 		return true
 	func paso(f: Fabrica, dt: float) -> void:
 		if progreso < 0.0:
@@ -237,11 +270,13 @@ class MaquinaSim extends Entidad:
 			if progreso >= float(_r.tiempo):
 				progreso = -1.0
 				for o in _r.salidas:
+					var nombre: String = o + (":" + _r.mutacion if _r.has("mutacion") else "")
 					for k in int(_r.salidas[o]):
-						salida.append(o)
+						salida.append(nombre)
 					f.anotar(o, int(_r.salidas[o]))
-				if _r.has("cuenta"):
+				if _r.has("cuenta") and not etiquetas.is_empty():
 					f.mutaciones += 1
+					f.mutaciones_hechas.append(etiquetas.pop_front())
 					f.anotar(_r.cuenta)
 		if not salida.is_empty() and f.entregar(casilla_salida, salida[0], giro):
 			salida.pop_front()
@@ -355,3 +390,48 @@ class Fuente extends Entidad:
 		t += dt
 		if t >= cada and f.entregar(casillas[0] + Fabrica.DIRS[giro], objeto, giro):
 			t = 0.0
+
+## Extractor sobre un nodo (donante, incubadora, toma de agua): saca su materia prima cada cierto tiempo.
+class Extractor extends Entidad:
+	var tipo := ""
+	var objeto := ""
+	var cada := 4.0
+	var t := 0.0
+	var listo := ""
+	func _init(c: Vector2i, g: int, nodo: String) -> void:
+		casillas = [c]
+		giro = g
+		var dn: Dictionary = Fabrica.datos.nodos[nodo]
+		objeto = dn.objeto
+		tipo = dn.extractor
+		cada = Fabrica.datos.extractores[tipo].cada
+	func paso(f: Fabrica, dt: float) -> void:
+		if listo == "":
+			t += dt
+			if t >= cada:
+				t = 0.0
+				listo = objeto
+				f.anotar(objeto)
+		if listo != "" and f.entregar(casillas[0] + Fabrica.DIRS[giro], listo, giro):
+			listo = ""
+	func sacar(filtro: String) -> String:
+		if listo != "" and (filtro == "" or filtro == listo):
+			var o := listo
+			listo = ""
+			return o
+		return ""
+	func fraccion() -> float:
+		return 1.0 if listo != "" else t / cada
+
+## Muelle de envío: vende lo que le llega (cajas de vacunas) y suma el dinero.
+class MuelleEnvio extends Entidad:
+	func _init(c: Vector2i) -> void:
+		casillas = [c]
+	func aceptar(f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
+		var precio: float = Fabrica.datos.ventas.get(Fabrica.base(o), 0)
+		if precio <= 0.0:
+			return false
+		f.dinero += precio
+		f.ingresos += precio
+		f.vendido[Fabrica.base(o)] = f.vendido.get(Fabrica.base(o), 0) + 1
+		return true

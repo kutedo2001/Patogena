@@ -1,30 +1,262 @@
 {
-  "_nota": "Datos de la simulación de fábrica (P4.1). Casillas de 1 m. Las máquinas entran por su cara −X local y sacan por la cara +X, en la fila 'salida'. Tiempos en segundos.",
-  "cintas": {
-    "1": {"velocidad": 0.5, "separacion": 0.5},
-    "2": {"velocidad": 1.0, "separacion": 0.5},
-    "3": {"velocidad": 2.0, "separacion": 0.5}
+ "_nota": "Datos de la simulación de fábrica (P4.1). Casillas de 1 m. Las máquinas entran por su cara −X local y sacan por la cara +X, en la fila 'salida'. Tiempos en segundos.",
+ "cintas": {
+  "1": {
+   "velocidad": 0.5,
+   "separacion": 0.5
   },
-  "objetos": ["tubo_sangre", "tubo_plasma", "placa_petri", "tubo_adn", "garrafa_agua", "frasco_reactivo", "bolsa_suero",
-              "proteina", "vector", "neurotoxina", "capside", "nucleo_zombi", "vial_mutacion", "caja_vacunas"],
-  "maquinas": {
-    "centrifuga":   {"tam": [1, 1], "salida": 0, "recetas": ["plasma"]},
-    "secuenciador": {"tam": [2, 2], "salida": 1, "recetas": ["adn"]},
-    "mezcladora":   {"tam": [2, 2], "salida": 0, "recetas": ["suero"]},
-    "envasadora":   {"tam": [2, 2], "salida": 1, "recetas": ["vacunas"]},
-    "biorreactor":  {"tam": [2, 2], "salida": 1, "recetas": ["tos", "fiebre"]},
-    "camara_cepa":  {"tam": [3, 3], "salida": 1, "recetas": ["inyectar"]}
+  "2": {
+   "velocidad": 1.0,
+   "separacion": 0.5
   },
-  "recetas": {
-    "plasma":   {"entradas": {"tubo_sangre": 1}, "salidas": {"tubo_plasma": 1}, "tiempo": 3.0},
-    "adn":      {"entradas": {"placa_petri": 1}, "salidas": {"tubo_adn": 1}, "tiempo": 4.0},
-    "suero":    {"entradas": {"garrafa_agua": 1, "frasco_reactivo": 1}, "salidas": {"bolsa_suero": 2}, "tiempo": 3.0},
-    "vacunas":  {"entradas": {"tubo_adn": 1, "bolsa_suero": 1}, "salidas": {"caja_vacunas": 1}, "tiempo": 4.0},
-    "tos":      {"entradas": {"tubo_plasma": 2}, "salidas": {"vial_mutacion": 1}, "tiempo": 6.0},
-    "fiebre":   {"entradas": {"tubo_adn": 2}, "salidas": {"vial_mutacion": 1}, "tiempo": 6.0},
-    "inyectar": {"entradas": {"vial_mutacion": 1}, "salidas": {}, "tiempo": 2.0, "cuenta": "mutacion"}
+  "3": {
+   "velocidad": 2.0,
+   "separacion": 0.5
+  }
+ },
+ "objetos": [
+  "tubo_sangre",
+  "tubo_plasma",
+  "placa_petri",
+  "tubo_adn",
+  "garrafa_agua",
+  "frasco_reactivo",
+  "bolsa_suero",
+  "proteina",
+  "vector",
+  "neurotoxina",
+  "capside",
+  "nucleo_zombi",
+  "vial_mutacion",
+  "caja_vacunas"
+ ],
+ "maquinas": {
+  "centrifuga": {
+   "tam": [
+    1,
+    1
+   ],
+   "salida": 0,
+   "recetas": [
+    "plasma"
+   ]
   },
-  "brazo":   {"ciclo": 1.2},
-  "almacen": {"capacidad": 50, "salida_cada": 0.5},
-  "divisor": {"cada": 0.25}
+  "secuenciador": {
+   "tam": [
+    2,
+    2
+   ],
+   "salida": 1,
+   "recetas": [
+    "adn"
+   ]
+  },
+  "mezcladora": {
+   "tam": [
+    2,
+    2
+   ],
+   "salida": 0,
+   "recetas": [
+    "suero"
+   ]
+  },
+  "envasadora": {
+   "tam": [
+    2,
+    2
+   ],
+   "salida": 1,
+   "recetas": [
+    "vacunas"
+   ]
+  },
+  "biorreactor": {
+   "tam": [
+    2,
+    2
+   ],
+   "salida": 1,
+   "recetas": [
+    "tos",
+    "estornudos",
+    "fiebre",
+    "nauseas",
+    "frio",
+    "calor"
+   ]
+  },
+  "camara_cepa": {
+   "tam": [
+    3,
+    3
+   ],
+   "salida": 1,
+   "recetas": [
+    "inyectar"
+   ]
+  }
+ },
+ "recetas": {
+  "plasma": {
+   "entradas": {
+    "tubo_sangre": 1
+   },
+   "salidas": {
+    "tubo_plasma": 1
+   },
+   "tiempo": 3.0
+  },
+  "adn": {
+   "entradas": {
+    "placa_petri": 1
+   },
+   "salidas": {
+    "tubo_adn": 1
+   },
+   "tiempo": 4.0
+  },
+  "suero": {
+   "entradas": {
+    "garrafa_agua": 1,
+    "frasco_reactivo": 1
+   },
+   "salidas": {
+    "bolsa_suero": 2
+   },
+   "tiempo": 3.0
+  },
+  "vacunas": {
+   "entradas": {
+    "tubo_adn": 1,
+    "bolsa_suero": 1
+   },
+   "salidas": {
+    "caja_vacunas": 1
+   },
+   "tiempo": 4.0
+  },
+  "inyectar": {
+   "entradas": {
+    "vial_mutacion": 1
+   },
+   "salidas": {},
+   "tiempo": 3.0,
+   "cuenta": "mutacion"
+  },
+  "tos": {
+   "entradas": {
+    "tubo_plasma": 2
+   },
+   "salidas": {
+    "vial_mutacion": 1
+   },
+   "tiempo": 6.0,
+   "mutacion": "tos"
+  },
+  "estornudos": {
+   "entradas": {
+    "tubo_plasma": 2
+   },
+   "salidas": {
+    "vial_mutacion": 1
+   },
+   "tiempo": 6.0,
+   "mutacion": "estornudos"
+  },
+  "fiebre": {
+   "entradas": {
+    "tubo_adn": 2
+   },
+   "salidas": {
+    "vial_mutacion": 1
+   },
+   "tiempo": 6.0,
+   "mutacion": "fiebre"
+  },
+  "nauseas": {
+   "entradas": {
+    "tubo_adn": 2
+   },
+   "salidas": {
+    "vial_mutacion": 1
+   },
+   "tiempo": 6.0,
+   "mutacion": "nauseas"
+  },
+  "frio": {
+   "entradas": {
+    "tubo_plasma": 1,
+    "tubo_adn": 1
+   },
+   "salidas": {
+    "vial_mutacion": 1
+   },
+   "tiempo": 6.0,
+   "mutacion": "frio"
+  },
+  "calor": {
+   "entradas": {
+    "tubo_plasma": 1,
+    "tubo_adn": 1
+   },
+   "salidas": {
+    "vial_mutacion": 1
+   },
+   "tiempo": 6.0,
+   "mutacion": "calor"
+  }
+ },
+ "brazo": {
+  "ciclo": 1.2
+ },
+ "almacen": {
+  "capacidad": 50,
+  "salida_cada": 0.5
+ },
+ "divisor": {
+  "cada": 0.25
+ },
+ "nodos": {
+  "donante": {
+   "objeto": "tubo_sangre",
+   "extractor": "extractor_sangre"
+  },
+  "incubadora": {
+   "objeto": "placa_petri",
+   "extractor": "recolector"
+  },
+  "agua": {
+   "objeto": "garrafa_agua",
+   "extractor": "bomba"
+  }
+ },
+ "extractores": {
+  "extractor_sangre": {
+   "cada": 4.0
+  },
+  "recolector": {
+   "cada": 5.0
+  },
+  "bomba": {
+   "cada": 3.0
+  }
+ },
+ "a_mano": {
+  "tiempo": 1.0
+ },
+ "ventas": {
+  "caja_vacunas": 30
+ },
+ "pedidos": {
+  "frasco_reactivo": {
+   "lote": 4,
+   "precio": 14,
+   "espera": [
+    8,
+    12
+   ]
+  }
+ },
+ "_nota_mutaciones": "Los viales llevan la mutación tras ':' (vial_mutacion:tos). La cámara de cepa rechaza una mutación ya inyectada."
 }

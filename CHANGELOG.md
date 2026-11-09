@@ -5,6 +5,16 @@ Lo que nota el jugador, por versión.
 ## Sin publicar
 - Estructura inicial del proyecto.
 
+## Prueba de la puerta 4 (9-nov-2026)
+- Se puede jugar: laboratorio nivel 1 vacío con 2 000 € para construir.
+- Extracción a mano (mantener clic en donante, incubadora o toma de agua) y extractores automáticos.
+- Construir con la barra o las teclas 1–9: fantasma verde/rojo, R para girar, cintas arrastrando, clic derecho para cancelar o quitar (100 % los primeros 10 s, luego 50 %).
+- Clic en una máquina: echa lo que acepte de tu inventario y recoge lo que haya hecho.
+- Biorreactor con seis mutaciones a elegir; la cámara de cepa las registra y la primera libera el virus (el monitor del mundo y la propagación empiezan a moverse).
+- Terminal de pedidos de reactivo con camión, muelle de envío que vende cajas de vacunas.
+- Objetivo trimestral con hitos vivos y un consejo de qué hacer ahora.
+- Velocidad de juego: pausa, ×1, ×2, ×3 (o barra espaciadora).
+
 ## Sin publicar (puerta 3)
 - Laboratorio con cámara del juego, luz igual en PC y web.
 - Máquinas detalladas y animadas: centrífuga, secuenciador, biorreactor (con dosificadora de viales), mezcladora, envasadora y cámara de cepa con el virus vivo.
