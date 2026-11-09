@@ -18,6 +18,18 @@ def pinta(im, celdas, color):
                 k = 0.82 + (k - 1) * 0.6 + 0.18      # degradado suave
                 px[x, y] = tuple(max(0, min(255, int(v * k))) for v in color) + (255,)
 
+import random
+
+def manchas(im, celdas, n=6, color=(120, 6, 10), radio=(4, 12), semilla=1):
+    """Pinta manchas de sangre dentro de las celdas: caen en caras sueltas del modelo (salpicaduras)."""
+    from PIL import ImageDraw
+    random.seed(semilla)
+    d = ImageDraw.Draw(im)
+    for (c, r) in celdas:
+        for _ in range(n):
+            x = c * 32 + random.randint(0, 31); y = r * 128 + random.randint(0, 127); s = random.randint(*radio)
+            d.ellipse([x - s, y - s * 2, x + s, y + s * 2], fill=color + (255,))
+
 BATA = (238, 240, 236)
 GRIS = (70, 76, 86)
 PIJAMA = (150, 200, 205)
@@ -29,9 +41,20 @@ variantes = {
     'paciente_f': [([(3, 3)], PIJAMA)],     # female-d: el traje pasa a pijama
     'zombi': [([(3, 3), (5, 3)], (120, 160, 160)), ([(1, 2)], SANGRE), ([(9, 2)], (125, 170, 95))],
 }
+PIEL_Z = (122, 168, 92)
+PIEL_Z2 = (150, 180, 120)
+variantes.update({
+    'investigador_infectado': [([(9, 2)], BATA), ([(1, 1)], GRIS), ([(3, 2)], PIEL_Z)],
+    'paciente_infectado': [([(3, 3)], PIJAMA), ([(5, 2)], PIEL_Z2)],
+})
+SANGRADO = {   # celdas de ropa que se manchan
+    'zombi': [(3, 3), (5, 3)], 'investigador_infectado': [(9, 2), (1, 1)], 'paciente_infectado': [(3, 3)],
+}
 for nombre, cambios in variantes.items():
     im = base.copy()
     for celdas, color in cambios:
         pinta(im, celdas, color)
+    if nombre in SANGRADO:
+        manchas(im, SANGRADO[nombre], n=9, semilla=len(nombre))
     im.save(os.path.join(RAIZ, 'Textures', nombre + '.png'))
 print('personajes ok')

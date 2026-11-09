@@ -16,6 +16,7 @@ var _puntos: PackedVector3Array = []
 var _acum: PackedFloat32Array = []
 var _largo := 0.0
 var _mat_banda: StandardMaterial3D
+var _mat_curva: StandardMaterial3D
 var _objetos: Array[Node3D] = []
 var _dist: Array[float] = []
 
@@ -72,7 +73,7 @@ func _construir() -> void:
 		pieza.position = centro
 		pieza.rotation.y = yaw
 		add_child(pieza)
-		_banda_compartida(pieza)
+		_banda_compartida(pieza, d_in != d_out)
 	if cerrada:
 		_puntos.append(_puntos[0])
 	_acum.resize(_puntos.size())
@@ -100,7 +101,8 @@ func _tramo_curvo(c: Vector3, d_in: Vector3, d_out: Vector3) -> void:
 		_puntos.append(pivote + v.normalized() * 0.5)
 
 ## Todas las piezas de la línea comparten un material de banda para desplazarlo a la vez.
-func _banda_compartida(pieza: Node) -> void:
+## Las curvas usan su propia textura (nervios radiales, chevron estrecho) con el mismo desplazamiento.
+func _banda_compartida(pieza: Node, curva_pieza := false) -> void:
 	for mi in pieza.find_children("banda*", "MeshInstance3D", true, false):
 		var m := (mi as MeshInstance3D).get_active_material(0)
 		if m == null:
@@ -108,7 +110,13 @@ func _banda_compartida(pieza: Node) -> void:
 		if _mat_banda == null:
 			_mat_banda = m.duplicate()
 			_mat_banda.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-		(mi as MeshInstance3D).material_override = _mat_banda
+		if curva_pieza:
+			if _mat_curva == null:
+				_mat_curva = _mat_banda.duplicate()
+				_mat_curva.albedo_texture = preload("res://assets/texturas/banda_curva.png")
+			(mi as MeshInstance3D).material_override = _mat_curva
+		else:
+			(mi as MeshInstance3D).material_override = _mat_banda
 
 func _punto(d: float) -> Array:
 	if _largo <= 0.0:
@@ -126,6 +134,8 @@ func _process(dt: float) -> void:
 	var v: float = VELOCIDAD[nivel]
 	if _mat_banda:
 		_mat_banda.uv1_offset.x -= v * dt
+	if _mat_curva:
+		_mat_curva.uv1_offset = _mat_banda.uv1_offset
 	for i in _objetos.size():
 		_dist[i] += v * dt
 		if not cerrada and _dist[i] > _largo:

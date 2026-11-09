@@ -121,6 +121,24 @@ def banda(N=(256, 256)):
         d.polygon([(W * 0.3, cy - 26), (W * 0.62, cy), (W * 0.3, cy + 26), (W * 0.4, cy + 26), (W * 0.72, cy), (W * 0.4, cy - 26)], fill=(88, 92, 96))
     im.rotate(90).save(os.path.join(RAIZ, 'banda.png'))
 
+def banda_curva(N=(256, 256)):
+    """Banda para curvas: los nervios transversales se vuelven radiales (como una cinta curva real)
+    y el chevron es estrecho y centrado para que no se abra en abanico."""
+    W, H = N
+    im = Image.new('RGB', N, (52, 55, 58)); px = im.load()
+    random.seed(16)
+    for y in range(H):
+        for x in range(W):
+            n = random.randint(-5, 5); r, g, b = px[x, y]; px[x, y] = (r + n, g + n, b + n)
+    d = ImageDraw.Draw(im)
+    for k in range(8):
+        y0 = k * H // 8
+        d.rectangle([0, y0, W, y0 + 4], fill=(32, 34, 36))
+    for k in range(2):
+        cy = H // 4 + k * H // 2
+        d.polygon([(W * 0.43, cy - 12), (W * 0.55, cy), (W * 0.43, cy + 12), (W * 0.47, cy + 12), (W * 0.59, cy), (W * 0.47, cy - 12)], fill=(88, 92, 96))
+    im.rotate(90).save(os.path.join(RAIZ, 'banda_curva.png'))
+
 if __name__ == '__main__':
     os.makedirs(os.path.join(RAIZ, 'etiquetas'), exist_ok=True)
     os.makedirs(os.path.join(RAIZ, 'calcomanias'), exist_ok=True)
@@ -135,4 +153,5 @@ if __name__ == '__main__':
     caja_vacunas()
     bolsa_suero()
     banda()
+    banda_curva()
     print('texturas ok')
