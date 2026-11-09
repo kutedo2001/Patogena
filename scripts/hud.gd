@@ -5,6 +5,11 @@ extends HUDEscaparate
 ## solo cuando cambia su «firma»; las cifras que se mueven se actualizan cada fotograma.
 
 var juego: Juego
+var _capa: CapaSoltar
+var _ficha_flotante: PanelContainer
+var _ff_titulo: Label
+var _ff_texto: Label
+var _ff_firma := ""
 var _raiz: Control
 var _obj_caja: VBoxContainer
 var _maq_panel: PanelContainer
@@ -40,6 +45,9 @@ func _ready() -> void:
 	_raiz.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_raiz.theme = _tema()
 	add_child(_raiz)
+	_capa = CapaSoltar.new()
+	_capa.juego = juego
+	_raiz.add_child(_capa)
 	_barra_superior_juego(_raiz)
 	# objetivo
 	var po := _carcasa(_raiz, 12)
@@ -129,6 +137,21 @@ func _clic(c: Control, accion: Callable) -> void:
 	c.mouse_filter = Control.MOUSE_FILTER_STOP
 	c.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	c.gui_input.connect(func(ev): if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT: accion.call())
+
+## Hace arrastrable una bandeja: data = {"de": "manos" | entidad, "objeto": nombre}.
+func _arrastrable(c: Control, data: Dictionary, icono: String) -> void:
+	c.mouse_filter = Control.MOUSE_FILTER_STOP
+	c.mouse_default_cursor_shape = Control.CURSOR_DRAG
+	c.set_drag_forwarding(func(_p):
+		var t := TextureRect.new()
+		t.texture = _icono(icono)
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.size = Vector2(56, 56)
+		t.position = -t.size * 0.5
+		var r := Control.new()
+		r.add_child(t)
+		c.set_drag_preview(r)
+		return data, Callable(), Callable())
 
 func _vaciar(c: Control) -> void:
 	for h in c.get_children():
@@ -304,10 +327,20 @@ func _refrescar(forzar := false) -> void:
 		var cab := _franja(_inv_caja, tr("HUD_MANOS").to_upper())
 		_texto(cab, "%d/%d" % [juego.mano_n, Juego.MANOS_MAX], 12, F_BOLD, Color.WHITE)
 		var fila := _fila(_inv_caja, 6)
+		var nombre := Fabrica.base(juego.mano_obj)
 		for k in Juego.MANOS_MAX:
-			_bandeja(fila, Fabrica.base(juego.mano_obj) if k < juego.mano_n else "", 50)
+			var b := _bandeja(fila, nombre if k < juego.mano_n else "", 50)
+			if k < juego.mano_n:
+				_arrastrable(b, {"de": "manos", "objeto": juego.mano_obj}, nombre)
+				b.tooltip_text = tr("OBJ_" + nombre.to_upper())
+		# soltar aquí lo arrastrado desde una máquina = ir a cogerlo
+		var caja_manos: Control = _inv_caja.get_parent()
+		caja_manos.set_drag_forwarding(Callable(),
+			func(_p, d): return d is Dictionary and d.get("de") is Fabrica.Entidad,
+			func(_p, d): juego.encargar([["coger", d.de, d.get("objeto", "")]]))
 		if juego.mano_n > 0:
 			_texto(_inv_caja, tr("HUD_AYUDA_MANOS"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			_accion(_inv_caja, tr("HUD_TIRAR"), "F", true, func(): juego.soltar_mano())
 		if juego.liberado:
 			var zf := _fila(_inv_caja, 8)
 			zf.add_child(IconoHUD.new("cepa", Color(0.3, 0.6, 0.15), 16))
@@ -435,14 +468,19 @@ func _panel_seleccion(sel) -> void:
 				hs.bg_color = C_CARCASA_OSC
 			hp.add_theme_stylebox_override("panel", hs)
 			huecos.add_child(hp)
+			if i < objs.size() and fila_d[0] == "HUD_SALIDA":
+				_arrastrable(hp, {"de": sel, "objeto": sel.salida[i]}, objs[i])
 			if i < objs.size():
+				hp.tooltip_text = tr("OBJ_" + str(objs[i]).to_upper())
 				var t := TextureRect.new()
 				t.texture = _icono(objs[i])
 				t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 				t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 				t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 1)
 				hp.add_child(t)
-	_texto(_maq_caja, tr("HUD_AYUDA_MAQUINA2"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if not sel.salida.is_empty():
+		_accion(_maq_caja, tr("HUD_RECOGER"), "%d" % sel.salida.size(), true, func(): juego.encargar([["coger", sel, ""]]))
+	_texto(_maq_caja, tr("HUD_AYUDA_MAQUINA3"), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 func _panel_estacion(e: Fabrica.Estacion) -> void:
 	_maq_panel.visible = true
@@ -455,12 +493,21 @@ func _panel_estacion(e: Fabrica.Estacion) -> void:
 	_maq_estado = _texto(cc, tr("MODO_" + e.modo.to_upper()), 11, F_BOLD, Color(0.15, 0.6, 0.3))
 	var pe := _pantalla(_maq_caja, 10)
 	var fe := _fila(pe, 10)
-	_bandeja(fe, e.objeto, 46)
+	var bp := _bandeja(fe, e.objeto, 46)
+	bp.tooltip_text = tr("OBJ_" + e.objeto.to_upper())
+	if e.listo != "":
+		_arrastrable(bp, {"de": e, "objeto": e.listo}, e.objeto)
+	else:
+		bp.modulate = Color(1, 1, 1, 0.4)
 	var mid := _columna(fe, 4)
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mid.alignment = BoxContainer.ALIGNMENT_CENTER
 	_maq_prog = _barra(mid, 0.0, P_TINTA, 8)
 	_texto(mid, "%s s" % String.num(e.duracion(), 1).replace(".", ","), 12, F_SEMI, P_TENUE)
+	if e.listo != "":
+		_accion(_maq_caja, tr("HUD_RECOGER"), "1", true, func(): juego.encargar([["coger", e, ""]]))
+	elif e.modo != "zombi":
+		_accion(_maq_caja, tr("TRABAJAR_" + e.tipo.to_upper()), "", true, func(): juego.encargar([["trabajar", e]]))
 	_texto(_maq_caja, tr("AYUDA_EST_" + e.modo.to_upper()), 11, F_MED, C_TENUE_OSC).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# progresión: mejora con máquina → zombi
 	if e.modo == "mano":
@@ -591,6 +638,7 @@ func _barra_construccion_juego() -> void:
 			pv.grow_horizontal = Control.GROW_DIRECTION_BOTH
 			pv.grow_vertical = Control.GROW_DIRECTION_BEGIN
 			_clic(c, func(): juego.seleccionar_herramienta(e))
+			c.tooltip_text = tr(e[2]) + "\n" + tr("DESC_" + str(e[0]).to_upper())
 			c.mouse_entered.connect(func(): _hover = i)
 			c.mouse_exited.connect(func(): if _hover == i: _hover = -1)
 		else:
@@ -647,10 +695,63 @@ func _process(dt: float) -> void:
 		var claves := ["HUD_APAGADA", "HUD_TRABAJANDO", "HUD_SIN_MATERIAL", "HUD_SALIDA_LLENA"]
 		_maq_estado.text = tr(claves[sel.estado])
 		_maq_estado.add_theme_color_override("font_color", Color(0.15, 0.6, 0.3) if sel.estado == 1 else Color(0.75, 0.5, 0.05))
+	_ficha_mundo()
 	_t_refresco += dt
 	if _t_refresco > 0.15:
 		_t_refresco = 0.0
 		_refrescar()
+
+## Ficha junto al puntero: qué es y qué hace lo que hay debajo (solo si no se está construyendo
+## y el ratón no está sobre un panel). No es texto sobre el mundo: es un panel del HUD.
+func _ficha_mundo() -> void:
+	if _ficha_flotante == null:
+		_ficha_flotante = _carcasa(_raiz, 10, false)
+		_ficha_flotante.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ficha_flotante.custom_minimum_size = Vector2(280, 0)
+		var v := _columna(_ficha_flotante, 4)
+		_ff_titulo = _texto(v, "", 14, F_BOLD)
+		_ff_texto = _texto(v, "", 12, F_MED, C_TENUE_OSC)
+		_ff_texto.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_ff_texto.custom_minimum_size.x = 260
+	var e = juego.bajo_raton()
+	var sobre_hud := get_viewport().gui_get_hovered_control() != null
+	if e == null or sobre_hud or not juego.herramienta.is_empty() or get_viewport().gui_is_dragging():
+		_ficha_flotante.visible = false
+		return
+	var t := ""
+	var d := ""
+	if e is String:
+		t = tr("CONS_TERMINAL")
+		d = tr("DESC_TERMINAL")
+	elif e is Fabrica.MaquinaSim:
+		t = tr("MAQ_" + e.tipo.to_upper())
+		d = tr("DESC_" + e.tipo.to_upper()) + "\n" + tr(["HUD_APAGADA", "HUD_TRABAJANDO", "HUD_SIN_MATERIAL", "HUD_SALIDA_LLENA"][e.estado])
+	elif e is Fabrica.Estacion:
+		t = tr("EST_" + e.tipo.to_upper())
+		d = tr("DESC_" + e.tipo.to_upper()) + "\n" + tr("MODO_" + e.modo.to_upper())
+	elif e is Fabrica.Cinta:
+		t = tr("MAQ_CINTA_MK1")
+		d = tr("DESC_CINTA")
+	elif e is Fabrica.MuelleEnvio:
+		t = tr("CONS_MUELLE")
+		d = tr("AYUDA_MUELLE")
+	elif e is Fabrica.Almacen:
+		t = tr("CONS_ALMACEN")
+		d = tr("DESC_ALMACEN") + "  (%d)" % e.contenido.size()
+	elif e is Fabrica.Brazo:
+		t = tr("CONS_BRAZO")
+		d = tr("DESC_BRAZO")
+	elif e is Fabrica.Divisor:
+		t = tr("CONS_DIVISOR")
+		d = tr("DESC_DIVISOR")
+	_ff_titulo.text = t
+	_ff_texto.text = d + "\n" + tr("HUD_CLIC_PANEL")
+	_ficha_flotante.visible = true
+	_ficha_flotante.reset_size()
+	var m := get_viewport().get_mouse_position() / get_window().content_scale_factor
+	var tam := _ficha_flotante.size
+	var vp := get_viewport().get_visible_rect().size
+	_ficha_flotante.position = Vector2(clampf(m.x + 22, 0, vp.x - tam.x - 8), clampf(m.y + 22, 0, vp.y - tam.y - 8))
 
 func _kw(e) -> float:
 	if e is Fabrica.Cinta:

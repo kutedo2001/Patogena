@@ -169,8 +169,12 @@ func _process(dt: float) -> void:
 	_mover_cientifico(dt)
 	if _trabajando:
 		if _trabajando.listo != "":
-			_coger_de(_trabajando)
+			var est := _trabajando
 			_trabajando = null
+			if mano_n == 0 or mano_obj == est.listo:
+				_coger_de(est)
+			else:
+				aviso.emit("AVISO_MANOS_OCUPADAS")
 		elif cerca(_trabajando):
 			_trabajando.trabajar(fab, dtj)
 		else:
@@ -296,6 +300,12 @@ func andable(c: Vector2i) -> bool:
 	var e = fab.celdas.get(c)
 	return e == null or e is Fabrica.Cinta
 
+## Entidad bajo el ratón (para la ficha flotante del HUD).
+func bajo_raton():
+	if _cel == _terminal:
+		return "terminal"
+	return fab.celdas.get(_cel)
+
 func _mover_cientifico(dt: float) -> void:
 	var dir := Vector2.ZERO
 	if Input.is_key_pressed(KEY_W): dir.y -= 1
@@ -305,6 +315,7 @@ func _mover_cientifico(dt: float) -> void:
 	if dir != Vector2.ZERO:
 		_ruta.clear()
 		_objetivo = null
+		_tareas.clear()
 		_trabajando = null
 		var g: float = deg_to_rad(camara.giro) if camara else 0.0
 		dir = dir.normalized().rotated(-g)
@@ -379,46 +390,82 @@ func _llegar() -> void:
 		_objetivo_terminal = false
 		pedir("frasco_reactivo")
 		return
-	if _objetivo != null:
-		var e := _objetivo
-		_objetivo = null
-		usar(e)
+	_objetivo = null
+	if _tareas.is_empty():
+		return
+	var t: Array = _tareas.pop_front()
+	var e: Fabrica.Entidad = t[1]
+	if not fab.entidades.has(e):
+		_tareas.clear()
+		return
+	match t[0]:
+		"dejar": _dejar_en(e)
+		"coger": _coger_de(e, t[2] if t.size() > 2 else "")
+		"trabajar": _trabajar(e)
+	if not _tareas.is_empty():
+		ir_a(_tareas[0][1].casillas[0], _tareas[0][1])
 
-## Usar una entidad estando al lado: coger, dejar, trabajar o vender.
+## Encargos al científico (desde el HUD: arrastrar o botones). Cada tarea: ["dejar", e],
+## ["coger", e, filtro] o ["trabajar", e]. Va andando a cada sitio y la hace al llegar.
+var _tareas: Array = []
+
+func encargar(tareas: Array) -> void:
+	_tareas = tareas.duplicate()
+	if not _tareas.is_empty():
+		ir_a(_tareas[0][1].casillas[0], _tareas[0][1])
+
+func _trabajar(e: Fabrica.Entidad) -> void:
+	if not (e is Fabrica.Estacion):
+		return
+	if e.listo != "":
+		_coger_de(e)
+	elif e.modo == "zombi":
+		aviso.emit("AVISO_ZOMBI_TRABAJA")
+	else:
+		_trabajando = e
+		if e.tipo == "camilla" and not e.paciente:
+			aviso.emit("AVISO_ESPERA_PACIENTE")
+
+func _dejar_en(e: Fabrica.Entidad) -> void:
+	if mano_n == 0:
+		return
+	var dejados := 0
+	while mano_n > 0 and e.aceptar(fab, mano_obj, e.giro if e is Fabrica.Cinta else -1, e.casillas[0]):
+		mano_n -= 1
+		dejados += 1
+	if mano_n == 0:
+		mano_obj = ""
+	if dejados == 0:
+		aviso.emit("AVISO_NO_SE_VENDE" if e is Fabrica.MuelleEnvio else "AVISO_NO_ACEPTA")
+
+## Compatibilidad (pruebas): usar = dejar si lleva algo; si no, trabajar o coger.
 func usar(e: Fabrica.Entidad) -> void:
 	if e is Fabrica.Estacion:
-		if e.listo != "":
-			_coger_de(e)
-		elif e.modo == "zombi":
-			aviso.emit("AVISO_ZOMBI_TRABAJA")
-		else:
-			_trabajando = e                # trabaja hasta acabar (espera al paciente si no ha llegado)
-			if e.tipo == "camilla" and not e.paciente:
-				aviso.emit("AVISO_ESPERA_PACIENTE")
-		return
-	if mano_n > 0:
-		var dejados := 0
-		while mano_n > 0 and e.aceptar(fab, mano_obj, -1 if not (e is Fabrica.Cinta) else e.giro, e.casillas[0]):
-			mano_n -= 1
-			dejados += 1
-		if mano_n == 0:
-			mano_obj = ""
-		if dejados > 0:
-			return
-		if e is Fabrica.MuelleEnvio:
-			aviso.emit("AVISO_NO_SE_VENDE")
-			return
-	_coger_de(e)
+		_trabajar(e)
+	elif mano_n > 0:
+		_dejar_en(e)
+	else:
+		_coger_de(e)
 
-func _coger_de(e: Fabrica.Entidad) -> void:
+func _coger_de(e: Fabrica.Entidad, filtro := "") -> void:
+	if mano_n > 0 and filtro != "" and Fabrica.base(filtro) != Fabrica.base(mano_obj):
+		aviso.emit("AVISO_MANOS_OCUPADAS")
+		return
+	var cogidos := 0
 	while mano_n < MANOS_MAX:
-		var o := e.sacar(mano_obj if mano_n > 0 else "")
+		var o := e.sacar(mano_obj if mano_n > 0 else filtro)
 		if o == "":
 			break
 		mano_obj = o
 		mano_n += 1
-	if e is Fabrica.Estacion and e.listo != "":
-		aviso.emit("AVISO_MANOS_LLENAS")
+		cogidos += 1
+	if cogidos == 0:
+		var queda := false
+		if e is Fabrica.Estacion:
+			queda = e.listo != ""
+		elif e is Fabrica.MaquinaSim:
+			queda = not e.salida.is_empty()
+		aviso.emit("AVISO_MANOS_OCUPADAS" if queda else "AVISO_NADA_QUE_COGER")
 
 func soltar_mano() -> void:
 	mano_obj = ""
@@ -547,9 +594,8 @@ func _pulsar() -> void:
 		return
 	var e: Fabrica.Entidad = fab.celdas.get(_cel)
 	seleccion = e
-	if e != null:
-		ir_a(_cel, e)
-	else:
+	if e == null:
+		_tareas.clear()
 		ir_a(_cel)
 
 func _soltar() -> void:

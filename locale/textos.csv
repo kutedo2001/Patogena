@@ -157,14 +157,35 @@ CORREO_FIN_T,Evaluación del periodo de prueba,Probation review
 CORREO_FIN,"Ha demostrado aptitud. A partir de ahora trabajará con los objetivos trimestrales del panel izquierdo. Los zombis, perdón, el personal de apoyo, no cobra ni descansa. Aprovéchelo.","You have shown aptitude. From now on you will work to the quarterly targets on the left panel. The zombies, sorry, the support staff, take no pay and no breaks. Make the most of it."
 PASO_MOVER,Muévete por el laboratorio con WASD o haciendo clic en el suelo.,Move around the lab with WASD or by clicking the floor.
 PASO_CAMILLA,Construye una camilla: Extracción → 1 y clic en el suelo (la flecha amarilla marca un buen sitio).,Build an extraction bed: Extraction → 1 and click the floor (the yellow arrow marks a good spot).
-PASO_SANGRE,"Cuando el paciente se tumbe, haz clic en la camilla para sacarle sangre.","When the patient lies down, click the bed to draw blood."
+PASO_SANGRE,"Selecciona la camilla y pulsa «Sacar sangre al paciente». El científico irá cuando el paciente se tumbe.","Select the bed and press «Draw blood from the patient». The scientist goes once the patient lies down."
 PASO_CENTRIFUGA,Construye una centrífuga (Procesado → 1). Su flecha verde es por donde entra la sangre.,Build a centrifuge (Processing → 1). Its green arrow is where the blood goes in.
-PASO_PLASMA,"Con la sangre en las manos, haz clic en la centrífuga. Trabaja sola y saca plasma.","With the blood in hand, click the centrifuge. It works on its own and makes plasma."
+PASO_PLASMA,"Arrastra la sangre de tus manos (abajo a la izquierda) hasta la centrífuga. Trabaja sola y saca plasma.","Drag the blood from your hands (bottom left) onto the centrifuge. It works on its own and makes plasma."
 PASO_BIORREACTOR,Construye un biorreactor (Producto → 1).,Build a bioreactor (Product → 1).
-PASO_VIAL,Recoge 2 plasmas de la centrífuga y llévalos al biorreactor.,Collect 2 plasma from the centrifuge and take them to the bioreactor.
-PASO_CEPA,Lleva el vial de la mutación a la cámara de cepa.,Take the mutation vial to the strain chamber.
-PASO_VENDER,Lleva algo al muelle de envío (abajo a la derecha) para venderlo.,Take something to the shipping dock (bottom right) to sell it.
+PASO_VIAL,"Selecciona la centrífuga, arrastra 2 plasmas de su salida hasta el biorreactor.","Select the centrifuge and drag 2 plasma from its output onto the bioreactor."
+PASO_CEPA,"Selecciona el biorreactor y arrastra el vial de su salida hasta la cámara de cepa.","Select the bioreactor and drag the vial from its output onto the strain chamber."
+PASO_VENDER,"Arrastra algo (de tus manos o de la salida de una máquina) al muelle de envío para venderlo.","Drag something (from your hands or a machine output) onto the shipping dock to sell it."
 PASO_MEJORA,Selecciona la camilla e instala el extractor automático.,Select the bed and install the automatic extractor.
 PASO_CINTA,"Tiende una cinta (Logística → 1, arrastrando) de la flecha naranja de la camilla a la verde de la centrífuga.","Lay a belt (Logistics → 1, drag) from the bed's orange arrow to the centrifuge's green arrow."
 PASO_ZOMBI,"Cuando llegue un zombi, selecciona la camilla y ponlo a trabajar.","When a zombie arrives, select the bed and put it to work."
 PASO_LIBRE,Cumple los objetivos trimestrales y automatiza todo lo que puedas.,Meet the quarterly targets and automate all you can.
+OBJ_TUBO_SANGRE,Tubo de sangre,Blood tube
+OBJ_TUBO_PLASMA,Tubo de plasma,Plasma tube
+OBJ_PLACA_PETRI,Placa de cultivo,Culture plate
+OBJ_TUBO_ADN,ADN viral,Viral DNA
+OBJ_GARRAFA_AGUA,Agua destilada,Distilled water
+OBJ_FRASCO_REACTIVO,Reactivo,Reagent
+OBJ_BOLSA_SUERO,Suero,Serum
+OBJ_VIAL_MUTACION,Vial de mutación,Mutation vial
+OBJ_CAJA_VACUNAS,Caja de vacunas,Vaccine box
+HUD_TIRAR,Tirar lo que llevo,Drop what I carry
+HUD_RECOGER,Ir a recoger lo hecho,Go collect the output
+HUD_AYUDA_MAQUINA3,Trabaja sola. Arrastra lo que llevas sobre ella para cargarla; arrastra lo hecho (salida) a tus manos o a otra máquina. Flecha verde: entra · naranja: sale.,Works on its own. Drag what you carry onto it to load it; drag its output to your hands or another machine. Green arrow: in · orange: out.
+TRABAJAR_CAMILLA,Sacar sangre al paciente,Draw blood from the patient
+TRABAJAR_INCUBADORA,Recoger el cultivo,Harvest the culture
+TRABAJAR_TOMA_AGUA,Llenar una garrafa,Fill a jug
+AVISO_MANOS_OCUPADAS,Llevas otra cosa en las manos: déjala en una máquina o tírala (F),You are carrying something else: drop it in a machine or discard it (F)
+AVISO_NADA_QUE_COGER,No hay nada que recoger,Nothing to collect
+AVISO_NO_ACEPTA,Esta máquina no acepta eso,This machine doesn't take that
+CONS_TERMINAL,Terminal de pedidos,Order terminal
+DESC_TERMINAL,Clic: el científico va y pide 4 reactivos (14 €). Llegan en camión al muelle de carga.,Click: the scientist goes and orders 4 reagents (€14). They arrive by truck at the loading dock.
+HUD_CLIC_PANEL,Clic para ver su panel.,Click to open its panel.

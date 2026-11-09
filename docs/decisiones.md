@@ -62,3 +62,6 @@
 | 2026-11-09 | La cámara sigue al científico; WASD mueve al científico y las flechas o el botón central mueven la cámara | WASD es del científico (elección de Edu) |
 | 2026-11-09 | Tras liberar el virus llega un zombi trabajador cada 40 s (máx. 6 esperando); un zombi solo puede operar una estación ya mejorada con máquina | Progresión pedida por Edu: yo → yo con máquina → zombi con máquina |
 | 2026-11-09 | El muelle compra vacunas (30 €), ADN (8 €) y plasma (5 €) | Siempre hay forma de conseguir dinero |
+| 2026-11-09 | Clic en una máquina solo abre su panel; las cosas se llevan arrastrando desde las manos o desde la salida de una máquina (el científico va andando); estaciones con botón de trabajar | Edu: el clic que dejaba y cogía todo a la vez liaba mucho |
+| 2026-11-09 | Ficha junto al puntero con qué es, qué hace y su estado (panel del HUD, no texto en el mundo) | Pedido por Edu |
+| 2026-11-09 | Apuntado para la puerta 5: extracción animada vistosa, partes de máquina con sentido y cintas que entren y salgan por sus bocas como Alchemy Factory | Pedido por Edu; se pule al final |

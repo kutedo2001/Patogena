@@ -31,3 +31,9 @@ Formato: síntoma · causa · arreglo · comprobación · cómo evitarlo.
 - **Causa:** la cámara rechazaba el vial repetido y se quedaba primero en la cinta, bloqueando los de detrás.
 - **Arreglo:** la cámara acepta el vial repetido y lo desecha (con aviso en el teletipo).
 - **Comprobación:** prueba de ratón: segunda mutación tras cambiar la receta.
+
+## B5 · No se puede extraer sangre tras intentar la mutación de la tos — resuelto (P4.14)
+- **Síntoma:** después de llevar plasma al biorreactor, la camilla ya no daba sangre.
+- **Causa:** con otra cosa en las manos (plasma), la sangre extraída no se podía coger y se quedaba en la camilla; la camilla no admite otro paciente hasta que se recoge, y no había aviso ni forma visible de soltar lo que se llevaba.
+- **Arreglo:** si se terminan de extraer con las manos ocupadas, la sangre espera y sale un aviso; botón «Tirar lo que llevo» (F) y botón «Ir a recoger lo hecho» en el panel; llevar cosas arrastrándolas.
+- **Comprobación:** prueba de ratón: plasma en las manos → extraer → la sangre espera → vender el plasma → recoger la sangre.
