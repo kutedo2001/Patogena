@@ -8,3 +8,4 @@
 - Centrífuga detallada y calcomanías (riesgo biológico, rotor, placa, franja de peligro): scripts propios (tools/blender/centrifuga.py, tools/texturas.py).
 - Secuenciador detallado: script propio (tools/blender/secuenciador.py).
 - Biorreactor detallado: script propio (tools/blender/biorreactor.py).
+- Mezcladora detallada y objetos del lote 2: scripts propios (tools/blender/mezcladora.py, tools/blender/objetos.py).

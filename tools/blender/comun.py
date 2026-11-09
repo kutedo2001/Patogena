@@ -10,6 +10,7 @@ Convenciones (las lee scripts/maquina.gd):
   liquido, baliza, pantalla, goma, tubo_<color>.
 """
 import bpy
+import os
 import bmesh
 import math
 from mathutils import Vector
@@ -415,3 +416,40 @@ def puerto_lamas(nombre, lado, x_cara, z, padre, ancho=0.24, alto=0.18, y=0.0, z
                  normal="+X" if lado > 0 else "-X")
     if z_flecha is not None:
         chevron(f"{nombre}_flecha", (x_flecha if x_flecha is not None else x + lado * 0.08, y, z_flecha), 0.11, mat("amarillo"), padre)
+
+
+def base_maquina(raiz, lado=2.0, cal_dir=None):
+    """Patas regulables, zócalo grafito con goma y franjas de peligro delante y detrás. Devuelve la cota del zócalo."""
+    m = lado / 2 - 0.15
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx * m, sy * m
+            cilindro(f"pata{sx}{sy}", 0.05, 0.014, (x, y, 0.007), mat("goma"), lados=20, bisel=0.003, padre=raiz)
+            cilindro(f"pata_rosca{sx}{sy}", 0.014, 0.03, (x, y, 0.026), mat("metal"), lados=12, padre=raiz)
+            cilindro(f"pata_tuerca{sx}{sy}", 0.026, 0.015, (x, y, 0.036), mat("metal"), lados=6, bisel=0.002, padre=raiz)
+    caja("zocalo", (lado - 0.04, lado - 0.04, 0.07), (0, 0, 0.075), mat("grafito"), bisel=0.025, padre=raiz)
+    caja("zocalo_goma", (lado - 0.03, lado - 0.03, 0.012), (0, 0, 0.044), mat("goma"), bisel=0.004, padre=raiz)
+    if cal_dir:
+        fp = mat_calcomania("franja_peligro", os.path.join(cal_dir, "franja_peligro.png"), 0.5)
+        for s in (-1, 1):
+            calcomania(f"franja{s}", lado * 0.75, 0.04, (0, s * (lado / 2 - 0.045), 0.1115), fp, padre=raiz)
+    return 0.11
+
+
+def manometro(nombre, pos, padre, r=0.05, normal_giro=(math.radians(90), 0, 0)):
+    """Manómetro de esfera con aguja (nodo aguja_<nombre>, el juego la hace oscilar)."""
+    v = vacio(nombre, pos, padre)
+    v.rotation_euler = normal_giro
+    cilindro(nombre + "_caja", r, 0.03, (0, 0, 0), mat("metal"), lados=32, bisel=0.006, padre=v)
+    cilindro(nombre + "_esfera", r * 0.86, 0.004, (0, 0, 0.016), mat("esfera_blanca", color=(0.95, 0.95, 0.92), rug=0.5), lados=32, padre=v)
+    for k in range(9):
+        a = math.radians(225 - k * 33.75)
+        caja(f"{nombre}_marca{k}", (r * 0.12, 0.004, 0.002), (math.cos(a) * r * 0.68, math.sin(a) * r * 0.68, 0.019),
+             mat("negro_mate", color=(0.05, 0.055, 0.06), rug=0.7), bisel=0.0, padre=v, giro=(0, 0, a))
+    caja(nombre + "_zona_roja", (r * 0.3, 0.008, 0.002), (math.cos(math.radians(-20)) * r * 0.7, math.sin(math.radians(-20)) * r * 0.7, 0.0185),
+         mat("rojo_zona", color=(0.8, 0.1, 0.1), rug=0.5), bisel=0.0, padre=v, giro=(0, 0, math.radians(-20)))
+    ag = vacio("aguja_" + nombre, (0, 0, 0.021), padre=v)
+    caja(nombre + "_aguja", (r * 0.7, 0.005, 0.002), (r * 0.3, 0, 0), mat("aguja_roja", color=(0.85, 0.1, 0.08), rug=0.4), bisel=0.0, padre=ag)
+    cilindro(nombre + "_eje", r * 0.08, 0.006, (0, 0, 0.002), mat("negro_mate"), lados=12, padre=ag)
+    cilindro(nombre + "_cristal", r * 0.88, 0.004, (0, 0, 0.026), mat("cristal", color=(0.75, 0.9, 0.95), rug=0.05, alfa=0.12), lados=32, padre=v)
+    return v

@@ -48,6 +48,15 @@ var _boquilla: Node3D
 var _boquilla_y0 := 0.0
 var _gota: Node3D
 var _gota_y0 := 0.0
+# procesos por fases (mezcladora y siguientes): nodos con prefijo fijo
+var _vaciar: Array[Node3D] = []
+var _chorros: Array[Node3D] = []
+var _llenar: Array[Node3D] = []
+var _sellar: Array[Node3D] = []
+var _sellar_y0: Array[float] = []
+var _mat_resistencia: Array[StandardMaterial3D] = []
+var _agujas: Array[Node3D] = []
+var _nivel_vaso: Node3D
 var _tapa_ang := 0.0
 var _mat_pantalla: StandardMaterial3D
 var _ui: PantallaMaquina
@@ -88,6 +97,25 @@ func _ready() -> void:
 		_burbuja_y0.append((n as Node3D).position.y)
 	for n in find_children("gira_*", "Node3D", true, false):
 		_giratorios.append(n)
+	for n in find_children("vaciar_*", "Node3D", true, false):
+		_vaciar.append(n)
+	for n in find_children("chorro_*", "Node3D", true, false):
+		_chorros.append(n)
+	for n in find_children("llenar_*", "Node3D", true, false):
+		_llenar.append(n)
+	for n in find_children("aguja_*", "Node3D", true, false):
+		_agujas.append(n)
+	for n in find_children("sellar_*", "Node3D", true, false):
+		_sellar.append(n)
+		_sellar_y0.append((n as Node3D).position.y)
+		for mi in n.find_children("*", "MeshInstance3D", true, false):
+			var m := (mi as MeshInstance3D).get_active_material(0)
+			if m and m.resource_name.begins_with("resistencia"):
+				var c: StandardMaterial3D = m.duplicate()
+				c.emission_enabled = true
+				(mi as MeshInstance3D).material_override = c
+				_mat_resistencia.append(c)
+	_nivel_vaso = _buscar("nivel_vaso")
 	_bandeja = _buscar("bandeja")
 	_boquilla = _buscar("boquilla")
 	_gota = _buscar("gota")
@@ -189,6 +217,7 @@ func _process(dt: float) -> void:
 		_mover_portico(dt, trabaja)
 	if not _llenados.is_empty():
 		_dosificar(dt, trabaja)
+	_procesos_por_fases(trabaja)
 	if _tapa:
 		# la tapa se abre cuando la máquina espera material (se ve el rotor vacío esperando)
 		var objetivo := deg_to_rad(68.0) if estado == Estado.SIN_MATERIAL else 0.0
@@ -274,3 +303,28 @@ func _dosificar(dt: float, trabaja: bool) -> void:
 		_gota.visible = llenando
 		if llenando:
 			_gota.position.y = _gota_y0 - fmod(_t * 1.6, 0.06)
+
+## Procesos por fases dentro de cada pieza (mezcladora…):
+## 0–0,35 verter (chorros, depósitos que se vacían, el vaso sube) · 0,35–0,55 mezclar ·
+## 0,55–0,85 llenar (bolsas que suben, el vaso baja) · 0,85–0,95 sellar (barra que baja al rojo).
+func _procesos_por_fases(trabaja: bool) -> void:
+	var p := _progreso
+	for v in _vaciar:
+		v.scale.y = lerpf(1.0, 0.35, smoothstep(0.0, 0.35, p))
+	for c in _chorros:
+		c.visible = trabaja and p > 0.03 and p < 0.33
+	if _nivel_vaso:
+		_nivel_vaso.scale.y = 0.45 + 0.55 * smoothstep(0.0, 0.35, p) - 0.55 * smoothstep(0.55, 0.85, p)
+	for l in _llenar:
+		var nv := smoothstep(0.55, 0.85, p) if p < 0.97 else 0.0
+		l.scale.y = maxf(nv, 0.001)
+		l.visible = nv > 0.002
+	var golpe := 0.0
+	if p > 0.85 and p < 0.95:
+		golpe = sin((p - 0.85) / 0.1 * PI)
+	for i in _sellar.size():
+		_sellar[i].position.y = _sellar_y0[i] - 0.06 * golpe
+	for m in _mat_resistencia:
+		m.emission_energy_multiplier = 5.0 * golpe
+	for a in _agujas:
+		a.rotation.y = deg_to_rad(-40.0 + 70.0 * _vel_giro + sin(_t * 7.0) * 4.0 * _vel_giro)

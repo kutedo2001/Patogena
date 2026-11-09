@@ -6,8 +6,8 @@ extends Control
 ## Disposición común: cabecera (estado, reloj, eficiencia, logotipo) · cuerpo
 ## (gráfica y dato principal) · pie (entrada → progreso → salida, con existencias).
 
-enum Tipo { CENTRIFUGA, SECUENCIADOR, BIORREACTOR }
-enum Icono { SANGRE, PLASMA, CULTIVO, ADN, VIAL }
+enum Tipo { CENTRIFUGA, SECUENCIADOR, BIORREACTOR, MEZCLADORA }
+enum Icono { SANGRE, PLASMA, CULTIVO, ADN, VIAL, AGUA, REACTIVO, SUERO }
 
 const FONDO := Color(0.03, 0.075, 0.085)
 const REJILLA := Color(0.09, 0.2, 0.2)
@@ -17,12 +17,14 @@ const C_ESTADO := [Color(0.35, 0.38, 0.4), Color(0.3, 1.0, 0.45), Color(1.0, 0.7
 const BASES := [Color(0.25, 0.95, 0.4), Color(0.3, 0.62, 1.0), Color(1.0, 0.82, 0.2), Color(1.0, 0.36, 0.36)]
 const C_ICONO := {
 	Icono.SANGRE: Color(0.8, 0.06, 0.08), Icono.PLASMA: Color(0.98, 0.72, 0.15),
-	Icono.CULTIVO: Color(0.85, 0.66, 0.3), Icono.ADN: Color(0.3, 1.0, 0.45), Icono.VIAL: Color(0.5, 0.95, 0.2)}
+	Icono.CULTIVO: Color(0.85, 0.66, 0.3), Icono.ADN: Color(0.3, 1.0, 0.45), Icono.VIAL: Color(0.5, 0.95, 0.2),
+	Icono.AGUA: Color(0.5, 0.8, 1.0), Icono.REACTIVO: Color(0.55, 0.3, 1.0), Icono.SUERO: Color(0.98, 0.85, 0.45)}
 # receta que enseña cada máquina: [entrada, salida]
 const RECETA := {
 	Tipo.CENTRIFUGA: [Icono.SANGRE, Icono.PLASMA],
 	Tipo.SECUENCIADOR: [Icono.CULTIVO, Icono.ADN],
-	Tipo.BIORREACTOR: [Icono.ADN, Icono.VIAL]}
+	Tipo.BIORREACTOR: [Icono.ADN, Icono.VIAL],
+	Tipo.MEZCLADORA: [Icono.AGUA, Icono.SUERO]}
 
 var tipo: Tipo = Tipo.CENTRIFUGA
 var estado := 1            # Maquina.Estado (0 apagada, 1 trabaja, 2 sin material, 3 avería)
@@ -105,6 +107,29 @@ func _icono(ic: Icono, c: Vector2, h: float, contorno := false) -> void:
 			pts.append(pts[0])
 			draw_polyline(pts, TINTA, linea, true)
 			draw_rect(Rect2(c + Vector2(-w * 0.62, -h * 0.48), Vector2(w * 1.24, h * 0.14)), TINTA)
+		Icono.AGUA:
+			var w := h * 0.62
+			var cuerpo := Rect2(c + Vector2(-w / 2, -h * 0.28), Vector2(w, h * 0.74))
+			if not contorno:
+				draw_rect(Rect2(cuerpo.position + Vector2(0, cuerpo.size.y * 0.25), Vector2(w, cuerpo.size.y * 0.75)), col)
+			draw_rect(cuerpo, TINTA, false, linea)
+			draw_rect(Rect2(c + Vector2(-w * 0.3, -h * 0.48), Vector2(w * 0.3, h * 0.2)), Color(0.2, 0.5, 0.95))
+			draw_arc(c + Vector2(w * 0.25, -h * 0.28), h * 0.12, PI, TAU, 10, TINTA, linea)
+		Icono.REACTIVO:
+			var rr := h * 0.32
+			if not contorno:
+				draw_circle(c + Vector2(0, h * 0.14), rr * 0.95, col)
+			draw_arc(c + Vector2(0, h * 0.14), rr, 0, TAU, 24, TINTA, linea, true)
+			draw_rect(Rect2(c + Vector2(-h * 0.13, -h * 0.5), Vector2(h * 0.26, h * 0.22)), Color(0.1, 0.35, 0.9))
+		Icono.SUERO:
+			var w := h * 0.5
+			var cuerpo := Rect2(c + Vector2(-w / 2, -h * 0.38), Vector2(w, h * 0.66))
+			if not contorno:
+				draw_rect(Rect2(cuerpo.position + Vector2(0, cuerpo.size.y * 0.2), Vector2(w, cuerpo.size.y * 0.8)), col)
+			draw_rect(cuerpo, TINTA, false, linea)
+			draw_circle(c + Vector2(0, -h * 0.44), h * 0.05, TINTA)
+			draw_line(c + Vector2(-w * 0.2, h * 0.28), c + Vector2(-w * 0.2, h * 0.48), TINTA, linea)
+			draw_line(c + Vector2(w * 0.2, h * 0.28), c + Vector2(w * 0.2, h * 0.48), TINTA, linea)
 		Icono.VIAL:
 			var w := h * 0.5
 			var cuerpo := Rect2(c + Vector2(-w / 2, -h * 0.12), Vector2(w, h * 0.6))
@@ -143,12 +168,16 @@ func _pie(w: float, h: float) -> float:
 	_icono(r[0], Vector2(_px(14), y0 + hp / 2), ic, entradas == 0)
 	_txt(Vector2(_px(26), y0 + hp * 0.68), "×%d" % entradas, 13, TINTA if entradas > 0 else C_ESTADO[2])
 	var bx := _px(62)
+	if tipo == Tipo.MEZCLADORA:   # segunda entrada: reactivo
+		_icono(Icono.REACTIVO, Vector2(_px(64), y0 + hp / 2), ic, entradas == 0)
+		_txt(Vector2(_px(76), y0 + hp * 0.68), "×%d" % entradas, 13, TINTA if entradas > 0 else C_ESTADO[2])
+		bx = _px(112)
 	var bw := w - bx - _px(66)
 	_barra(Rect2(bx, y0 + hp * 0.36, bw, hp * 0.28), progreso, TINTA)
 	var fx := bx + bw + _px(4)
 	draw_colored_polygon(PackedVector2Array([Vector2(fx, y0 + hp * 0.3), Vector2(fx + _px(7), y0 + hp * 0.5), Vector2(fx, y0 + hp * 0.7)]), TINTA)
 	_icono(r[1], Vector2(w - _px(42), y0 + hp / 2), ic)
-	_txt(Vector2(w - _px(30), y0 + hp * 0.68), "×%d" % salidas, 13, TINTA)
+	_txt(Vector2(w - _px(30), y0 + hp * 0.68), "×%d" % (salidas * (2 if tipo == Tipo.MEZCLADORA else 1)), 13, TINTA)
 	return y0
 
 func _aviso(cuerpo: Rect2) -> void:
@@ -208,6 +237,7 @@ func _draw() -> void:
 		Tipo.CENTRIFUGA: _centrifuga(cuerpo)
 		Tipo.SECUENCIADOR: _secuenciador(cuerpo)
 		Tipo.BIORREACTOR: _biorreactor(cuerpo)
+		Tipo.MEZCLADORA: _mezcladora(cuerpo)
 
 func _centrifuga(b: Rect2) -> void:
 	# rotor visto desde arriba con 6 cestillos
@@ -319,3 +349,52 @@ func _biorreactor(b: Rect2) -> void:
 	var c := Vector2(b.end.x - _px(26), g.get_center().y)
 	_anillo(c, _px(19), progreso, color_producto.lightened(0.2), _px(5))
 	_icono(Icono.VIAL, c, _px(20))
+
+func _mezcladora(b: Rect2) -> void:
+	# dos depósitos de entrada (agua, reactivo) con su nivel y el vaso con remolino
+	var fase := progreso
+	var nivel_agua := lerpf(1.0, 0.35, smoothstep(0.0, 0.35, fase))
+	var nivel_reac := lerpf(1.0, 0.35, smoothstep(0.0, 0.35, fase))
+	var w := b.size.x * 0.1
+	for k in 2:
+		var r := Rect2(b.position + Vector2(k * (w + _px(6)), 0), Vector2(w, b.size.y - _px(16)))
+		draw_rect(r, TENUE, false, _px(1.5))
+		var nv: float = nivel_agua if k == 0 else nivel_reac
+		draw_rect(Rect2(r.position + Vector2(_px(2), r.size.y * (1 - nv)), Vector2(r.size.x - _px(4), r.size.y * nv - _px(2))),
+			C_ICONO[Icono.AGUA] if k == 0 else C_ICONO[Icono.REACTIVO])
+		_icono(Icono.AGUA if k == 0 else Icono.REACTIVO, Vector2(r.get_center().x, b.end.y - _px(6)), _px(12))
+	# vaso visto de lado con remolino
+	var vc := Vector2(b.position.x + b.size.x * 0.42, b.get_center().y)
+	var vr := b.size.y * 0.42
+	var vaso := Rect2(vc - Vector2(vr, vr), Vector2(vr * 2, vr * 2))
+	draw_rect(vaso, TENUE, false, _px(1.5))
+	var nivel := 0.45 + 0.55 * smoothstep(0.0, 0.35, fase) - 0.55 * smoothstep(0.55, 0.85, fase)
+	var top := vaso.end.y - vaso.size.y * nivel * 0.9
+	var pts := PackedVector2Array()
+	for i in 25:
+		var u := i / 24.0
+		var x := vaso.position.x + vaso.size.x * u
+		var dip := exp(-pow((u - 0.5) * 4.0, 2.0)) * vaso.size.y * 0.18 * velocidad
+		pts.append(Vector2(x, top + dip))
+	pts.append(Vector2(vaso.end.x, vaso.end.y))
+	pts.append(Vector2(vaso.position.x, vaso.end.y))
+	draw_colored_polygon(pts, Color(C_ICONO[Icono.SUERO], 0.85))
+	var giro := _t * 8.0 * velocidad
+	for k in 3:
+		var a := giro + k * TAU / 3
+		draw_arc(Vector2(vc.x, top + vaso.size.y * 0.25), vr * (0.3 + 0.2 * k), a, a + 1.4, 12, Color(1, 1, 1, 0.5), _px(1.5))
+	# datos: rpm, proporción y temperatura
+	var x0 := vaso.end.x + _px(12)
+	_txt(Vector2(x0, b.position.y + _px(24)), "%d" % int(velocidad * 480), 26, TINTA)
+	_txt(Vector2(x0 + _px(58), b.position.y + _px(24)), "rpm", 11, TENUE)
+	_txt(Vector2(x0, b.position.y + _px(44)), "1:1", 14, TENUE)
+	_txt(Vector2(x0 + _px(40), b.position.y + _px(44)), "%.1f°C" % (21.5 + sin(_t * 0.5) * 0.2), 13, TENUE)
+	# bolsas llenándose
+	var llen := smoothstep(0.55, 0.85, fase) if fase < 0.97 else 0.0
+	for k in 2:
+		var bc := Vector2(x0 + _px(16) + k * _px(30), b.end.y - _px(20))
+		var br := Rect2(bc - Vector2(_px(10), _px(16)), Vector2(_px(20), _px(30)))
+		draw_rect(Rect2(br.position + Vector2(0, br.size.y * (1 - llen)), Vector2(br.size.x, br.size.y * llen)), C_ICONO[Icono.SUERO])
+		draw_rect(br, TINTA, false, _px(1.2))
+	if fase > 0.85 and fase < 0.95:
+		draw_rect(Rect2(x0 + _px(2), b.end.y - _px(40), _px(60), _px(4)), Color(1.0, 0.35, 0.1))
