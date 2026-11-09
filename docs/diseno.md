@@ -80,6 +80,25 @@ Cuatro sistemas. Ayudantes y líquidos por tubería quedan para la 1.1.
 - Vacunas: solo fuente de dinero; no afectan a la pandemia. Posible ampliación a otros fármacos.
 - Monitor del mundo en la pared, panel del mundo en el HUD, teletipo de noticias.
 
+
+## Revisión tras la primera prueba de Edu (9-nov-2026): inicio, científico y estaciones
+
+Sustituye a lo que contradiga en «Mecánicas de la versión 1».
+
+- **El jugador es un científico** (personaje CC0 con bata): WASD o clic en el suelo para ir; clic en algo para usarlo. Al principio lo hace todo a mano.
+- **Sin inventario**: lleva las cosas en las manos (una pila visible de hasta 4 del mismo objeto). Las deja en una máquina, una cinta, un almacén o el muelle de envío.
+- **Estaciones de extracción construibles**, nada fijo:
+  - *Camilla*: llega un paciente por la puerta de la sala, se tumba; el científico le saca sangre (3 s) y el paciente se va.
+  - *Incubadora*: el cultivo crece (barra de la estación) y el científico recoge la placa.
+  - *Toma de agua*: se coloca junto a la pared; el científico llena la garrafa.
+- **Progresión de cada estación**: a mano → **científico con máquina** (mejora construida en la estación, más rápida) → **zombi con máquina** (automático: el producto sale por la boca de la estación a la cinta).
+- **Zombis trabajadores**: tras liberar el virus, algunos pacientes vuelven convertidos y esperan en la puerta; se asignan con un clic a una estación o máquina y la operan solos.
+- **Máquinas siempre automáticas**: procesan lo que les llegue por cinta o lo que les deje el científico; nunca hace falta hacer clic para que trabajen.
+- **Bocas visibles**: flecha verde de entrada y naranja de salida en el suelo, en el fantasma al construir y al seleccionar.
+- **Quitar devuelve el 100 %**.
+- **Dinero**: el muelle de envío (con su camión) compra lo que le dejas: vacunas a buen precio y plasma barato al «banco de sangre»; Dirección paga cada hito. Nunca hay bloqueo sin salida.
+- **Tutorial con historia**: el científico llega al sótano; los correos de Dirección presentan el «Proyecto Reinicio» con su tono corporativo y van dando pasos, con marcas en el mundo (flecha sobre el objetivo) y en el HUD, hasta la primera mutación.
+
 ## Contenido y números
 
 14 objetos, 27 construcciones, 24 mutaciones, 12 regiones, 4 niveles de laboratorio, 10 eventos, 15 patentes, 4 sedes. Números iniciales; se equilibran con el bot.

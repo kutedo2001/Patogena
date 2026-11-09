@@ -57,3 +57,4 @@
 | 2026-11-09 | Consejo del momento en el panel de objetivo | Hecho cuando de P4.3: que se juegue sin explicaciones |
 | 2026-11-09 | Cámara: el arrastre pasa al botón central; el derecho cancela o quita | El derecho se usaba para las dos cosas |
 | 2026-11-09 | La pantalla objetivo se conserva como «escaparate» (`-- --escaparate`) con su HUD de datos de muestra | Referencia visual de la puerta 3 |
+| 2026-11-09 | Nuevo inicio decidido por Edu: científico controlable (WASD y clic), estaciones de extracción construibles con pacientes que llegan y se van, progresión a mano → científico con máquina → zombi con máquina, sin inventario, máquinas siempre automáticas, bocas visibles, devolución completa, venta clara y tutorial con historia | Primera prueba de Edu: se bloqueó al empezar (P4.5) |
