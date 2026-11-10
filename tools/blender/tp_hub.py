@@ -226,6 +226,28 @@ def gradilla_sangre():
     exportar(os.path.join(SAL, "gradilla_sangre.glb"))
 
 
+def gradilla_hematies():
+    """La misma gradilla al salir de la centrífuga: el plasma ya se ha sacado y solo queda el concentrado de hematíes."""
+    limpiar(); comun._mats.clear()
+    r = vacio("gradilla_hematies")
+    plast = mat("gradilla_plastico", color=(0.95, 0.95, 0.92), rug=0.55)
+    hem = mat("hematies_tubo", color=(0.32, 0.01, 0.03), rug=0.2)
+    vid = mat("cristal", color=(0.85, 0.92, 0.95), rug=0.05, alfa=0.35)
+    tapon = mat("tapon_morado", color=(0.45, 0.2, 0.62), rug=0.5)
+    caja("base", (0.34, 0.16, 0.02), (0, 0, 0.01), plast, bisel=0.006, padre=r)
+    caja("tabla", (0.34, 0.16, 0.018), (0, 0, 0.1), plast, bisel=0.006, padre=r)
+    for s in (-1, 1):
+        caja(f"lado{s}", (0.018, 0.16, 0.1), (s * 0.161, 0, 0.055), plast, bisel=0.005, padre=r)
+    for i in range(3):
+        for j in range(2):
+            x, y = -0.1 + i * 0.1, -0.04 + j * 0.08
+            cilindro(f"tubo{i}{j}", 0.022, 0.17, (x, y, 0.105), vid, lados=20, bisel=0.004, padre=r)
+            cilindro(f"hem{i}{j}", 0.0185, 0.07, (x, y, 0.055), hem, lados=20, bisel=0.004, padre=r)
+            cilindro(f"tapon{i}{j}", 0.025, 0.035, (x, y, 0.205), tapon, lados=20, bisel=0.006, padre=r)
+    caja("etiqueta", (0.12, 0.004, 0.04), (0, -0.082, 0.055), mat("etiqueta", color=(0.98, 0.98, 0.95), rug=0.6), bisel=0.0, padre=r)
+    exportar(os.path.join(SAL, "gradilla_hematies.glb"))
+
+
 def bolsa_hematies():
     limpiar(); comun._mats.clear()
     r = vacio("bolsa_hematies")
@@ -259,6 +281,6 @@ def banco():
     exportar(os.path.join(SAL, "banco.glb"))
 
 
-for f in (banco, pared_recta, pared_esquina, pared_puerta, pared_ventana, pared_pasamuros, cinta_recta, tuberia_recta, gradilla_sangre, bolsa_hematies):
+for f in (gradilla_hematies, banco, pared_recta, pared_esquina, pared_puerta, pared_ventana, pared_pasamuros, cinta_recta, tuberia_recta, gradilla_sangre, bolsa_hematies):
     f()
     print("hecho:", f.__name__)
