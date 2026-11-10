@@ -18,3 +18,6 @@
 - HUD, iconos vectoriales e iconos 3D renderizados: código propio (scripts/hud.gd, icono_hud.gd, mapa_hud.gd, iconos.gd).
 - Monitor del mundo: script propio (tools/blender/monitor_mundo.py, scripts/pantalla_mundo.gd).
 - Valla del corral: script propio (tools/blender/valla.py).
+- Personajes del rediseño 2.0: Quaternius «Ultimate Animated Character Pack» (CC0, quaternius.com) — científicos, técnicos, personal, pacientes y zombis (assets/personajes/quaternius/LICENCIA_Quaternius_CC0.txt).
+- Animaciones de los personajes: Kay Lousberg, «KayKit Character Animations 1.1» (CC0, kaylousberg.com), pasadas al esqueleto de Quaternius con tools/blender/retarget_kaykit.py (assets/personajes/quaternius/LICENCIA_KayKit_animaciones_CC0.txt).
+- Zombis extra: Quaternius «Zombie Apocalypse Kit» (CC0) con sus animaciones (assets/personajes/zombis/LICENCIA_Quaternius_CC0.txt).
