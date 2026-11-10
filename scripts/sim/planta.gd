@@ -41,6 +41,7 @@ class Persona:
 	var sala: Hospital.Sala = null
 	var objeto: Hospital.Objeto = null    # mueble o máquina en uso / destino
 	var asiento := -1
+	var sitio := Vector2i(-999, -999)   # paciente de pie: casilla reservada para esperar
 	var destino: Hospital.Objeto = null   # becario: adónde lo lleva
 	var mira := Vector2i(0, 1)
 	var anim := "Idle_A"
@@ -220,6 +221,65 @@ func asientos() -> Array:
 				r.append([o, i])
 	return r
 
+## Sitio para esperar de pie: pasillo libre cerca de los bancos, pegado a una pared u objeto
+## (no en medio del paso), sin tapar usos, puertas ni la entrada, y uno por persona.
+func _sitio_de_pie(p: Persona) -> Vector2i:
+	var prohibidas := {h.entrada: true}
+	for o in h.objetos:
+		for u in o.usos():
+			prohibidas[u.c] = true
+	for s in h.salas:
+		prohibidas[s.fuera()] = true
+	for q in personas:
+		if q != p and q.sitio.x > -900:
+			prohibidas[q.sitio] = true
+	var origen := p.casilla()
+	var bancos := h.objetos.filter(func(o): return o.tipo == "banco")
+	if not bancos.is_empty():
+		origen = _uso_libre_cerca(bancos[0])
+	var dist := {origen: 0}
+	var cola := [origen]
+	var mejor := Vector2i(-999, -999)
+	var pmin := INF
+	while not cola.is_empty():
+		var c: Vector2i = cola.pop_front()
+		var d: int = dist[c]
+		if d > 8:
+			break
+		if h.sala_en(c) == null and h.andable(c) and not cintas.has(c) and not prohibidas.has(c):
+			var pegado := false
+			for dd in Hospital.DIRS:
+				var n: Vector2i = c + dd
+				if not h.dentro(n) or h.pared(c, n) or not h.andable(n) or h.sala_en(n) != null:
+					pegado = true
+			var punt := float(d) + (0.0 if pegado else 4.0)
+			if punt < pmin:
+				pmin = punt
+				mejor = c
+		for dd in Hospital.DIRS:
+			var n: Vector2i = c + dd
+			if not dist.has(n) and h.dentro(n) and not h.pared(c, n) and h.andable(n):
+				dist[n] = d + 1
+				cola.append(n)
+	return mejor
+
+func _uso_libre_cerca(o: Hospital.Objeto) -> Vector2i:
+	for u in o.usos():
+		return u.c
+	return o.origen
+
+func _mira_a_bancos(p: Persona) -> Vector2i:
+	var c := p.casilla()
+	var rec := _buscar("recepcion")
+	var meta := Vector2(h.entrada) if rec == null else Vector2(rec.origen)
+	var bancos := h.objetos.filter(func(o): return o.tipo == "banco")
+	if not bancos.is_empty():
+		meta = Vector2((bancos[0] as Hospital.Objeto).origen)
+	var v := meta - Vector2(c)
+	if absf(v.x) > absf(v.y):
+		return Vector2i(signi(int(v.x)), 0)
+	return Vector2i(0, signi(int(v.y)) if v.y != 0 else 1)
+
 func _ocupado(o: Hospital.Objeto, i: int) -> bool:
 	for p in personas:
 		if p.objeto == o and p.asiento == i:
@@ -342,8 +402,17 @@ func _persona(p: Persona, dt: float) -> void:
 						return
 					p.objeto = null
 					p.asiento = -1
-			p.estado = "de_pie"
-			p.anim = "Idle_A"
+			var sitio := _sitio_de_pie(p)
+			p.sitio = sitio
+			if sitio.x < -900 or not _ir(p, sitio, "a_pie"):
+				p.sitio = Vector2i(-999, -999)
+				p.estado = "de_pie"
+				p.anim = "Idle_A"
+		"a_pie":
+			if _llegar(p, dt):
+				p.estado = "de_pie"
+				p.anim = "Idle_A"
+				p.mira = _mira_a_bancos(p)
 		"a_sentarse":
 			if _llegar(p, dt):
 				p.estado = "esperando"
@@ -353,15 +422,21 @@ func _persona(p: Persona, dt: float) -> void:
 			if cam:
 				p.objeto = cam
 				p.asiento = -1
+				p.sitio = Vector2i(-999, -999)
 				_ir(p, _junto_a(p, cam), "a_camilla")
 				return
 			var cola := _camilla_sin_cola()
 			if cola:
 				p.objeto = cola
 				p.asiento = -1
+				p.sitio = Vector2i(-999, -999)
 				_ir(p, cola.sala.fuera(), "a_cola")
 			elif p.estado == "de_pie":
-				p.estado = "a_esperar"
+				for a in asientos():       # en cuanto queda un asiento libre, a sentarse
+					if not _ocupado(a[0], a[1]):
+						p.sitio = Vector2i(-999, -999)
+						p.estado = "a_esperar"
+						return
 		"a_cola":
 			if _llegar(p, dt):
 				p.estado = "en_cola"

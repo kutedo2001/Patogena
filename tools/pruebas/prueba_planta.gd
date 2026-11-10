@@ -57,6 +57,23 @@ func _initialize() -> void:
 		if not p.h.dentro(q.casilla()):
 			mal += 1
 	comprobar(mal == 0, "todas las personas siguen dentro del edificio")
+	# --- de pie, ordenados: sin científico se llena la sala de espera
+	var pe := Planta.new(Hospital.new())
+	_montar(pe)
+	_simular(pe, 90.0)
+	var de_pie := pe.personas.filter(func(q): return q.estado == "de_pie")
+	var sitios := {}
+	var mal_sitio := 0
+	var usos := {}
+	for o in pe.h.objetos:
+		for u in o.usos():
+			usos[u.c] = true
+	for q in de_pie:
+		var c: Vector2i = q.casilla()
+		if sitios.has(c) or usos.has(c) or c == pe.h.entrada or pe.h.sala_en(c) != null:
+			mal_sitio += 1
+		sitios[c] = true
+	comprobar(de_pie.size() >= 2 and mal_sitio == 0, "los que no tienen asiento esperan de pie cada uno en su casilla, sin tapar usos, puertas ni la entrada (%d de pie, %d mal)" % [de_pie.size(), mal_sitio])
 	# --- con cintas y pasamuros
 	var p2 := Planta.new(Hospital.new())
 	_montar(p2)

@@ -97,7 +97,7 @@ func _sync_personas() -> void:
 			"en_cola", "recepcion", "de_pie":
 				pass
 		n.position = pos
-		n.rotation.y = lerp_angle(n.rotation.y, yaw, 0.35) if p.estado in ["", "a_recepcion", "a_esperar", "a_sentarse", "a_camilla", "saliendo", "a_puesto", "a_coger", "a_dejar", "a_cola"] else yaw
+		n.rotation.y = lerp_angle(n.rotation.y, yaw, 0.35) if p.estado in ["", "a_recepcion", "a_esperar", "a_sentarse", "a_camilla", "saliendo", "a_puesto", "a_coger", "a_dejar", "a_cola", "a_pie"] else yaw
 		_anim(g, p.anim)
 		(g.arbol as AnimationTree).set("parameters/mezcla/blend_amount", 1.0 if p.lleva != "" else 0.0)
 		_carga(g, p.lleva)
