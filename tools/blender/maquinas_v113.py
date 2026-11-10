@@ -44,11 +44,7 @@ def _armario(r, z, ancho=1.6, fondo=1.2, alto=0.5, x=0.0, y=0.1, acento="acento_
 def _bocas(r, z, filas, lado=2.0, salida_fila=1):
     """Bocas con lamas en -X por fila y salida en +X en la fila indicada. Fila i → y = (n-1)/2 - i."""
     n = int(lado)
-    for i in filas:
-        y = (n - 1) / 2 - i
-        puerto_lamas(f"boca_entrada{i}", -1, -lado / 2 + 0.04, z + 0.18, r, ancho=0.3, alto=0.2, y=y, z_flecha=z + 0.002)
-    y = (n - 1) / 2 - salida_fila
-    puerto_lamas("boca_salida", 1, lado / 2 - 0.04, z + 0.18, r, ancho=0.3, alto=0.2, y=y, z_flecha=z + 0.002)
+    bocas_estandar(r, n, filas, salida_fila)
 
 
 def _cuadro(r, z, x, y, ancho=0.34):

@@ -71,7 +71,7 @@ func _hasta(cond: Callable, s: float) -> bool:
 
 func _correo() -> void:
 	await _esperar(0.3)
-	if juego.tutorial.leyendo:
+	if hud._correo != null:
 		hud.cerrar_correo()
 		await get_tree().process_frame
 
@@ -87,7 +87,7 @@ func _guion() -> void:
 	Engine.time_scale = 3.0           # la prueba va a ×3 (temporizadores y simulación escalados)
 	var f := juego.fab
 	print("Prueba del nuevo inicio con ratón y teclado:")
-	comprobar(juego.tutorial.leyendo, "empieza con el correo de bienvenida y el juego en pausa")
+	comprobar(hud._correo != null and juego.velocidad > 0.0, "empieza con LISA en un bocadillo y el juego sin pausa")
 	await _correo()
 	await _tecla(KEY_W, 1.2)
 	comprobar(juego.tutorial.paso_actual() == "PASO_CAMILLA", "moverse con WASD pasa al paso de la camilla")
@@ -110,8 +110,8 @@ func _guion() -> void:
 	await _clic(Vector2i(0, 1))
 	ok = await _hasta(func(): return juego.cuenta_mochila("tubo_sangre") == 0, 10.0)
 	comprobar(ok, "clic en la centrífuga con la sangre en la mano: la mete")
-	await _hasta(func(): return juego.tutorial.leyendo, 12.0)
-	comprobar(juego.tutorial.leyendo, "con el primer plasma llega el correo de la sala de cepas")
+	await _hasta(func(): return juego.tutorial.paso_actual() == "PASO_ELEGIR_MEJORA", 12.0)
+	comprobar(hud._correo != null, "con el primer plasma LISA habla de la sala de cepas")
 	await _correo()
 	# sala de cepas: clic derecho abre su panel; el árbol se abre y se elige la tos
 	await _clic(Vector2i(5, -6), MOUSE_BUTTON_RIGHT)
@@ -133,12 +133,16 @@ func _guion() -> void:
 	juego.mano_i = 1
 	var d_antes := f.dinero
 	await _clic(Vector2i(4, -6))
-	var ok_t := await _hasta(func(): return "tos" in f.cepa_hechas, 20.0)
-	comprobar(ok_t, "clic en la sala con 10 plasmas: se entregan y la tos queda aplicada")
+	var ok_l := await _hasta(func(): return f.cepa_sintesis >= 0.0, 20.0)
+	comprobar(ok_l, "clic en la sala con 10 plasmas: se entregan y falta sintetizar")
+	await _clic(Vector2i(4, -6))
+	var ok_p := await _hasta(func(): return juego.pos.distance_to(Vector2(juego._cepa.puesto()) + Vector2(0.5, 0.5)) < 0.7, 20.0)
+	comprobar(ok_p, "otro clic: el científico entra por la puerta de la sala y se pone en la mesa")
+	var ok_t := await _hasta(func(): return "tos" in f.cepa_hechas, 25.0)
+	comprobar(ok_t, "trabajando en la mesa sintetiza la cepa y la tos queda aplicada")
 	comprobar(juego.desbloqueadas.has("secuenciador") and f.dinero >= d_antes + 400.0, "la tos desbloquea máquinas y LISA paga 400 €")
 	await _esperar(0.5)
-	while juego.tutorial.leyendo:
-		await _correo()
+	await _correo()
 	# recetas elegibles: la centrífuga cambia a hematíes sin perder lo cargado (B7)
 	cf.entrada["tubo_sangre"] = 2
 	cf.salida.clear()                 # lo hecho antes se queda en la salida si nadie lo recoge
@@ -163,8 +167,7 @@ func _guion() -> void:
 	ok = await _hasta(func(): return f.vacunas_vendidas >= 4, 15.0)
 	await _esperar(0.5)
 	comprobar(ok and juego.liberado and juego.mundo.total("i") > 0.0, "vender vacunas infecta en la región de destino")
-	while juego.tutorial.leyendo:
-		await _correo()
+	await _correo()
 	# mejora de la camilla, cinta hasta la centrífuga y zombi
 	juego.seleccion = cam
 	juego.mejorar(cam)

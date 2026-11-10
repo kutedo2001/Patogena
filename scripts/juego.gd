@@ -119,6 +119,7 @@ var _muelle_carga: Fabrica.Almacen
 var _terminal := Vector2i(-6, 7)
 var compradas := {}                  # parcela → true
 var mundo := Mundo.new()
+var pacientes: GestorPacientes
 var muelle: Fabrica.MuelleEnvio
 var desbloqueadas := {}              # id del catálogo → true
 var _vendidas_previas := 0
@@ -169,6 +170,9 @@ func _ready() -> void:
 	cientifico.position = Vector3(pos.x, 0, pos.y)
 	var args := OS.get_cmdline_user_args()
 	inicio_pendiente = Guardado.hay_partida() and not ("--sin_tutorial" in args or "--prueba_raton" in args or "--nueva" in args)
+	pacientes = GestorPacientes.new()
+	pacientes.juego = self
+	add_child(pacientes)
 	tutorial = Tutorial.new()
 	tutorial.juego = self
 	add_child(tutorial)
@@ -197,7 +201,7 @@ func _montar_nivel_1() -> void:
 		compradas[p] = true
 	for id in Fabrica.datos.inicio_desbloqueado:
 		desbloqueadas[id] = true
-	_cepa = fab.poner_sala_cepas(Vector2i(4, -7))
+	_cepa = fab.poner_sala_cepas(Vector2i(1, -8))
 	muelle = fab.poner_muelle_envio(Vector2i(5, 5))
 	_muelle_carga = fab.poner_almacen(Vector2i(-7, 7), 0)
 	_muelle_carga.carga = true
@@ -297,6 +301,9 @@ func _revisar_cepa() -> void:
 		var nombres: Array = []
 		for id in m.desbloquea:
 			desbloqueadas[id] = true
+			if id == "robot_cepas":
+				fab.cepa_robot = true
+				nombres.append(tr("CONS_ROBOT_CEPAS"))
 			for cat in CATALOGO:
 				for en in CATALOGO[cat]:
 					if en[0] == id:
@@ -318,6 +325,7 @@ var _vendidas_dest := {}
 var _final_visto := false
 signal final(ganado: bool)
 var _demo: Fabrica.Estacion
+var _sintetizando := false
 ## Hay partida guardada y el HUD pregunta si continuar (el tutorial espera).
 var inicio_pendiente := false
 var _t_guardar := 0.0
@@ -331,6 +339,12 @@ func _process(dt: float) -> void:
 		velocidad = 0.0
 		_trabajando = _demo
 	var dtj := dt * velocidad
+	if _sintetizando:
+		var pu := Vector2(_cepa.puesto()) + Vector2(0.5, 0.5)
+		if fab.cepa_sintesis < 0.0 or pos.distance_to(pu) > 0.7:
+			_sintetizando = false
+		else:
+			fab.sintetizar(dtj)
 	_t_guardar += dt
 	if _t_guardar > 60.0 and not inicio_pendiente and puede_guardar():
 		_t_guardar = 0.0
@@ -345,7 +359,6 @@ func _process(dt: float) -> void:
 	elif kw <= fab.capacidad_kw():
 		_apagon = false
 	fab.avanzar(dtj)
-	_cola_puerta()
 	if _demo and _demo.paciente and _trabajando == null and _tareas.is_empty() and _ruta.is_empty():
 		if _demo.listo != "":
 			_demo.listo = ""
@@ -564,7 +577,12 @@ func _mover_cientifico(dt: float) -> void:
 			pos = pos.lerp(punto, minf(1.0, dt * 6.0))
 			cientifico.position = Vector3(pos.x, 0, pos.y)
 		cientifico.rotation.y = lerp_angle(cientifico.rotation.y, atan2(cen.x - pos.x, cen.y - pos.y), minf(1.0, dt * 10.0))
-	var anim := "walk" if mov != Vector2.ZERO else ("interact-right" if _trabajando and _trabajando.trabajando else ("holding-both" if mano_n > 0 else "idle"))
+	var trabaja: bool = mov == Vector2.ZERO and _trabajando != null and _trabajando.trabajando
+	var sintetiza: bool = mov == Vector2.ZERO and _sintetizando
+	var anim := "walk" if mov != Vector2.ZERO else ("idle" if trabaja or sintetiza else ("holding-both" if mano_n > 0 else "idle"))
+	cientifico.estilo = ("extraer" if _trabajando.tipo == "camilla" else "manipular") if trabaja else ("manipular" if sintetiza else "")
+	if sintetiza:
+		cientifico.rotation.y = lerp_angle(cientifico.rotation.y, -PI * 0.5, minf(1.0, dt * 10.0))   # mira a la mesa (oeste)
 	if cientifico.animacion != anim:
 		cientifico.animacion = anim
 		cientifico.poner(anim)
@@ -664,6 +682,8 @@ func _cola_puerta() -> void:
 
 ## La camilla se trabaja desde su lado de trabajo (donde el paciente extiende el brazo).
 func _lado_trabajo(e: Fabrica.Entidad):
+	if e is Fabrica.SalaCepas and fab.cepa_sintesis >= 0.0 and not fab.cepa_robot and _cuenta_entregable() == 0:
+		return e.puesto()
 	if e is Fabrica.Estacion and e.tipo == "camilla" and e.modo == "mano":
 		var c: Vector2i = e.casillas[0] + Fabrica.DIRS[(e.giro + 1) % 4]
 		if andable(c):
@@ -800,9 +820,24 @@ func _devolver(e: Fabrica.Entidad, o: String) -> void:
 
 ## Clic en una entidad (estilo Factorio): mete lo de la mano; si no, recoge lo hecho.
 ## Mayús: mete todo lo que acepte de la mochila y recoge todo.
+## Cuánto de lo que llevo sirve para la mejora en curso de la sala de cepas.
+func _cuenta_entregable() -> int:
+	var n := 0
+	for m in mochila:
+		if not m.is_empty() and fab.cepa_falta(m.o) > 0:
+			n += 1
+	return n
+
 func usar(e: Fabrica.Entidad, todo := false) -> void:
 	if e is Fabrica.Estacion:
 		_trabajar(e)
+		return
+	if e is Fabrica.SalaCepas:
+		var d := _dejar_en(e, true)            # en la sala se entrega todo lo que pida
+		if d == 0 and fab.cepa_sintesis >= 0.0 and not fab.cepa_robot:
+			_sintetizando = true               # a trabajar en la mesa (V1.17)
+		elif d == 0:
+			aviso.emit("AVISO_SALA_NADA" if fab.cepa_actual != "" else "AVISO_ELIGE_MEJORA")
 		return
 	var dejados := 0
 	if mano_i >= 0 or todo:
@@ -1046,7 +1081,7 @@ func _ruta_cinta(a: Vector2i, b: Vector2i) -> Array:
 
 func _ruta_libre(r: Array) -> bool:
 	for c in r:
-		if not comprada(c) or fab.celdas.has(c) or c == _terminal:
+		if not comprada(c) or fab.celdas.has(c) or c == _terminal or _cepa.rect().has_point(c):
 			return false
 	return true
 
@@ -1077,7 +1112,7 @@ func _valido(entrada: Array, origen: Vector2i) -> bool:
 	if not desbloqueada(entrada):
 		return false
 	for c in casillas_de(entrada, origen):
-		if not comprada(c) or fab.celdas.has(c) or c == _terminal or c == _celda(pos):
+		if not comprada(c) or fab.celdas.has(c) or c == _terminal or c == _celda(pos) or _cepa.rect().has_point(c):
 			return false
 	return true
 

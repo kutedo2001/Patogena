@@ -88,7 +88,7 @@ def almacen():
     nv = vacio("barra", (0.3, -0.405, z + 0.09), r)
     caja("barra_nivel", (0.04, 0.008, 0.42), (0, 0, 0.21), mat("nivel_verde", color=(0.3, 1.0, 0.45), emision=(0.3, 1.0, 0.45), fuerza=1.5), bisel=0.002, padre=nv)
     # boca de salida (+X) con lamas
-    puerto_lamas("boca_salida", 1, 0.41, z + 0.15, r, ancho=0.25, alto=0.16, z_flecha=z + 0.002)
+    boca_cinta("boca_salida", 1, 0.5, 0.0, r, salida=True)
     if CAL:
         ruta = os.path.join(CAL, "placa_logo.png")
         if os.path.exists(ruta):

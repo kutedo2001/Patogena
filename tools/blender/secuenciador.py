@@ -272,8 +272,7 @@ tubo_curvo("cable_red", [(-0.4, YB1 + 0.01, ZH + 0.12), (-0.4, YB1 + 0.07, ZH + 
 torre_luces((AX / 2 - 0.08, 0.82, ZB + 0.04), r, poste=0.22)
 
 # ------------------------------------------------------------ bocas
-puerto_lamas("entrada", -1, -AX / 2, ZH + 0.25, r, ancho=0.3, alto=0.22, y=-0.3, z_flecha=ZH + 0.002, x_flecha=-0.92)
-puerto_lamas("salida", 1, AX / 2, ZH + 0.25, r, ancho=0.3, alto=0.22, y=-0.3, z_flecha=ZH + 0.002, x_flecha=0.88)
+bocas_estandar(r, 2, (1,), 1)
 
 exportar(SALIDA)
 print("SECUENCIADOR OK")

@@ -453,3 +453,47 @@ def manometro(nombre, pos, padre, r=0.05, normal_giro=(math.radians(90), 0, 0)):
     cilindro(nombre + "_eje", r * 0.08, 0.006, (0, 0, 0.002), mat("negro_mate"), lados=12, padre=ag)
     cilindro(nombre + "_cristal", r * 0.88, 0.004, (0, 0, 0.026), mat("cristal", color=(0.75, 0.9, 0.95), rug=0.05, alfa=0.12), lados=32, padre=v)
     return v
+
+
+# ---------------------------------------------------------------- bocas de cinta estándar (V1.19)
+Z_BANDA = 0.30    # altura de la superficie de la cinta (= LineaCinta.ALTURA_BANDA)
+
+
+def boca_cinta(nombre, lado, x_cara, y, padre, salida=False):
+    """Boca estándar a la altura exacta de la cinta: marco atornillado con franja de color (verde si entra,
+    naranja si sale), hueco oscuro cuyo suelo es la cinta, rodillos que se meten dentro, cortina de lamas
+    corta arriba (no tapa los objetos que entran) y labio de rodillos que asoma hacia la cinta con flecha."""
+    gr, met = mat("grafito"), mat("metal")
+    xo = x_cara + lado * 0.02
+    ancho, alto = 0.36, 0.22
+    zc = Z_BANDA + alto / 2
+    caja(f"{nombre}_marco_sup", (0.07, ancho + 0.1, 0.06), (xo, y, Z_BANDA + alto + 0.03), gr, bisel=0.012, padre=padre)
+    for s in (-1, 1):
+        caja(f"{nombre}_marco_lat{s}", (0.07, 0.05, alto + 0.06), (xo, y + s * (ancho / 2 + 0.025), zc), gr, bisel=0.01, padre=padre)
+    caja(f"{nombre}_hueco", (0.3, ancho, alto), (xo - lado * 0.13, y, zc), mat("negro_mate", color=(0.03, 0.035, 0.04), rug=0.8), bisel=0.0, padre=padre)
+    color = (1.0, 0.55, 0.12) if salida else (0.25, 0.9, 0.4)
+    caja(f"{nombre}_franja", (0.072, ancho + 0.1, 0.018), (xo, y, Z_BANDA + alto + 0.065),
+         mat("franja_" + ("sale" if salida else "entra"), color=color, rug=0.4, emision=color, fuerza=0.8), bisel=0.003, padre=padre)
+    # suelo de rodillos: dentro de la máquina y un labio hacia fuera, a ras de la cinta
+    caja(f"{nombre}_bandeja", (0.42, ancho - 0.02, 0.02), (xo - lado * 0.1, y, Z_BANDA - 0.012), met, bisel=0.004, padre=padre)
+    for k in range(5):
+        cilindro(f"{nombre}_rodillo{k}", 0.012, ancho - 0.05, (xo + lado * 0.1 - lado * k * 0.075, y, Z_BANDA - 0.008),
+                 mat("cromo", color=(0.85, 0.86, 0.88), metal=1.0, rug=0.2), lados=10, giro=(math.radians(90), 0, 0), padre=padre)
+    for s in (-1, 1):
+        caja(f"{nombre}_guia{s}", (0.2, 0.012, 0.05), (xo + lado * 0.1, y + s * (ancho / 2 - 0.01), Z_BANDA + 0.02), mat("amarillo"), bisel=0.003, padre=padre)
+    for k in range(7):
+        caja(f"{nombre}_lama{k}", (0.004, ancho / 7 - 0.004, 0.08), (xo + lado * 0.012, y - ancho / 2 + ancho / 7 * (k + 0.5), Z_BANDA + alto - 0.04),
+             mat("lama", color=(0.2, 0.22, 0.24), rug=0.5, alfa=0.75), bisel=0.0, padre=padre)
+    for sy in (-1, 1):
+        for sz in (-1, 1):
+            tornillo(f"{nombre}_torn{sy}{sz}", (xo + lado * 0.036, y + sy * (ancho / 2 + 0.025), zc + sz * 0.1), padre, r=0.007,
+                     normal="+X" if lado > 0 else "-X")
+    chevron(f"{nombre}_flecha", (xo + lado * 0.12, y, Z_BANDA + 0.002), 0.1, mat("amarillo"), padre)
+
+
+def bocas_estandar(padre, tam, entradas, salida):
+    """Bocas de todas las filas de una máquina tam×tam: entradas por -X, salida por +X (fila → y)."""
+    for i in entradas:
+        boca_cinta(f"boca_entrada{i}", -1, -tam / 2, (tam - 1) / 2 - i, padre)
+    if salida is not None:
+        boca_cinta("boca_salida", 1, tam / 2, (tam - 1) / 2 - salida, padre, salida=True)

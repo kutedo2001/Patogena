@@ -18,15 +18,16 @@ var _x0 := Vector2.ZERO
 func _ready() -> void:
 	pasos = [
 		["CORREO_BIENVENIDA", "PASO_MOVER", func(): return juego._andado > 2.5, func(): return null],
-		["", "PASO_CAMILLA", func(): return juego.hay("camilla"), func(): return Vector3(-5.5, 0, -2.5)],
+		["", "PASO_CAMILLA", func(): return juego.hay("camilla"), func(): return Vector3(-5.5, 0, -2.5), ["HUD_CAT_EXTRACCION", "camilla"]],
 		["CORREO_PACIENTE", "PASO_SANGRE", func(): return juego.fab.producido.get("tubo_sangre", 0) >= 1, func(): return _donde("camilla")],
-		["", "PASO_CENTRIFUGA", func(): return juego.hay("centrifuga"), func(): return Vector3(-2.5, 0, -2.5)],
+		["", "PASO_CENTRIFUGA", func(): return juego.hay("centrifuga"), func(): return Vector3(-2.5, 0, -2.5), ["HUD_CAT_PROCESADO", "centrifuga"]],
 		["", "PASO_PLASMA", func(): return juego.fab.producido.get("tubo_plasma", 0) >= 1, func(): return _donde("centrifuga")],
 		["CORREO_CEPAS", "PASO_ELEGIR_MEJORA", func(): return juego.fab.cepa_actual != "" or not juego.fab.cepa_hechas.is_empty(), func(): return _sala()],
-		["", "PASO_ENTREGAR", func(): return not juego.fab.cepa_hechas.is_empty(), func(): return _sala()],
+		["", "PASO_ENTREGAR", func(): return juego.fab.cepa_sintesis >= 0.0 or not juego.fab.cepa_hechas.is_empty(), func(): return _sala()],
+		["", "PASO_SINTETIZAR", func(): return not juego.fab.cepa_hechas.is_empty(), func(): return _sala()],
 		["CORREO_AUTOMATIZAR", "PASO_MEJORA", func(): return _modo("maquina") or _modo("zombi"), func(): return _donde("camilla")],
-		["", "PASO_CINTA", func(): return _cintas() >= 3, func(): return null],
-		["CORREO_ADN", "PASO_ADN", func(): return juego.fab.producido.get("tubo_adn", 0) >= 1, func(): return null],
+		["", "PASO_CINTA", func(): return _cintas() >= 3, func(): return null, ["HUD_CAT_LOGISTICA", "cinta"]],
+		["CORREO_ADN", "PASO_ADN", func(): return juego.fab.producido.get("tubo_adn", 0) >= 1, func(): return null, ["HUD_CAT_EXTRACCION", "incubadora"]],
 		["", "PASO_FIEBRE", func(): return "fiebre" in juego.fab.cepa_hechas, func(): return _sala()],
 		["CORREO_VIRIONES", "PASO_VIRIONES", func(): return juego.fab.producido.get("viriones", 0) >= 1, func(): return _donde("biorreactor")],
 		["", "PASO_FRIO", func(): return "frio" in juego.fab.cepa_hechas, func(): return _sala()],
@@ -92,16 +93,24 @@ func siguiente() -> void:
 	if i >= pasos.size():
 		return
 	if pasos[i][0] != "":
-		leyendo = true
-		juego.velocidad = 0.0
-		juego.cancelar()
+		# LISA habla sin parar el juego (V1.18)
 		if pasos[i][0] == "CORREO_ADN":
 			juego.fab.dinero += 300.0      # «Hemos ingresado fondos para la primera adquisición»
 		correo.emit(tr(pasos[i][0] + "_T"), tr(pasos[i][0]))
 
 func cerrar_correo() -> void:
 	leyendo = false
-	juego.velocidad = 1.0
+
+## Saltar el tutorial: el juego sigue libre, con el objetivo final.
+func saltar() -> void:
+	i = pasos.size() - 1
+	leyendo = false
+
+## Botón de la barra que hay que pulsar en este paso: [categoría, id] o [] si no toca construir.
+func objetivo_hud() -> Array:
+	if i < 0 or i >= pasos.size():
+		return []
+	return pasos[i][4] if pasos[i].size() > 4 else []
 
 func _process(dt: float) -> void:
 	_t += dt

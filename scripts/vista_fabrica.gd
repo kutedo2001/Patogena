@@ -42,6 +42,9 @@ func _process(dt: float) -> void:
 		_mat_curva.uv1_offset = _mat_banda.uv1_offset
 
 func centro(e: Fabrica.Entidad) -> Vector3:
+	if e is Fabrica.SalaCepas:
+		var rc: Rect2i = e.rect()
+		return Vector3(rc.position.x + rc.size.x * 0.5, 0, rc.position.y + rc.size.y * 0.5)
 	var s := Vector2.ZERO
 	for c in e.casillas:
 		s += Vector2(c)
@@ -209,7 +212,60 @@ func _objeto(nombre: String) -> Node3D:
 	_objetos[b] = lista
 	return n
 
+## Objetos tumbados en la cinta (los tubos van acostados, como troncos en una cinta de Alchemy Factory).
+const TUMBADOS := ["tubo_sangre", "tubo_plasma", "tubo_adn", "arn", "hematies", "plaquetas", "bolsa_suero"]
+var _entrando: Array = []        # [nodo, desde, dir, t]
+
+## Lo que entra en una boca sigue un tramo dentro del hueco antes de perderse de vista (V1.19).
+func _entradas_en_bocas(dt: float) -> void:
+	for x in fab.entradas_vis:
+		var c: Vector2i = x[0]
+		var d := Vector2(Fabrica.DIRS[x[1]])
+		var n := _objeto_suelto(str(x[2]))
+		var p0 := Vector3(c.x + 0.5 + d.x * 0.5, LineaCinta.ALTURA_BANDA + 0.002, c.y + 0.5 + d.y * 0.5)
+		_entrando.append([n, p0, Vector3(d.x, 0, d.y), 0.0, str(x[2])])
+	fab.entradas_vis.clear()
+	for e in _entrando.duplicate():
+		e[3] += dt * (juego.velocidad if juego else 1.0) * 0.5
+		var n: Node3D = e[0]
+		n.position = (e[1] as Vector3) + (e[2] as Vector3) * minf(e[3], 0.4)
+		_orientar(n, e[4], Vector2((e[2] as Vector3).x, (e[2] as Vector3).z))
+		if e[3] >= 0.4:
+			n.visible = false
+			_sueltos_libres.append(n)
+			_entrando.erase(e)
+
+var _sueltos := {}
+var _sueltos_libres: Array = []
+func _objeto_suelto(nombre: String) -> Node3D:
+	var b := Fabrica.base(nombre)
+	for i in _sueltos_libres.size():
+		var n: Node3D = _sueltos_libres[i]
+		if n.get_meta("base") == b:
+			_sueltos_libres.remove_at(i)
+			n.visible = true
+			return n
+	var ruta := "res://assets/modelos/objetos/%s.glb" % b
+	if not _escenas.has(ruta):
+		_escenas[ruta] = load(ruta)
+	var m: Node3D = _escenas[ruta].instantiate()
+	Materiales.ajustar(m)
+	m.scale = Vector3.ONE * ESCALA_OBJETOS
+	m.set_meta("base", b)
+	add_child(m)
+	return m
+
+func _orientar(n: Node3D, nombre: String, dir: Vector2) -> void:
+	var giro := atan2(-dir.y, dir.x)
+	if Fabrica.base(nombre) in TUMBADOS:
+		n.rotation = Vector3(0, giro, 0)
+		n.rotate_object_local(Vector3.FORWARD, -PI * 0.5)   # acostado a lo largo de la marcha
+		n.position.y += 0.035
+	else:
+		n.rotation = Vector3(0, giro, 0)
+
 func _objetos_en_cintas() -> void:
+	_entradas_en_bocas(get_process_delta_time())
 	_usados.clear()
 	for e in fab.entidades:
 		if e is Fabrica.Tuberia:
@@ -240,7 +296,7 @@ func _objetos_en_cintas() -> void:
 					p = pivote + Vector2(cos(a), sin(a)) * 0.5
 					dir = d_in.lerp(d_out, t).normalized()
 				n.position = Vector3(p.x, LineaCinta.ALTURA_BANDA + 0.002, p.y)
-				n.rotation.y = atan2(-dir.y, dir.x)
+				_orientar(n, o[0], dir)
 		elif e is Fabrica.Brazo and e.mano != "":
 			var n2 := _objeto(e.mano)
 			var v: Node3D = _vis.get(e)
@@ -265,28 +321,40 @@ func _estados() -> void:
 			m.ciclo = e.duracion()
 		elif e is Fabrica.SalaCepas:
 			var mc := v.get_node("camara") as Maquina
-			var ec: int = Maquina.Estado.TRABAJANDO if fab.cepa_actual != "" else Maquina.Estado.SIN_MATERIAL
+			var ec: int = Maquina.Estado.TRABAJANDO if fab.cepa_sintesis >= 0.0 else Maquina.Estado.SIN_MATERIAL
 			if mc.estado != ec:
 				mc.estado = ec
+			# robot de síntesis junto a la mesa (desbloqueo): se mueve mientras sintetiza
+			if fab.cepa_robot and not v.has_node("robot"):
+				var rb := _cargar_modelo("res://assets/modelos/estaciones/brazo.glb")
+				rb.name = "robot"
+				rb.position = Vector3(e.origen.x + 2.5, 0, e.origen.y + 3.5) - v.position
+				v.add_child(rb)
+			if v.has_node("robot"):
+				var h := v.get_node("robot").find_child("hombro", true, false) as Node3D
+				if h:
+					h.rotation.y = (PI * 0.75 + sin(_tiempo * 1.8) * 0.5) if fab.cepa_sintesis >= 0.0 else PI * 0.75
 		elif v.has_method("actualizar"):
 			v.actualizar(e, _tiempo)
 
-## Sala de cepas: la cámara con la cepa viva en el centro, mampara de vidrio alrededor y la mesa
-## de ingeniería genética al lado (V1.14).
+## Sala de cepas (V1.17): paredes de laboratorio con muebles por dentro, puerta corredera al sur, buzón
+## con boca de cinta al oeste, la cámara con la cepa viva y la mesa de ingeniería genética con su pantalla.
 func _crear_sala_cepas(e: Fabrica.SalaCepas) -> Node3D:
 	var r := Node3D.new()
-	r.position = centro(e)
+	var rc := e.rect()
+	var cen := Vector3(rc.position.x + rc.size.x * 0.5, 0, rc.position.y + rc.size.y * 0.5)
+	r.position = cen
 	var m := Maquina.new()
 	m.name = "camara"
 	m.modelo = load(MODELO_MAQUINA["camara_cepa"])
 	m.tipo_pantalla = PantallaMaquina.Tipo.CEPA
 	m.ciclo = 8.0
 	m.estado = Maquina.Estado.SIN_MATERIAL
-	m.position = Vector3(0.5, 0, 0)
+	m.position = Vector3(e.origen.x + 4.5, 0, e.origen.y + 2.5) - cen
 	r.add_child(m)
-	var mesa: Node3D = load("res://assets/modelos/estaciones/mesa_genetica.glb").instantiate()
-	Materiales.ajustar(mesa)
-	mesa.position = Vector3(-1.5, 0, 0)
+	var mesa: Node3D = _cargar_modelo("res://assets/modelos/estaciones/mesa_genetica.glb")
+	mesa.position = Vector3(e.origen.x + 1.5, 0, e.origen.y + 2.5) - cen
+	mesa.rotation.y = PI                  # la pantalla mira al puesto del científico (este)
 	r.add_child(mesa)
 	var pan := mesa.find_child("pantalla", true, false) as MeshInstance3D
 	if pan:
@@ -306,56 +374,50 @@ func _crear_sala_cepas(e: Fabrica.SalaCepas) -> Node3D:
 		mt.emission_energy_multiplier = 1.3
 		mt.roughness = 0.25
 		pan.material_override = mt
-	_mamparas(r)
-	return r
-
-## Mampara de vidrio con perfiles alrededor de la sala de cepas (hueco de entrada al oeste) y suelo propio.
-func _mamparas(r: Node3D) -> void:
 	var suelo := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
-	pm.size = Vector2(3.96, 2.96)
+	pm.size = Vector2(rc.size.x - 0.04, rc.size.y - 0.04)
 	suelo.mesh = pm
 	suelo.material_override = Provisional.mat(Color(0.2, 0.32, 0.33), 0.5)
-	suelo.position.y = 0.006
+	suelo.position.y = 0.005
 	r.add_child(suelo)
-	var vidrio := StandardMaterial3D.new()
-	vidrio.albedo_color = Color(0.6, 0.85, 0.9, 0.16)
-	vidrio.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	vidrio.roughness = 0.05
-	vidrio.metallic_specular = 0.8
-	var perfil := Provisional.mat(Color(0.25, 0.28, 0.29), 0.4)
-	var tramos := [[Vector3(0, 0, -1.48), Vector3(3.96, 0, 0)], [Vector3(1.98, 0, 0), Vector3(0, 0, 2.96)],
-		[Vector3(-1.98, 0, -0.95), Vector3(0, 0, 1.06)], [Vector3(-1.98, 0, 0.95), Vector3(0, 0, 1.06)]]
-	for t in tramos:
-		var c: Vector3 = t[0]
-		var l: Vector3 = t[1]
-		var largo := maxf(l.x, l.z)
-		var mi := MeshInstance3D.new()
-		var bm := BoxMesh.new()
-		bm.size = Vector3(largo if l.x > 0 else 0.02, 0.9, largo if l.z > 0 else 0.02)
-		mi.mesh = bm
-		mi.material_override = vidrio
-		mi.position = c + Vector3(0, 0.5, 0)
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		r.add_child(mi)
-		for y in [0.05, 0.95]:
-			var pf := MeshInstance3D.new()
-			var pb := BoxMesh.new()
-			pb.size = Vector3(largo if l.x > 0 else 0.04, 0.04, largo if l.z > 0 else 0.04)
-			pf.mesh = pb
-			pf.material_override = perfil
-			pf.position = c + Vector3(0, y, 0)
-			r.add_child(pf)
-		var n := int(largo / 0.98)
-		for k in n + 1:
-			var po := MeshInstance3D.new()
-			var pbm := BoxMesh.new()
-			pbm.size = Vector3(0.04, 0.94, 0.04)
-			po.mesh = pbm
-			po.material_override = perfil
-			var off := -largo * 0.5 + largo * k / maxf(n, 1)
-			po.position = c + (Vector3(off, 0.5, 0) if l.x > 0 else Vector3(0, 0.5, off))
-			r.add_child(po)
+	# un módulo por casilla del borde: pared con mueble por dentro, esquinas, puerta y buzón
+	var muebles := ["sala_estanteria", "sala_nevera", "sala_campana", "sala_armario"]
+	var k := 0
+	for i in rc.size.x:
+		for j in rc.size.y:
+			var c := rc.position + Vector2i(i, j)
+			var oeste := i == 0
+			var este := i == rc.size.x - 1
+			var norte := j == 0
+			var sur := j == rc.size.y - 1
+			if not (oeste or este or norte or sur):
+				continue
+			var modelo := ""
+			var giro := 0.0
+			if c == e.puerta:
+				modelo = "sala_puerta"; giro = PI
+			elif c == e.buzon:
+				modelo = "sala_buzon"; giro = PI * 0.5
+			elif (oeste or este) and (norte or sur):
+				modelo = "sala_esquina"
+				giro = PI * 0.5 if oeste and norte else (0.0 if este and norte else (PI if oeste and sur else -PI * 0.5))
+			else:
+				modelo = muebles[k % muebles.size()]
+				k += 1
+				giro = 0.0 if norte else (PI if sur else (PI * 0.5 if oeste else -PI * 0.5))
+			var md := _cargar_modelo("res://assets/modelos/estaciones/%s.glb" % modelo)
+			md.position = Vector3(c.x + 0.5, 0, c.y + 0.5) - cen
+			md.rotation.y = giro
+			r.add_child(md)
+	return r
+
+func _cargar_modelo(ruta: String) -> Node3D:
+	if not _escenas.has(ruta):
+		_escenas[ruta] = load(ruta)
+	var n: Node3D = _escenas[ruta].instantiate()
+	Materiales.ajustar(n)
+	return n
 
 func nodo_de(e: Fabrica.Entidad) -> Node3D:
 	return _vis.get(e)

@@ -107,42 +107,44 @@ func mostrar_anuncio(titulo: String, texto: String) -> void:
 	_anuncio.set_anchors_and_offsets_preset.call_deferred(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 110)
 	_anuncio.grow_horizontal = Control.GROW_DIRECTION_BOTH
 
-## Correo de Dirección: carcasa centrada con la cabecera de la empresa, el texto y «Continuar».
+## LISA habla en un bocadillo pequeño que no para el juego (V1.18): una o dos frases, «Vale» para
+## cerrarlo y «Saltar tutorial». Se cierra solo a los 14 s.
+var _correo_t := 0.0
 func _mostrar_correo(titulo: String, texto: String) -> void:
 	if _correo:
 		_correo.queue_free()
-	var fondo := ColorRect.new()
-	fondo.color = Color(0, 0, 0, 0.45)
-	fondo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fondo.mouse_filter = Control.MOUSE_FILTER_STOP
-	_raiz.add_child(fondo)
-	_correo = fondo
-	var p := _carcasa(fondo, 18)
-	p.custom_minimum_size = Vector2(620, 0)
-	p.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	p.grow_vertical = Control.GROW_DIRECTION_BOTH
-	var v := _columna(p, 12)
-	var cab := _franja(v, tr("CORREO_DE"), "correo")
-	_texto(cab, tr("CORREO_CONFIDENCIAL"), 11, F_BOLD, Color.WHITE)
-	_texto(v, titulo, 20, F_BOLD)
-	var pant := _pantalla(v, 16)
-	var l := _texto(pant, texto, 15, F_MED, P_TINTA)
+	var p := _carcasa(_raiz, 12)
+	_correo = p
+	p.custom_minimum_size = Vector2(520, 0)
+	var f := _fila(p, 12)
+	var cara := LisaHUD.new()
+	cara.custom_minimum_size = Vector2(64, 64)
+	cara.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	f.add_child(cara)
+	var v := _columna(f, 6)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_texto(v, "LISA · " + titulo, 12, F_BOLD, C_MARCA)
+	var l := _texto(v, texto, 14, F_MED, C_TINTA_OSC)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.custom_minimum_size.x = 560
+	l.custom_minimum_size.x = 400
 	var pie := _fila(v, 8)
-	_texto(pie, tr("CORREO_FIRMA"), 12, F_SEMI, C_TENUE_OSC).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pie.alignment = BoxContainer.ALIGNMENT_END
+	var saltar := _texto(pie, tr("TUT_SALTAR"), 11, F_SEMI, C_TENUE_OSC)
+	_clic(saltar, func(): juego.tutorial.saltar(); cerrar_correo())
 	var b := PanelContainer.new()
 	var bs := StyleBoxFlat.new()
 	bs.bg_color = C_OK.darkened(0.25)
 	bs.set_corner_radius_all(6)
-	bs.border_width_bottom = 4
+	bs.border_width_bottom = 3
 	bs.border_color = bs.bg_color.darkened(0.3)
-	bs.content_margin_left = 18; bs.content_margin_right = 18; bs.content_margin_top = 8; bs.content_margin_bottom = 8
+	bs.content_margin_left = 14; bs.content_margin_right = 14; bs.content_margin_top = 4; bs.content_margin_bottom = 4
 	b.add_theme_stylebox_override("panel", bs)
 	pie.add_child(b)
-	_texto(b, tr("CORREO_CONTINUAR"), 15, F_BOLD, Color.WHITE)
+	_texto(b, tr("TUT_VALE"), 13, F_BOLD, Color.WHITE)
 	_clic(b, cerrar_correo)
-	p.set_anchors_and_offsets_preset.call_deferred(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	_correo_t = 14.0
+	p.set_anchors_and_offsets_preset.call_deferred(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 110)
+	p.grow_horizontal = Control.GROW_DIRECTION_BOTH
 
 func cerrar_correo() -> void:
 	if _correo:
@@ -553,12 +555,13 @@ func _panel_estacion(e: Fabrica.Estacion) -> void:
 	_maq_estado = _texto(cc, tr("MODO_" + e.modo.to_upper()), 11, F_BOLD, Color(0.15, 0.6, 0.3))
 	var pe := _pantalla(_maq_caja, 10)
 	var fe := _fila(pe, 10)
-	var bp := _bandeja(fe, e.objeto, 46)
-	bp.tooltip_text = tr("OBJ_" + e.objeto.to_upper())
+	# casilla del producto: vacía hasta que hay uno hecho (V1.15)
+	var bp := _bandeja(fe, e.objeto if e.listo != "" else "", 46)
 	if e.listo != "":
+		bp.tooltip_text = tr("OBJ_" + e.objeto.to_upper())
 		_arrastrable(bp, {"de": e, "objeto": e.listo}, e.objeto)
 	else:
-		bp.modulate = Color(1, 1, 1, 0.4)
+		bp.tooltip_text = tr("HUD_VACIO")
 	var mid := _columna(fe, 4)
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mid.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -735,43 +738,16 @@ func abrir_cepas() -> void:
 	_boton(cab, "cerrar", C_ROJO, 40, true, func(): cerrar_cepas())
 	var cuerpo := _fila(raiz, 14)
 	cuerpo.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	for rama in ["transmision", "sintomas", "resistencias"]:
-		var col := _columna(cuerpo, 6)
-		col.custom_minimum_size = Vector2(250, 0)
-		_franja(col, tr("RAMA_" + rama.to_upper()))
-		for mj in Fabrica.datos.cepa.mejoras:
-			if mj.rama != rama:
-				continue
-			var id: String = mj.id
-			var estado := "bloqueada"
-			if id in f.cepa_hechas:
-				estado = "hecha"
-			elif id == f.cepa_actual:
-				estado = "curso"
-			elif f.mejora_disponible(id):
-				estado = "libre"
-			var b := PanelContainer.new()
-			var bs := StyleBoxFlat.new()
-			bs.bg_color = {"hecha": Color(0.25, 0.62, 0.42), "curso": C_AMBAR, "libre": C_ACENTO, "bloqueada": C_CARCASA_OSC}[estado]
-			bs.set_corner_radius_all(5)
-			bs.border_width_bottom = 3
-			bs.border_color = bs.bg_color.darkened(0.3)
-			if id == _cepas_sel:
-				bs.border_width_left = 3; bs.border_width_right = 3; bs.border_width_top = 3
-				bs.border_color = C_TINTA_OSC
-			bs.content_margin_left = 10; bs.content_margin_right = 10; bs.content_margin_top = 4; bs.content_margin_bottom = 4
-			b.add_theme_stylebox_override("panel", bs)
-			col.add_child(b)
-			var fb := _fila(b, 6)
-			_texto(fb, "%s  ·  %s" % [["", "I", "II", "III", "IV"][int(mj.nivel)], tr("MEJ_" + id.to_upper())], 12, F_BOLD,
-				Color.WHITE if estado != "bloqueada" else C_TENUE_OSC).size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			if estado == "hecha":
-				fb.add_child(IconoHUD.new("check", Color.WHITE, 14))
-			_clic(b, func(): _cepas_sel = id; abrir_cepas())
-		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var marco_arbol := _pantalla(cuerpo, 4)
+	var arbol := ArbolCepa.new()
+	arbol.fab = f
+	arbol.seleccion = _cepas_sel
+	arbol.custom_minimum_size = Vector2(780, 560)
+	arbol.elegido.connect(func(id): _cepas_sel = id; abrir_cepas())
+	marco_arbol.add_child(arbol)
 	# detalle de la seleccionada
 	var det := _pantalla(cuerpo, 10)
-	det.custom_minimum_size = Vector2(330, 0)
+	det.custom_minimum_size = Vector2(320, 0)
 	var dc := _columna(det, 8)
 	if _cepas_sel == "":
 		_texto(dc, tr("HUD_ELIGE_MEJORA"), 13, F_SEMI, P_TINTA).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -797,6 +773,10 @@ func abrir_cepas() -> void:
 			_bandeja(fd, ic, 34).tooltip_text = tr("DESC_" + str(id).to_upper())
 	if _cepas_sel in f.cepa_hechas:
 		_texto(dc, tr("HUD_MEJORA_HECHA"), 13, F_BOLD, C_OK)
+	elif _cepas_sel == f.cepa_actual and f.cepa_sintesis >= 0.0:
+		_texto(dc, tr("HUD_SINTESIS_ROBOT" if f.cepa_robot else "HUD_SINTESIS_MESA"), 12, F_SEMI, C_AMBAR).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_barra(dc, f.cepa_sintesis / maxf(f.sintesis_total(), 0.01), C_AMBAR, 8)
+		_texto(dc, "%d / %d s" % [int(f.cepa_sintesis), int(f.sintesis_total())], 11, F_SEMI, P_TENUE)
 	elif _cepas_sel == f.cepa_actual:
 		_texto(dc, tr("HUD_MEJORA_CURSO"), 12, F_SEMI, C_AMBAR).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	elif f.mejora_disponible(_cepas_sel):
@@ -926,6 +906,7 @@ func _barra_construccion_juego() -> void:
 			tf.add_child(tex)
 		_texto(tf, tr(cat), 12, F_BOLD, Color.WHITE if activa else C_GRAFITO)
 		_clic(t, func(): juego.categoria = cat; juego.cancelar())
+		_tabs[cat] = t
 	var fila := _fila(bv, 6)
 	_casillas.clear()
 	for i in 9:
@@ -965,6 +946,31 @@ func _barra_construccion_juego() -> void:
 	_cons_caja.reset_size()
 	_anclar.call_deferred(_cons_caja, Control.PRESET_CENTER_BOTTOM)
 
+var _tabs := {}
+var _resalte: ResalteHUD
+## Resalta lo que pide el paso del tutorial: la pestaña de la categoría y, dentro, la casilla.
+func _resaltar_tutorial() -> void:
+	if _resalte == null:
+		_resalte = ResalteHUD.new()
+		_raiz.add_child(_resalte)
+	var obj: Array = juego.tutorial.objetivo_hud()
+	_resalte.visible = false
+	if obj.is_empty() or not juego.herramienta.is_empty() and juego.herramienta[0] == obj[1]:
+		return
+	var cat: String = obj[0]
+	var ctrl: Control = null
+	if juego.categoria != cat:
+		ctrl = _tabs.get(cat)
+	else:
+		var lista: Array = Juego.CATALOGO[cat]
+		for i in lista.size():
+			if lista[i][0] == obj[1] and i < _casillas.size():
+				ctrl = _casillas[i]
+	if ctrl and is_instance_valid(ctrl) and ctrl.is_visible_in_tree():
+		_resalte.visible = true
+		_resalte.objetivo = ctrl.get_global_rect()
+		_raiz.move_child(_resalte, _raiz.get_child_count() - 1)
+
 func _unhandled_input(ev: InputEvent) -> void:
 	if juego == null:
 		return
@@ -980,6 +986,11 @@ func _process(dt: float) -> void:
 	_t += dt
 	if juego == null:
 		return
+	_resaltar_tutorial()
+	if _correo and _correo_t > 0.0:
+		_correo_t -= dt
+		if _correo_t <= 0.0:
+			cerrar_correo()
 	var f := juego.fab
 	_lbl_dinero.text = "%s €" % _miles(f.dinero)
 	_lbl_ingresos.text = ("+%s" % _miles(juego.ingresos_min)) + tr("HUD_POR_MIN")

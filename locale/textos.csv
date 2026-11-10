@@ -131,43 +131,31 @@ CORREO_DE,LISA · IA DEL LABORATORIO,LISA · LAB AI
 CORREO_CONFIDENCIAL,CANAL INTERNO,INTERNAL CHANNEL
 CORREO_FIRMA,LISA · Laboratorio de Investigación y Soluciones Avanzadas,LISA · Laboratory for Research and Advanced Solutions
 CORREO_CONTINUAR,Continuar,Continue
-CORREO_BIENVENIDA_T,Bienvenido a su propio laboratorio,Welcome to your own laboratory
-CORREO_BIENVENIDA,"Hola. Soy LISA, la IA de este sótano. Ha invertido todos sus ahorros en él, así que técnicamente es usted el dueño, el director y el único empleado de Patógena S.A.
-
-Su plan, según sus notas: un producto biológico que cambiará el mundo. Lo apoyo plenamente; no tengo otra opción.
-
-Para empezar, muévase con WASD o haciendo clic en el suelo.","Hello. I am LISA, this basement's AI. You put all your savings into it, so technically you are the owner, director and sole employee of Patógena Inc.
-
-Your plan, according to your notes: a biological product that will change the world. I fully support it; I have no other option.
-
-To begin, move with WASD or by clicking the floor."
-CORREO_PACIENTE_T,Sobre los donantes,About the donors
-CORREO_PACIENTE,Ha puesto un anuncio: «Análisis gratuito y bocadillo». Funciona. Los voluntarios entrarán por la puerta oeste. Sáqueles una muestra y déjelos marchar; los necesitamos vivos y con ganas de volver.,You placed an ad: «Free check-up and a sandwich». It works. Volunteers will come in through the west door. Take a sample and let them go; we need them alive and willing to return.
+CORREO_BIENVENIDA_T,Bienvenido,Welcome
+CORREO_BIENVENIDA,"Soy LISA, la IA de este sótano. El laboratorio es suyo; el plan, mío. Muévase con WASD o con clic.","I'm LISA, this basement's AI. The lab is yours; the plan is mine. Move with WASD or by clicking."
+CORREO_PACIENTE_T,Voluntarios,Volunteers
+CORREO_PACIENTE,Ya llega el primero por la puerta. Clic en la camilla y sáquele sangre.,The first one is coming through the door. Click the bed and draw blood.
 CORREO_BIORREACTOR_T,El plasma no es el producto,Plasma is not the product
 CORREO_BIORREACTOR,El plasma es materia prima. El biorreactor lo convierte en una mutación del producto. He encontrado 300 € en una cuenta que usted había olvidado; ya están en los fondos. Elija la mutación en su panel (clic derecho). La tos es un buen comienzo: discreta y sociable.,Plasma is raw material. The bioreactor turns it into a mutation of the product. I found €300 in an account you had forgotten; it is now in the funds. Pick the mutation in its panel (right-click). A cough is a good start: discreet and sociable.
-CORREO_LIBERADO_T,Las primeras vacunas han llegado,The first vaccines have arrived
-CORREO_LIBERADO,"Las primeras vacunas ya están en el mercado. El monitor de la pared muestra la difusión por regiones. Algunos voluntarios vuelven… distintos. No hablan, no cobran y no se cansan: mano de obra ideal. Póngalos a manejar las máquinas de extracción.","The first vaccines are on the market. The wall monitor shows the spread by region. Some volunteers come back… different. They don't talk, don't get paid and don't get tired: ideal labour. Put them in charge of the extraction machines."
-CORREO_AUTOMATIZAR_T,Sobre su productividad,About your productivity
-CORREO_AUTOMATIZAR,"Su productividad manual es encomiable y completamente insuficiente. Abra el panel de la camilla (clic derecho) e instale un extractor. Después tienda cintas: arrastre con la herramienta de cinta desde la flecha naranja hasta la flecha verde de la siguiente máquina.
-
-Algunos voluntarios volverán… distintos. No se asuste: trabajan gratis.","Your manual productivity is commendable and entirely insufficient. Open the bed's panel (right-click) and install an extractor. Then lay belts: drag with the belt tool from the orange arrow to the next machine's green arrow.
-
-Some volunteers will come back… different. Do not be alarmed: they work for free."
-CORREO_FIN_T,Ya es usted una empresa,You are now a company
-CORREO_FIN,"El resto depende de usted. Complete el árbol de la cepa: transmisión para que llegue a todas partes, síntomas para que convierta en zombis y resistencias para frenar la cura que investigan los países ricos. Si la cura llega al 100 %, se acabó. Con el 90 % del mundo zombi, ganamos. Compre parcelas cuando se le quede pequeño el sótano.","The rest is up to you. Complete the strain tree: transmission so it reaches everywhere, symptoms so it turns people into zombies, and resistances to slow the cure the rich countries are researching. If the cure reaches 100%, it's over. With 90% of the world zombified, we win. Buy plots when the basement gets too small."
-PASO_MOVER,Muévete por el laboratorio con WASD o haciendo clic en el suelo.,Move around the lab with WASD or by clicking the floor.
-PASO_CAMILLA,Construye una camilla: Extracción → 1 y clic en el suelo (la flecha amarilla marca un buen sitio).,Build an extraction bed: Extraction → 1 and click the floor (the yellow arrow marks a good spot).
-PASO_SANGRE,Haz clic en la camilla: el científico irá y le sacará sangre cuando el paciente se tumbe.,Click the bed: the scientist goes and draws blood once the patient lies down.
-PASO_CENTRIFUGA,Construye una centrífuga (Procesado → 1). Su flecha verde es por donde entra la sangre.,Build a centrifuge (Processing → 1). Its green arrow is where the blood goes in.
-PASO_PLASMA,"Con la sangre en la mano, haz clic en la centrífuga para meterla. Trabaja sola y saca plasma.","With the blood in hand, click the centrifuge to load it. It works on its own and makes plasma."
+CORREO_LIBERADO_T,Ya están fuera,They're out
+CORREO_LIBERADO,Algunos voluntarios vuelven… distintos. Póngalos a trabajar en las camillas con extractor.,Some volunteers come back… different. Put them to work on the beds with extractors.
+CORREO_AUTOMATIZAR_T,Productividad,Productivity
+CORREO_AUTOMATIZAR,Hacerlo todo a mano no escala. Ponga un extractor en la camilla y una cinta hasta la centrífuga.,Doing everything by hand doesn't scale. Put an extractor on the bed and a belt to the centrifuge.
+CORREO_FIN_T,Ya es una empresa,You're a company now
+CORREO_FIN,"Complete el árbol de la cepa antes de que los ricos encuentren la cura. Con el 90 % del mundo zombi, ganamos.","Complete the strain tree before the rich find the cure. With 90% of the world zombified, we win."
+PASO_MOVER,Muévete: WASD o clic en el suelo.,Move: WASD or click the floor.
+PASO_CAMILLA,Construye una camilla (Extracción → camilla) y colócala.,Build a bed (Extraction → bed) and place it.
+PASO_SANGRE,Clic en la camilla: saca sangre al paciente.,Click the bed: draw the patient's blood.
+PASO_CENTRIFUGA,Construye una centrífuga (Procesado).,Build a centrifuge (Processing).
+PASO_PLASMA,Clic en la centrífuga con la sangre en la mano.,Click the centrifuge with the blood in hand.
 PASO_BIORREACTOR,Construye un biorreactor (Producto → 1).,Build a bioreactor (Product → 1).
 PASO_VIAL,Clic en la centrífuga para recoger 2 plasmas y clic en el biorreactor para meterlos.,Click the centrifuge to collect 2 plasma and click the bioreactor to load them.
 PASO_CEPA,Clic en el biorreactor para recoger el vial y clic en la cámara de cepa para inyectarlo.,Click the bioreactor to collect the vial and click the strain chamber to inject it.
-PASO_VENDER,Lleva cajas de vacunas al hub de envío (clic derecho en él para elegir el destino).,Bring vaccine boxes to the shipping hub (right-click it to choose the destination).
-PASO_MEJORA,Clic derecho en la camilla para abrir su panel e instala el extractor automático.,Right-click the bed to open its panel and install the automatic extractor.
-PASO_CINTA,"Tiende una cinta (Logística → 1, arrastrando) de la flecha naranja de la camilla a la verde de la centrífuga.","Lay a belt (Logistics → 1, drag) from the bed's orange arrow to the centrifuge's green arrow."
-PASO_ZOMBI,"Cuando llegue un zombi, clic derecho en una camilla con extractor y ponlo a trabajar.","When a zombie arrives, right-click a bed with an extractor and put it to work."
-PASO_LIBRE,Completa el árbol de la cepa y llega al 90 % de zombis antes que la cura.,Complete the strain tree and reach 90% zombies before the cure.
+PASO_VENDER,Vende cajas de vacunas en el hub.,Sell vaccine boxes at the hub.
+PASO_MEJORA,Clic derecho en la camilla → instala el extractor.,Right-click the bed → install the extractor.
+PASO_CINTA,Tiende una cinta de la camilla a la centrífuga (arrastrando).,Lay a belt from the bed to the centrifuge (drag).
+PASO_ZOMBI,Pon un zombi en una camilla con extractor.,Put a zombie on a bed with an extractor.
+PASO_LIBRE,Completa la cepa y llega al 90 % zombi antes que la cura.,Complete the strain and reach 90% zombies before the cure.
 OBJ_TUBO_SANGRE,Tubo de sangre,Blood tube
 OBJ_TUBO_PLASMA,Tubo de plasma,Plasma tube
 OBJ_PLACA_PETRI,Placa de cultivo,Culture plate
@@ -255,21 +243,21 @@ CONS_GRANJA,Granja de humanos,Human farm
 DESC_GRANJA,Cuatro cápsulas en hilera con colector común: 4 l/s de sangre y cuatro bolsas de suero cada 20 s.,Four capsules in a row with a shared manifold: 4 l/s of blood and four saline bags every 20 s.
 OBJ_SANGRE_L,Sangre (líquida),Blood (liquid)
 CORREO_CEPAS_T,La sala de cepas,The strain room
-CORREO_CEPAS,"Esa sala acristalada del norte es el corazón de la empresa: la cámara con nuestra cepa viva y la mesa de ingeniería genética. Allí se decide en qué se convierte el virus. Clic derecho en la sala y abra el árbol: elija una mejora, la sala le pedirá un lote de productos y, al entregarlo, la cepa cambia y yo consigo planos de máquinas nuevas. Empiece por la Tos: solo pide plasma.","That glass room to the north is the heart of the company: the chamber with our live strain and the genetic engineering bench. That is where we decide what the virus becomes. Right-click the room and open the tree: pick an upgrade, the room asks for a batch of products and, once delivered, the strain changes and I get blueprints for new machines. Start with Cough: it only needs plasma."
-PASO_ELEGIR_MEJORA,"Clic derecho en la sala de cepas, abre el árbol y empieza la mejora «Tos».","Right-click the strain room, open the tree and start the «Cough» upgrade."
-PASO_ENTREGAR,Lleva 10 plasmas a la sala de cepas (a mano con clic o por cinta).,Bring 10 plasma to the strain room (by hand with a click or by belt).
-CORREO_ADN_T,Una cadena no basta,One chain is not enough
-CORREO_ADN,"La Tos nos ha dado planos: incubadora, secuenciador, toma de agua y mezcladora. Cada materia prima da varios productos según la receta que elija en cada máquina: la sangre da plasma, hematíes o plaquetas; el cultivo da ADN o ARN. La siguiente mejora, Fiebre, pide plasma y ADN. Monte la incubadora y el secuenciador.","Cough got us blueprints: incubator, sequencer, water tap and mixer. Each raw material gives several products depending on the recipe you pick in each machine: blood gives plasma, red cells or platelets; culture gives DNA or RNA. The next upgrade, Fever, asks for plasma and DNA. Set up the incubator and the sequencer."
-PASO_ADN,Construye una incubadora y un secuenciador y saca el primer ADN.,Build an incubator and a sequencer and make your first DNA.
-PASO_FIEBRE,Completa la mejora «Fiebre» en la sala de cepas (20 plasma y 10 ADN).,Complete the «Fever» upgrade in the strain room (20 plasma and 10 DNA).
+CORREO_CEPAS,Ahí dentro decidimos en qué se convierte el virus. Clic derecho en la sala y elija «Tos».,In there we decide what the virus becomes. Right-click the room and pick «Cough».
+PASO_ELEGIR_MEJORA,Clic derecho en la sala de cepas → árbol → «Tos».,Right-click the strain room → tree → «Cough».
+PASO_ENTREGAR,Lleva 10 plasmas a la sala (clic en ella o cinta al buzón).,Bring 10 plasma to the room (click it or belt to the drop box).
+CORREO_ADN_T,Más materias primas,More raw materials
+CORREO_ADN,Ya tiene incubadora y secuenciador. Cada máquina tiene varias recetas: elíjalas en su panel.,You now have an incubator and a sequencer. Each machine has several recipes: pick them in its panel.
+PASO_ADN,Construye incubadora y secuenciador y saca ADN.,Build an incubator and a sequencer and make DNA.
+PASO_FIEBRE,Completa «Fiebre» en la sala de cepas.,Complete «Fever» in the strain room.
 CORREO_VIRIONES_T,Cultivar el virus,Growing the virus
-CORREO_VIRIONES,Ya tiene biorreactor. Fabrica sin parar lo que le diga: viriones (ADN + medio de cultivo) o vectores (hematíes + ADN). El medio de cultivo sale de la mezcladora con plasma y agua. Haga viriones: los necesitamos para todo lo que viene.,"You now have a bioreactor. It makes whatever you tell it, nonstop: virions (DNA + culture medium) or vectors (red cells + DNA). Culture medium comes from the mixer with plasma and water. Make virions: we need them for everything that follows."
-PASO_VIRIONES,Biorreactor con la receta «viriones»: ADN por una boca y medio de cultivo (mezcladora: plasma + agua) por la otra.,Bioreactor on the «virions» recipe: DNA in one port and culture medium (mixer: plasma + water) in the other.
-PASO_FRIO,Completa la mejora «Resistencia al frío» (10 viriones y 20 sueros). Desbloquea la envasadora.,Complete the «Cold resistance» upgrade (10 virions and 20 saline). It unlocks the filler.
-CORREO_VACUNAS_T,Nuestro producto estrella,Our flagship product
-CORREO_VACUNAS,"La envasadora mete viriones y suero en cajas que pone «vacuna». El hub de envío las vende bien y elige usted a qué región van. Cada caja vendida lleva nuestra cepa, con todas sus mejoras. Técnicamente es una vacuna. Técnicamente.","The filler packs virions and saline into boxes labelled «vaccine». The shipping hub sells them well, and you choose which region they go to. Every box sold carries our strain, with all its upgrades. Technically it is a vaccine. Technically."
+CORREO_VIRIONES,El biorreactor hace viriones con ADN y medio de cultivo (mezcladora: plasma + agua).,The bioreactor makes virions from DNA and culture medium (mixer: plasma + water).
+PASO_VIRIONES,Haz el primer virión en el biorreactor.,Make the first virion in the bioreactor.
+PASO_FRIO,Completa «Resistencia al frío» (desbloquea la envasadora).,Complete «Cold resistance» (unlocks the filler).
+CORREO_VACUNAS_T,El producto,The product
+CORREO_VACUNAS,La envasadora mete viriones y suero en cajas de «vacunas». Véndalas en el hub: elija a qué región van.,The filler packs virions and saline into «vaccine» boxes. Sell them at the hub: choose which region they go to.
 CONS_SALA_CEPAS,Sala de cepas,Strain room
-DESC_SALA_CEPAS,Cámara con la cepa viva y mesa de ingeniería genética. Elige una mejora en el árbol y entrega lo que pide (cinta o a mano): cambia la cepa y desbloquea máquinas.,Chamber with the live strain and genetic engineering bench. Pick an upgrade in the tree and deliver what it asks for (belt or by hand): it changes the strain and unlocks machines.
+DESC_SALA_CEPAS,"Aquí se decide en qué se convierte el virus. Elige una mejora en el árbol, entrega lo que pide por el buzón (cinta) o a mano y luego sintetiza la cepa en la mesa.","This is where the virus is shaped. Pick an upgrade in the tree, deliver what it needs through the drop box (belt) or by hand, then synthesise the strain at the bench."
 HUD_CEPA,Cepa,Strain
 HUD_MEJORAS,Mejoras de la cepa: %d/%d,Strain upgrades: %d/%d
 HUD_ELIGE_MEJORA,Elige una mejora en la sala de cepas (clic derecho en ella → árbol).,Pick an upgrade in the strain room (right-click it → tree).
@@ -371,3 +359,12 @@ DESC_MEJ_MUTACION_GENETICA,Cambia más deprisa de lo que investigan.,Changes fas
 MENU_HAY_PARTIDA,Hay una partida guardada. Se guarda sola cada minuto y al salir.,There is a saved game. It saves itself every minute and when you quit.
 MENU_CONTINUAR,Continuar la partida,Continue the game
 MENU_NUEVA,Empezar de cero,Start from scratch
+HUD_VACIO,Vacío: aún no hay nada hecho,Empty: nothing made yet
+HUD_SINTESIS_MESA,Lote entregado. Ahora hay que sintetizar la cepa: entra en la sala y haz clic en ella; el científico trabaja en la mesa.,Batch delivered. Now the strain must be synthesised: go into the room and click it; the scientist works at the bench.
+HUD_SINTESIS_ROBOT,Lote entregado. El robot de síntesis la está preparando.,Batch delivered. The synthesis robot is preparing it.
+CONS_ROBOT_CEPAS,Robot de síntesis de la sala de cepas,Strain room synthesis robot
+AVISO_SALA_NADA,No llevas nada de lo que pide la mejora.,You carry nothing the upgrade needs.
+AVISO_ELIGE_MEJORA,Primero elige una mejora en el árbol de la cepa.,First pick an upgrade in the strain tree.
+TUT_SALTAR,Saltar tutorial,Skip tutorial
+TUT_VALE,Vale,OK
+PASO_SINTETIZAR,Entra en la sala y clic en ella: sintetiza la cepa en la mesa.,Go into the room and click it: synthesise the strain at the bench.

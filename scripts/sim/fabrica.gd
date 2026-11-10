@@ -27,12 +27,30 @@ var vendido := {}
 var ingresos := 0.0              # lo cobrado por ventas
 var vendidas_con := {}           # mutación → cajas de vacunas vendidas con ella
 var desechados := 0              # viales con una mutación repetida (se tiran)
+var entradas_vis: Array = []     # [casilla de la cinta, giro, objeto] que acaban de entrar en una boca (lo vacía el dibujo)
 var vacunas_vendidas := 0
 var vendidas_destino := {}       # región → cajas vendidas allí
 # --- sala de cepas (V1.14): árbol de mejoras tipo Plague Inc
 var cepa_hechas: Array = []      # ids de mejoras completadas, en orden
 var cepa_actual := ""            # mejora elegida que se está alimentando
 var cepa_entregado := {}         # objeto → unidades entregadas para la actual
+var cepa_sintesis := -1.0        # ≥0: lote completo, segundos de síntesis hechos (V1.17)
+var cepa_robot := false          # el robot de síntesis trabaja solo (desbloqueo)
+const SINTESIS := [0.0, 20.0, 40.0, 70.0, 110.0]   # s de síntesis según el nivel de la mejora
+
+func sintesis_total() -> float:
+	return SINTESIS[int(mejora(cepa_actual).get("nivel", 1))] if cepa_actual != "" else 0.0
+
+## Trabajo de síntesis en la mesa (el científico) o del robot: al acabar, la mejora queda hecha.
+func sintetizar(dt: float) -> void:
+	if cepa_sintesis < 0.0:
+		return
+	cepa_sintesis += dt
+	if cepa_sintesis >= sintesis_total():
+		cepa_hechas.append(cepa_actual)
+		cepa_actual = ""
+		cepa_entregado = {}
+		cepa_sintesis = -1.0
 
 static func mejora(id: String) -> Dictionary:
 	for m in datos.cepa.mejoras:
@@ -51,7 +69,7 @@ func mejora_disponible(id: String) -> bool:
 
 ## Elegir otra mejora conserva lo entregado que también sirva para la nueva.
 func elegir_mejora(id: String) -> void:
-	if not mejora_disponible(id):
+	if not mejora_disponible(id) or cepa_sintesis >= 0.0:
 		return
 	var nueva := mejora(id)
 	var guardado := {}
@@ -62,7 +80,7 @@ func elegir_mejora(id: String) -> void:
 	cepa_entregado = guardado
 
 func cepa_falta(o: String) -> int:
-	if cepa_actual == "":
+	if cepa_actual == "" or cepa_sintesis >= 0.0:
 		return 0
 	var m := mejora(cepa_actual)
 	return int(m.pide.get(Fabrica.base(o), 0)) - int(cepa_entregado.get(Fabrica.base(o), 0))
@@ -76,9 +94,7 @@ func entregar_cepa(o: String) -> bool:
 	for k in m.pide:
 		if int(cepa_entregado.get(k, 0)) < int(m.pide[k]):
 			return true
-	cepa_hechas.append(cepa_actual)
-	cepa_actual = ""
-	cepa_entregado = {}
+	cepa_sintesis = 0.0              # lote completo: ahora hay que sintetizar la cepa
 	return true
 # --- pacientes (V1.8): llegan por la puerta a la sala de espera; las camillas los llaman
 const LLEGADA_BASE := 7.0        # s entre pacientes sin campañas
@@ -323,6 +339,8 @@ class Cinta extends Entidad:
 			var tope := 1.0 if i == 0 else float(objetos[i - 1][1]) - sep
 			var pos: float = minf(float(objetos[i][1]) + v * dt, tope)
 			if i == 0 and pos >= 1.0 and f.entregar(casillas[0] + Fabrica.DIRS[giro], objetos[0][0], giro):
+				if not (self is Tuberia) and not (f.celdas.get(casillas[0] + Fabrica.DIRS[giro]) is Cinta) and f.entradas_vis.size() < 64:
+					f.entradas_vis.append([casillas[0], giro, objetos[0][0]])   # para verlo entrar en la boca
 				objetos.pop_front()
 				continue
 			objetos[i][1] = maxf(pos, float(objetos[i][1]))
@@ -653,6 +671,11 @@ class Estacion extends Entidad:
 	var atendidos := 0
 	var trabajando := false      # el científico está trabajando en ella este paso
 	var llamado := false         # camilla: un paciente viene andando desde la sala de espera
+	var esperar_vista := false   # en partida, el paciente se tumba cuando llega andando de verdad (V1.20)
+	func llega_paciente() -> void:
+		if llamado:
+			llamado = false
+			paciente = true
 	var _d := {}
 	func _init(t: String, c: Vector2i, g: int) -> void:
 		tipo = t
@@ -695,7 +718,7 @@ class Estacion extends Entidad:
 			if not llamado and listo == "" and f.llamar_paciente():
 				llamado = true
 				espera = float(_d.llegada)
-			if llamado:
+			if llamado and not esperar_vista:
 				espera -= dt
 				if espera <= 0.0:
 					paciente = true
@@ -837,12 +860,46 @@ class Deposito extends Entidad:
 		if litros == 0:
 			_t = 0.0
 
-## Sala de cepas (V1.14): 4×3, la mesa de ingeniería genética y la cámara con la cepa viva (3×3).
-## Acepta por cualquier lado lo que pida la mejora elegida.
+## Sala de cepas (V1.17): una sala de 7×6 con paredes (las casillas del borde, con muebles por dentro)
+## y puerta al sur. Dentro, la cámara con la cepa viva (3×3, al fondo a la derecha) y la mesa de
+## ingeniería genética (3 casillas a la izquierda) con su puesto delante, donde trabaja el científico.
+## El buzón de la pared oeste recibe por cinta lo que pide la mejora. El suelo de dentro se pisa pero
+## no se construye. origen = esquina noroeste de la sala.
 class SalaCepas extends Entidad:
+	const ANCHO := 7
+	const FONDO := 6
+	var origen := Vector2i.ZERO
+	var buzon := Vector2i.ZERO
+	var puerta := Vector2i.ZERO
+	var mesa: Array = []
+	var camara: Array = []
 	func _init(c: Vector2i) -> void:
-		for i in 4:
+		origen = c
+		buzon = c + Vector2i(0, 3)
+		puerta = c + Vector2i(2, FONDO - 1)
+		for i in ANCHO:
+			for j in FONDO:
+				var p := c + Vector2i(i, j)
+				var borde := i == 0 or j == 0 or i == ANCHO - 1 or j == FONDO - 1
+				if borde and p != puerta:
+					casillas.append(p)
+		for i in 3:
 			for j in 3:
-				casillas.append(c + Vector2i(i, j))
-	func aceptar(f: Fabrica, o: String, _d: int, _c: Vector2i) -> bool:
+				camara.append(c + Vector2i(3 + i, 1 + j))
+		mesa = [c + Vector2i(1, 1), c + Vector2i(1, 2), c + Vector2i(1, 3)]
+		casillas.append_array(camara)
+		casillas.append_array(mesa)
+		giro = 2
+	func rect() -> Rect2i:
+		return Rect2i(origen, Vector2i(ANCHO, FONDO))
+	## Donde se pone el científico para trabajar en la mesa.
+	func puesto() -> Vector2i:
+		return origen + Vector2i(2, 2)
+	## Por cinta solo entra por el buzón; a mano, por cualquier sitio (d = −1).
+	func aceptar(f: Fabrica, o: String, d: int, c: Vector2i) -> bool:
+		if d != -1 and c != buzon:
+			return false
 		return f.entregar_cepa(o)
+	func paso(f: Fabrica, dt: float) -> void:
+		if f.cepa_robot and f.cepa_sintesis >= 0.0:
+			f.sintetizar(dt * 0.6 * f.factor_energia)   # el robot es algo más lento que el científico

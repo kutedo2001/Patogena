@@ -150,17 +150,7 @@ for k in range(4):
              lados=12, padre=cons)
 
 # ------------------------------------------------------------ bocas con cortina de lamas
-for lado, nombre in ((-1, "entrada"), (1, "salida")):
-    x = lado * (AX / 2 + 0.03)
-    z = Z0 + 0.17
-    caja(f"{nombre}_marco", (0.06, 0.3, 0.24), (x, 0, z), gr, bisel=0.015, padre=r)
-    caja(f"{nombre}_hueco", (0.065, 0.24, 0.18), (x, 0, z), negro, bisel=0.0, padre=r)
-    for k in range(6):
-        caja(f"{nombre}_lama{k}", (0.004, 0.036, 0.175), (x + lado * 0.03, -0.1 + k * 0.04, z), mat("lama", color=(0.2, 0.22, 0.24), rug=0.5, alfa=0.85),
-             bisel=0.0, padre=r)
-    for s in (-1, 1):
-        tornillo(f"{nombre}_torn{s}", (x + lado * 0.032, s * 0.13, z + 0.1), r, r=0.007, normal="+X" if lado > 0 else "-X")
-    chevron(f"{nombre}_flecha", (lado * 0.45 - 0.035, 0, ZH + 0.002), 0.09, mat("amarillo"), r)
+bocas_estandar(r, 1, (0,), 0)
 
 # ------------------------------------------------------------ trasera: ventilador, cable y torre de luces
 BY = AY / 2 + 0.002

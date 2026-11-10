@@ -280,7 +280,7 @@ def centrifuga_ind():
     brida("brida_entrada2", (-0.988, 0.5, ZT), "x", r)
     # salida de plasma: rampa con gradilla de tubos (+X, fila 0 = y +0.5 en Blender es -0.5 del juego?)
     caja("salida_rampa", (0.4, 0.3, 0.04), (0.8, -0.5, z + 0.25), ch, bisel=0.01, padre=r, giro=(0, math.radians(18), 0))
-    puerto_lamas("boca_salida", 1, 0.95, z + 0.15, r, ancho=0.3, alto=0.2, y=-0.5, z_flecha=z + 0.002)
+    boca_cinta("boca_salida", 1, 1.0, 0.5, r, salida=True)
     caja("cuadro", (0.36, 0.1, 0.42), (0.55, -0.8, z + 0.42), ch, bisel=0.02, padre=r)
     pantalla_plano("pantalla", 0.28, 0.16, (0.55, -0.852, z + 0.5), padre=r)
     cilindro("cuadro_seta", 0.03, 0.03, (0.45, -0.86, z + 0.3), mat("seta_roja", color=(0.85, 0.08, 0.06), rug=0.35), lados=20,

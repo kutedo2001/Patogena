@@ -275,6 +275,21 @@ func _process(dt: float) -> void:
 			_rot("torso", Vector3.FORWARD, sin(_t * 1.7 + 0.5) * 9.0)
 			_fijar("arm-left", _q(Vector3.BACK, 70.0))
 			_fijar("arm-right", _q(Vector3.RIGHT, 30.0) * _q(Vector3.UP, 70.0))   # se sujeta el brazo pinchado
+		"extraer":
+			# inclinado sobre el brazo del paciente; manos juntas delante y abajo, casi quietas,
+			# con un temblor mínimo de pulso (V1.16)
+			var m := sin(_t * 1.3) * 2.0
+			_fijar("torso", _q(Vector3.RIGHT, 24.0 + sin(_t * 0.7) * 1.5))
+			_fijar("head", _q(Vector3.RIGHT, 22.0) * _q(Vector3.UP, m))
+			_fijar("arm-left", _q(Vector3.RIGHT, 38.0 + m) * _q(Vector3.UP, -66.0))
+			_fijar("arm-right", _q(Vector3.RIGHT, 44.0 - m) * _q(Vector3.UP, 62.0))
+		"manipular":
+			# trabajando con las manos delante (incubadora, grifo, mesa): movimientos lentos y alternos
+			var a := sin(_t * 2.2) * 8.0
+			_fijar("torso", _q(Vector3.RIGHT, 10.0))
+			_fijar("head", _q(Vector3.RIGHT, 14.0))
+			_fijar("arm-left", _q(Vector3.RIGHT, 20.0 + a) * _q(Vector3.UP, -70.0))
+			_fijar("arm-right", _q(Vector3.RIGHT, 20.0 - a) * _q(Vector3.UP, 70.0))
 		"mareado":
 			# andar inseguro: tronco que se tambalea y cabeza caída
 			_rot("torso", Vector3.FORWARD, sin(_t * 2.6) * 10.0)

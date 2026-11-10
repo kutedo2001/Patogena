@@ -246,8 +246,7 @@ for k, x in enumerate((-0.1, 0.0, 0.1)):
                 ob.name = f"taponado{k}_{parte}"
 
 # ------------------------------------------------------------ bocas
-puerto_lamas("entrada", -1, -0.9, ZH + 0.25, r, ancho=0.3, alto=0.22, y=-0.5, z_flecha=ZH + 0.002, x_flecha=-0.93)
-puerto_lamas("salida", 1, 0.92, ZH + 0.25, r, ancho=0.3, alto=0.22, y=-0.2, z_flecha=ZH + 0.002, x_flecha=0.95)
+bocas_estandar(r, 2, (0, 1), 1)
 caja("entrada_conducto", (0.12, 0.34, 0.26), (-0.86, -0.5, ZH + 0.25), gr, bisel=0.015, padre=r)
 caja("salida_conducto", (0.1, 0.34, 0.26), (0.88, -0.2, ZH + 0.25), gr, bisel=0.015, padre=r)
 tubo_curvo("tubo_entrada", [(-0.82, -0.5, ZH + 0.32), (-0.65, -0.5, ZH + 0.5), (VX - 0.2, VY - RV - 0.08, Z_C0 + 0.2), (VX - 0.15, VY - RV + 0.01, Z_C0 + 0.22)],

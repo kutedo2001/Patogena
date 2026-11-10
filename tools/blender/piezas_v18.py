@@ -190,7 +190,7 @@ def biogas():
     caja("tolva", (0.3, 0.35, 0.12), (-0.85, 0.1, z + 0.55), ch, bisel=0.02, padre=r)
     caja("tolva_boca", (0.22, 0.26, 0.02), (-0.85, 0.1, z + 0.615), mat("negro_mate", color=(0.05, 0.055, 0.06), rug=0.7), bisel=0.0, padre=r)
     tubo_curvo("tolva_bajante", [(-0.85, 0.1, z + 0.5), (-0.8, 0.1, z + 0.35), (dx - 0.48, dy, z + 0.3)], 0.05, ch, padre=r)
-    puerto_lamas("boca_entrada", -1, -0.99, z + 0.2, r, ancho=0.3, alto=0.2, y=-0.5, z_flecha=z + 0.002)
+    boca_cinta("boca_entrada", -1, -1.0, 0.5, r)
     # gasómetro: cúpula de lona sobre anillo
     gx, gy = 0.45, 0.45
     cilindro("gasometro_anillo", 0.36, 0.12, (gx, gy, z + 0.06), gr, lados=40, bisel=0.01, padre=r)

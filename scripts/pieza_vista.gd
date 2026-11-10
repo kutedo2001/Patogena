@@ -149,33 +149,34 @@ func actualizar(e: Fabrica.Entidad, _tt: float) -> void:
 		ll.visible = en_marcha
 		ll.scale = Vector3.ONE * (1.0 + 0.15 * sin(_t * 17.0) + 0.1 * sin(_t * 29.0))
 
-## Pacientes sentados: la primera sala sienta a los cuatro primeros que esperan, la segunda a los siguientes…
+## Asientos de la sala de espera: los usa el gestor de pacientes para sentar a la gente que entra.
+func asientos() -> Array[Node3D]:
+	return _asientos if tipo == "sala_espera" else []
+
 func _sala(_e: Fabrica.SalaEspera) -> void:
-	if juego == null:
-		return
-	var n := clampi(juego.fab.espera_pacientes - indice_sala * Fabrica.SalaEspera.ASIENTOS, 0, Fabrica.SalaEspera.ASIENTOS)
-	while _sentados.size() < n and _sentados.size() < _asientos.size():
-		var p := Personaje.new()
-		p.variante = ["paciente_m", "paciente_f"][randi() % 2]
-		p.animacion = "sit"
-		var a := _asientos[_sentados.size()]
-		a.add_child(p)
-		_sentados.append(p)
-	while _sentados.size() > n:
-		_sentados.pop_front().queue_free()
+	pass
 
 ## Cápsulas: la persona flota dentro (de pie, cabeza caída, balanceo lento); la bolsa de suero baja;
 ## sin suero la luz pasa a ámbar.
+var _llamados := 0
+func _meter(p: Personaje, hueco: Node3D) -> void:
+	_llamados -= 1
+	p.reparent(hueco)
+	p.position = Vector3.ZERO
+	p.rotation = Vector3.ZERO
+	p.estilo = "mareado"
+	p.velocidad_anim = 0.3
+	p.poner("idle")
+	_sentados.append(p)
+
 func _capsula(c: Fabrica.Capsula) -> void:
 	_luces(c.activa(), not c.activa() and c.humanos > 0, false)
-	while _sentados.size() < c.humanos and _sentados.size() < _asientos.size():
-		var p := Personaje.new()
-		p.variante = ["paciente_m", "paciente_f"][randi() % 2]
-		p.animacion = "idle"
-		p.estilo = "mareado"
-		p.velocidad_anim = 0.3
-		_asientos[_sentados.size()].add_child(p)
-		_sentados.append(p)
+	# los humanos llegan andando desde la sala de espera y se meten en la cápsula
+	while _sentados.size() + _llamados < c.humanos and _sentados.size() + _llamados < _asientos.size():
+		_llamados += 1
+		var hueco := _asientos[_sentados.size() + _llamados - 1]
+		var frente := hueco.global_position + global_transform.basis * Vector3(0, 0, 0.55)
+		juego.pacientes.llamar(Vector3(frente.x, 0, frente.z), func(p: Personaje): _meter(p, hueco))
 	for i in _sentados.size():
 		var p := _sentados[i]
 		p.position.y = 0.02 * sin(_t * 0.8 + i)

@@ -121,6 +121,7 @@ func _pacientes(est: Fabrica.Estacion, _t: float) -> void:
 	var puerta := juego.puerta_pacientes()
 	var lado := to_global(Vector3(0.05, 0, 0.62))
 	var dt := get_process_delta_time() * juego.velocidad
+	est.esperar_vista = true
 	if est.atendidos > _atendidos:
 		_atendidos = est.atendidos
 		Sonido.tocar("tubo_lleno", 0.7)
@@ -136,26 +137,16 @@ func _pacientes(est: Fabrica.Estacion, _t: float) -> void:
 	if _incorporado:
 		_t_incorporado += dt
 		if _t_incorporado > 1.8:
-			_incorporado.reparent(juego)
 			_incorporado.estilo = "mareado"
-			_incorporado.position = lado
-			_incorporado.poner("walk")
 			_incorporado.velocidad_anim = 0.7
-			_yendo.append([_incorporado, lado, puerta, 0.0, 0.6])
+			_incorporado.global_position = lado
+			juego.pacientes.despedir(_incorporado)
 			_incorporado = null
-	if _paciente == null and _incorporado == null and (est.paciente or est.llamado):
-		_paciente = Personaje.new()
-		_paciente.variante = ["paciente_m", "paciente_f"][randi() % 2] if not "--demo_m" in OS.get_cmdline_user_args() else "paciente_m"
-		_paciente.animacion = "walk"
-		juego.add_child(_paciente)
-		var origen := juego.origen_paciente(lado)
-		_paciente.position = origen
-		_yendo.append([_paciente, origen, lado, 0.0, 1.0])
+	# la camilla llama: el paciente viene andando desde su asiento (V1.20)
+	if _paciente == null and _incorporado == null and not _pidiendo and (est.paciente or est.llamado):
+		_pidiendo = true
+		juego.pacientes.llamar(Vector3(lado.x, 0, lado.z), func(p: Personaje): _pidiendo = false; _paciente = p; est.llega_paciente())
 	if _paciente and est.paciente and _paciente.get_parent() != self:
-		for y in _yendo:
-			if y[0] == _paciente:
-				_yendo.erase(y)
-				break
 		_paciente.reparent(self)
 		_paciente.estilo = "tumbado"
 		_paciente.poner("idle")
@@ -195,6 +186,7 @@ var _algodon: Node3D
 var _tirita: Node3D
 var _ecg: ShaderMaterial
 var _incorporado: Personaje
+var _pidiendo := false
 var _t_incorporado := 0.0
 var _extractor: Node3D
 var _hombro: Node3D
@@ -229,7 +221,7 @@ func _montar_camilla() -> void:
 		n.owner = null
 		for h in n.find_children("*", "", true, false):
 			h.owner = null
-		n.reparent(self)
+		n.reparent(self, false)       # sin conservar transformación global (aún no está en el árbol)
 	kit.queue_free()
 	_gota = _particulas_gota()
 	add_child(_gota)

@@ -182,8 +182,7 @@ for sx in (-1, 1):
 
 tubo_curvo("cable_red", [(0.3, 0.76, ZH + 0.1), (0.3, 0.82, ZH + 0.04), (0.4, 0.8, 0.02), (0.6, 0.66, 0.012)], 0.01, negro, padre=r)
 torre_luces((0.76, 0.62, ZM), r, poste=0.24)
-puerto_lamas("entrada", -1, -0.85, ZH + 0.25, r, ancho=0.3, alto=0.22, y=0.35, z_flecha=ZH + 0.002, x_flecha=-0.93)
-puerto_lamas("salida", 1, 0.85, ZH + 0.25, r, ancho=0.3, alto=0.22, y=CY, z_flecha=ZH + 0.002, x_flecha=0.93)
+bocas_estandar(r, 2, (0, 1), 1)
 
 exportar(SALIDA)
 print("ENVASADORA OK")
