@@ -577,7 +577,9 @@ func _mover_cientifico(dt: float) -> void:
 			pos = pos.lerp(punto, minf(1.0, dt * 6.0))
 			cientifico.position = Vector3(pos.x, 0, pos.y)
 		cientifico.rotation.y = lerp_angle(cientifico.rotation.y, atan2(cen.x - pos.x, cen.y - pos.y), minf(1.0, dt * 10.0))
-	var trabaja: bool = mov == Vector2.ZERO and _trabajando != null and _trabajando.trabajando
+	# no se usa est.trabajando: la simulación lo pone a falso en fab.avanzar() antes de que el
+	# científico trabaje este fotograma, y la postura salía siempre la de reposo (bug V1.16b)
+	var trabaja: bool = mov == Vector2.ZERO and _trabajando != null and _trabajando.lista_para_trabajar() and cerca(_trabajando)
 	var sintetiza: bool = mov == Vector2.ZERO and _sintetizando
 	var anim := "walk" if mov != Vector2.ZERO else ("idle" if trabaja or sintetiza else ("holding-both" if mano_n > 0 else "idle"))
 	cientifico.estilo = ("extraer" if _trabajando.tipo == "camilla" else "manipular") if trabaja else ("manipular" if sintetiza else "")

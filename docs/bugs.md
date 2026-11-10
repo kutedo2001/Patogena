@@ -66,3 +66,10 @@ Formato: síntoma · causa · arreglo · comprobación · cómo evitarlo.
 - **Arreglo:** quitar devuelve el 100 % y mete lo que tenía dentro en la mochila (o lo deja al lado si está llena).
 - **Comprobación:** prueba de ratón «quitar devuelve contenido».
 - **Evitar:** quitar nunca destruye objetos.
+
+## B11 · El científico se queda «pillado» al sacar sangre (sigue tras V1.16) — resuelto (V1.16b)
+- **Síntoma:** jugando, durante la extracción el científico está en reposo y el brazo se mueve solo siguiendo la aguja; en la demo se veía bien.
+- **Causa:** la postura se decidía con `est.trabajando`, que la simulación pone a falso en `fab.avanzar()` antes de que el científico trabaje ese fotograma; en partida siempre salía falso. La demo tenía otro orden.
+- **Arreglo:** la postura depende de «estación lista + científico cerca + quieto», que no depende del orden.
+- **Comprobación:** fotogramas de la partida real (`--prueba_raton --seq_camilla`), no de la demo.
+- **Evitar:** verificar las animaciones en la partida real; nada de leer banderas que la simulación reinicia a mitad de fotograma.

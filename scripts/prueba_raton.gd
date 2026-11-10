@@ -102,6 +102,10 @@ func _guion() -> void:
 	comprobar(juego.seleccion == cam and juego.pos.distance_to(p_antes) < 0.05, "clic derecho en la camilla: abre su panel sin moverse")
 	# clic izquierdo: el científico va y saca sangre
 	await _clic(Vector2i(-2, 1))
+	if "--seq_camilla" in OS.get_cmdline_user_args():
+		for i in 160:
+			await get_tree().create_timer(0.1).timeout
+			get_viewport().get_texture().get_image().save_png("/tmp/rc/f_%03d.png" % i)
 	var ok := await _hasta(func(): return juego.cuenta_mochila("tubo_sangre") >= 1, 25.0)
 	comprobar(ok and juego.mano_obj == "tubo_sangre", "clic en la camilla: va, espera al paciente, saca sangre y la lleva en la mano")
 	await _construir("HUD_CAT_PROCESADO", KEY_1, Vector2i(0, 1))
