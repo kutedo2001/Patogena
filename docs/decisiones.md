@@ -73,3 +73,9 @@
 | 2026-11-10 | Equilibrado del mundo con tools/balance_mundo.py: partida normal ~7,5 h con la cura al ~78 %; un jugador lento pierde, uno rápido gana en ~6 h | Duración objetivo de 8 h y la cura como amenaza real |
 | 2026-11-10 | Zoom máximo más cerca (2,5 casillas) para que se vea la extracción y el detalle de las piezas | Petición de Edu de una animación de extracción vistosa |
 | 2026-11-10 | Sonido sintetizado por código (tools/sonidos.py) en vez de muestras de terceros | Sin licencias que gestionar; se puede rehacer a gusto |
+| 2026-11-10 | Rediseño: **Two Point Hospital** para todo el hub (aspecto de máquinas, construcción de salas, resto del aspecto e interfaz) y **Alchemy Factory** para la automatización; Factorio para lo que AF no resuelva | Edu (10-nov): «cada cosa y cada pieza ha de tener sentido» |
+| 2026-11-10 | **Vista de director**: fuera el científico que maneja el jugador; se contrata personal (científicos, becarios, conserjes, luego zombis) que trabaja a mano hasta automatizar | Elección de Edu; así es Two Point |
+| 2026-11-10 | **Todo mezclado**: máquinas y cintas dentro de salas Two Point; las cintas cruzan pasillos y paredes por pasamuros | Elección de Edu |
+| 2026-11-10 | Personajes: pack CC0 más caricaturesco que Kenney, elegido por Edu en una lámina | Two Point usa personajes exagerados; las personas nunca por código |
+| 2026-11-10 | La pantalla objetivo del 9-nov deja de valer: se vuelve a la puerta 3. V1.11, V1.12 y V1.17–V1.19 quedan sustituidas por el rediseño R | El estilo de máquinas, salas e interfaz cambia entero |
+| 2026-11-10 | Propuesta de sentido para la logística (se cierra en R0.3): tubos de sangre por cinta hasta la centrífuga; lo que sale es líquido y va por tubería; lo envasado vuelve a la cinta | Sólidos por cinta y líquidos por tubería, como Alchemy Factory |
