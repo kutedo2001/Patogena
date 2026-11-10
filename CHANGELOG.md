@@ -58,3 +58,8 @@ Lo que nota el jugador, por versión.
 - El laboratorio ya es una fábrica conectada: sangre → centrífugas → biorreactores → cámara de cepa, y cultivo/agua/reactivo → secuenciador y mezcladora → envasadora → palé de vacunas.
 - Corral de pruebas vallado con los zombis.
 - Monitor grande en la pared con el mapa del mundo, la infección por región, la cura y rutas aéreas animadas.
+
+## Rediseño 2.0 · prueba 15 min (10-nov)
+- El juego arranca en el modo director: edificio con recepción, entrada con felpudo y objetivos de Dirección.
+- Pacientes que llegan, se sientan o esperan de pie ordenados, hacen cola y se tumban en la camilla nueva.
+- Personal contratable (científico, técnico, becario), gradillas en las manos y en cintas, pasamuros automáticos.

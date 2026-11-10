@@ -83,3 +83,8 @@
 | 2026-11-10 | Máquinas de paso como Alchemy Factory: la cinta entra por un agujero de la máquina, el proceso se ve dentro y lo producido sale por el agujero del otro lado en la misma línea. La centrífuga devuelve la misma gradilla (ya solo hematíes) y saca el plasma por tubería | Edu: la tolva añadida parecía un apartado aparte |
 | 2026-11-10 | Paredes del hub de 1,0 m visibles (a la altura de la cabeza), como Two Point | Edu: las de 0,62 m eran demasiado bajas |
 | 2026-11-10 | Puerta 3 aprobada con la pantalla objetivo nueva (docs/referencias/objetivo_2.png). Regla 8: nada se atraviesa (personas, objetos, máquinas ni animaciones) | Edu: «vigila que no se superponga nada… por lo demás bien, puedes empezar» |
+
+## 2026-11-10 · El modo director (hub) pasa a ser la escena principal
+- La build de la prueba de 15 minutos (R2.8) arranca directamente en `escenas/hub.tscn`. La partida nueva trae la recepción, un banco y una planta junto a la entrada (gratis); lo primero que hace el jugador es la sala de extracción, guiado por los objetivos de Dirección.
+- La versión 1.0 anterior (`escenas/principal.tscn`) queda en el repo sin enlazar hasta migrarla (R3.1).
+- Los pacientes sin asiento esperan de pie en una casilla propia del pasillo, pegada a una pared u objeto, sin tapar usos, puertas ni la entrada.

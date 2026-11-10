@@ -3,7 +3,7 @@ config_version=5
 
 [application]
 config/name="Patógena S.A."
-run/main_scene="res://escenas/principal.tscn"
+run/main_scene="res://escenas/hub.tscn"
 config/description="Fábrica 3D isométrica de un laboratorio que provoca un apocalipsis zombi."
 config/features=PackedStringArray("4.7", "Forward Plus")
 

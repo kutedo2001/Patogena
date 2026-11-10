@@ -42,6 +42,7 @@ func reconstruir() -> void:
 		_plano(Rect2(s.rect.position, s.rect.size), 0.004, Color.WHITE, d.suelo)
 	_paredes()
 	_muro_exterior()
+	_entrada()
 	# objetos
 	var vivos := {}
 	for o in h.objetos:
@@ -125,6 +126,34 @@ func _paredes() -> void:
 		_pieza("pared_esquina", Vector3(e.x, 0, e.y), 0.0, esquinas[e])
 
 ## Muro del edificio por el fondo y la izquierda (los lados de la cámara se ven abiertos, como Two Point).
+## Entrada del edificio: camino de acera desde fuera y felpudo en la casilla por la que entran los pacientes.
+func _entrada() -> void:
+	var e := h.entrada
+	_plano(Rect2(e.x - 0.2, e.y + 1.0, 1.4, 5.0), -0.015, Color(0.83, 0.81, 0.77), "")
+	var borde := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.94, 0.014, 0.8)
+	borde.mesh = bm
+	borde.position = centro(e) + Vector3(0, 0.007, 0.05)
+	var mb := StandardMaterial3D.new()
+	mb.albedo_color = Color(0.18, 0.42, 0.38)
+	mb.roughness = 0.95
+	borde.material_override = mb
+	_estatico.add_child(borde)
+	var dentro := MeshInstance3D.new()
+	var dm := BoxMesh.new()
+	dm.size = Vector3(0.8, 0.016, 0.66)
+	dentro.mesh = dm
+	dentro.position = centro(e) + Vector3(0, 0.008, 0.05)
+	var md := StandardMaterial3D.new()
+	md.albedo_color = Color(0.22, 0.22, 0.23)
+	md.roughness = 1.0
+	md.normal_enabled = true
+	md.normal_texture = load("res://assets/texturas/tp_baldosa_n.png")
+	md.uv1_scale = Vector3(6, 6, 1)
+	dentro.material_override = md
+	_estatico.add_child(dentro)
+
 func _muro_exterior() -> void:
 	var p := h.parcela
 	var zoc := Color(0.55, 0.42, 0.34)

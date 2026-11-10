@@ -33,8 +33,11 @@ func _ready() -> void:
 		if a.begins_with("--idioma="):
 			idioma = a.trim_prefix("--idioma=")
 	TranslationServer.set_locale(idioma)
-	if "--demo_hub" in OS.get_cmdline_user_args():
+	var args := OS.get_cmdline_user_args()
+	if "--demo_hub" in args:
 		_demo()
+	elif not "--prueba_hub" in args:
+		_inicio()
 	var vp := get_viewport()
 	vp.msaa_3d = Viewport.MSAA_4X
 	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
@@ -49,7 +52,7 @@ func _ready() -> void:
 	camara = CamaraDirector.new()
 	add_child(camara)
 	camara.limites = Rect2(h.parcela.position.x - 2, h.parcela.position.y - 2, h.parcela.size.x + 4, h.parcela.size.y + 4)
-	camara.fijar(Vector3(h.parcela.get_center().x, 0, h.parcela.get_center().y + 0.5), 16.0)
+	camara.fijar(Vector3(h.parcela.get_center().x, 0, h.parcela.get_center().y + 0.5), 16.0 if "--demo_hub" in args or "--prueba_hub" in args else 21.0)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--centro="):
 			var c := a.trim_prefix("--centro=").split(",")
@@ -66,6 +69,15 @@ func _ready() -> void:
 	capa.add_child(hud)
 	if "--prueba_hub" in OS.get_cmdline_user_args():
 		add_child(load("res://scripts/hub/prueba_raton_hub.gd").new(self))
+
+## Partida nueva: el edificio vacío con la recepción y un banco junto a la entrada (como en Two Point,
+## lo primero que haces es la primera sala; la recepción ya viene puesta y es gratis).
+func _inicio() -> void:
+	var d := h.dinero
+	pl.poner("recepcion", h.entrada + Vector2i(1, -3), 2)
+	pl.poner("banco", h.entrada + Vector2i(-4, -2), 0)
+	pl.poner("planta", h.entrada + Vector2i(-5, -2), 0)
+	h.dinero = d
 
 ## Demostración: el laboratorio de la pantalla objetivo construido con la simulación (para capturas).
 func _demo() -> void:
