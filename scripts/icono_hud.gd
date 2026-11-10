@@ -88,6 +88,9 @@ func _draw() -> void:
 			draw_polyline(PackedVector2Array([p.call(0.16, 0.52), p.call(0.4, 0.76), p.call(0.86, 0.24)]), color, g * 1.3, true)
 		"punto":
 			draw_circle(p.call(0.5, 0.5), s * 0.3, color)
+		"cerrar":
+			draw_line(p.call(0.22, 0.22), p.call(0.78, 0.78), color, g * 1.4, true)
+			draw_line(p.call(0.78, 0.22), p.call(0.22, 0.78), color, g * 1.4, true)
 		"mover":
 			for d in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
 				var c: Vector2 = p.call(0.5, 0.5)

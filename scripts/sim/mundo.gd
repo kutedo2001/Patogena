@@ -6,9 +6,9 @@ extends RefCounted
 ## investigan la cura; si llega al 100 % se pierde. Se gana con el 90 % del mundo zombi.
 ## Población en millones; tiempo en segundos de juego.
 
-const CONTAGIO_BASE := 0.00022      # por segundo, sin mejoras (duplica en ~50 min)
-const VIAJES := 0.0000035           # contagio entre regiones
-const CURA_BASE := 0.000022         # por segundo con detección máxima (~13 h sin resistencias)
+const CONTAGIO_BASE := 0.00003      # por segundo, sin mejoras (duplica en ~6 h; las mejoras lo multiplican)
+const VIAJES := 0.0000006           # contagio entre regiones
+const CURA_BASE := 0.0001           # equilibrado con tools/balance_mundo.py: partida normal ~7,5 h con la cura al ~78 %
 const DETECCION := 1.0              # millones de infectados para que se den cuenta
 
 var regiones: Array = []            # [{id, pob, clima, riqueza, s, i, z}]

@@ -743,7 +743,7 @@
      "vector": 40
     },
     "efecto": {
-     "zombificacion": 0.004,
+     "zombificacion": 8e-05,
      "contagio": 0.2
     },
     "desbloquea": []
@@ -760,7 +760,7 @@
      "neurotoxina": 100
     },
     "efecto": {
-     "zombificacion": 0.006
+     "zombificacion": 0.00012
     },
     "desbloquea": []
    },
@@ -776,7 +776,7 @@
      "capside": 60
     },
     "efecto": {
-     "zombificacion": 0.01,
+     "zombificacion": 0.0002,
      "contagio": 0.3
     },
     "desbloquea": []
@@ -793,7 +793,7 @@
      "proteina": 200
     },
     "efecto": {
-     "zombificacion": 0.015
+     "zombificacion": 0.0003
     },
     "desbloquea": []
    },
@@ -808,7 +808,7 @@
      "nucleo_zombi": 100
     },
     "efecto": {
-     "zombificacion": 0.03
+     "zombificacion": 0.0006
     },
     "desbloquea": []
    },
@@ -1047,7 +1047,7 @@
     "y": 17
    }
   ],
-  "por_caja": 0.02,
+  "por_caja": 0.002,
   "victoria": 0.9
  }
 }

@@ -603,6 +603,10 @@ func _demo_piezas() -> void:
 	fab.poner_maquina("destilador", Vector2i(7, 1), 0)
 	fab.poner_maquina("impresora", Vector2i(4, 4), 0)
 	fab.poner_maquina("fusionador", Vector2i(7, 4), 0)
+	fab.poner_fuente(Vector2i(0, 5), 0, "tubo_sangre", 1.2)
+	fab.poner_linea([Vector2i(1, 5), Vector2i(2, 5)])
+	fab.poner_maquina("centrifuga", Vector2i(3, 5), 0)
+	fab.poner_linea([Vector2i(4, 5), Vector2i(5, 5), Vector2i(6, 5)])
 
 func puede_guardar() -> bool:
 	var args := OS.get_cmdline_user_args()

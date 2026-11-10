@@ -5,6 +5,15 @@ Lo que nota el jugador, por versión.
 ## Sin publicar
 - Estructura inicial del proyecto.
 
+## Camino a la 1.0 · bloque 2 (10-nov-2026)
+- Extracción a mano animada en una camilla nueva: torniquete, algodón, aguja, tubo que se llena y tirita; el paciente se va mareado. Zoom de cerca para verlo.
+- Sala de espera, campañas de donantes y energía (red de 20 kW, generador diésel y de biogás de sangre).
+- Tuberías de sangre, depósitos, cápsulas de donante, granja de humanos y centrífuga industrial.
+- Cadenas con profundidad: cada máquina fabrica sin parar la receta que elijas; sangre → plasma, hematíes o plaquetas; cultivo → ADN o ARN; viriones, vectores, proteína, neurotoxina, cápside y núcleo zombi. Cuatro máquinas nuevas.
+- Sala de cepas con árbol de 24 mejoras al estilo Plague Inc. (sustituye al ascensor y a la cámara de un solo uso).
+- Mundo con 12 regiones: eliges a dónde van las vacunas, la cura avanza, se gana con el 90 % de zombis.
+- Sonido y música, guardado automático, piezas antes grises ya modeladas, iconos nuevos.
+
 ## Camino a la 1.0 · bloque 1 (9-nov-2026)
 - Mochila de 12 casillas al estilo Factorio: la pila elegida va en la mano; clic izquierdo carga o recoge, Mayús+clic lo hace todo, clic derecho abre el panel. Arrastrar entre casillas y a las máquinas.
 - LISA, la IA del laboratorio, narra la historia: tú eres la empresa.

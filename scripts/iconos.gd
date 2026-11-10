@@ -6,14 +6,15 @@ extends Node
 const LADO := 256
 ## fondo opaco del color de las casillas del HUD: con fondo transparente el vidrio desaparecía
 const FONDO := Color(0.74, 0.76, 0.76)   # = bandeja del HUD
-const CARPETAS := ["res://assets/modelos/objetos", "res://assets/modelos/maquinas", "res://assets/modelos/cintas"]
+const CARPETAS := ["res://assets/modelos/objetos", "res://assets/modelos/maquinas", "res://assets/modelos/cintas", "res://assets/modelos/estaciones"]
+const FUERA := ["kit_extraccion", "extractor_camilla", "tuberia_curva", "mesa_genetica", "recolector", "bomba", "puerta", "terminal"]
 const SOLO := ["cinta_recta_mk1", "cinta_curva_mk1"]   # de las cintas basta una muestra
 
 func _ready() -> void:
 	var rutas: Array[String] = []
 	for c in CARPETAS:
 		for f in DirAccess.get_files_at(c):
-			if f.ends_with(".glb") and (not c.ends_with("cintas") or f.get_basename() in SOLO):
+			if f.ends_with(".glb") and (not c.ends_with("cintas") or f.get_basename() in SOLO) and not f.get_basename() in FUERA:
 				rutas.append(c + "/" + f)
 	var vp := SubViewport.new()
 	vp.size = Vector2i(LADO, LADO)
@@ -45,10 +46,7 @@ func _ready() -> void:
 	vp.add_child(cam)
 	# piezas provisionales (puerta 4): brazo, divisor y almacén
 	Fabrica.cargar_datos()
-	var prov := {"brazo": Fabrica.Brazo.new(Vector2i.ZERO, 0, ""), "divisor": Fabrica.Divisor.new(Vector2i.ZERO, 0),
-		"almacen": Fabrica.Almacen.new(Vector2i.ZERO, 0), "camilla": Fabrica.Estacion.new("camilla", Vector2i.ZERO, 0),
-		"incubadora": Fabrica.Estacion.new("incubadora", Vector2i.ZERO, 0), "toma_agua": Fabrica.Estacion.new("toma_agua", Vector2i.ZERO, 0),
-		"muelle": Fabrica.MuelleEnvio.new(Vector2i.ZERO)}
+	var prov := {}
 	for r in rutas + prov.keys():
 		var n: Node3D = Provisional.crear(prov[r], Vector3.ZERO) if prov.has(r) else load(r).instantiate()
 		Materiales.ajustar(n)
@@ -64,6 +62,7 @@ func _ready() -> void:
 			await RenderingServer.frame_post_draw
 		var img := vp.get_texture().get_image()
 		var nombre: String = r if prov.has(r) else r.get_file().get_basename()
+		nombre = {"hub": "muelle", "tuberia_recta": "tuberia", "camara_cepa": "sala_cepas"}.get(nombre, nombre)
 		img.save_png("res://assets/iconos/%s.png" % nombre)
 		print("icono ", nombre)
 		n.queue_free()

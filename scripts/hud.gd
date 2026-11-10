@@ -582,7 +582,7 @@ func _panel_estacion(e: Fabrica.Estacion) -> void:
 func _pacientes_y_campanas() -> void:
 	var f := juego.fab
 	_franja(_maq_caja, tr("HUD_PACIENTES"))
-	var pe := _pantalla(_maq_caja, 8)
+	var pe := _columna(_pantalla(_maq_caja, 8), 4)
 	_texto(pe, tr("HUD_ESPERANDO") % [f.espera_pacientes, f.capacidad_espera()], 13, F_BOLD, P_TINTA)
 	var txt := tr("HUD_LLEGA_CADA") % String.num(f.llegada_cada(), 1).replace(".", ",")
 	if f.campana_t > 0.0:
@@ -612,7 +612,7 @@ func _panel_generador(g: Fabrica.Generador) -> void:
 	cc.alignment = BoxContainer.ALIGNMENT_CENTER
 	_texto(cc, tr("CONS_" + g.tipo.to_upper()), 17, F_BOLD)
 	_maq_estado = _texto(cc, "%d kW" % int(g.kw_actual), 11, F_BOLD, Color(0.15, 0.6, 0.3))
-	var pe := _pantalla(_maq_caja, 8)
+	var pe := _columna(_pantalla(_maq_caja, 8), 4)
 	var f := juego.fab
 	_texto(pe, tr("HUD_RED") % [String.num(f.demanda_kw, 1).replace(".", ","), String.num(f.capacidad_kw(), 0)], 13, F_BOLD, P_TINTA)
 	if g.tipo == "biogas":
@@ -732,7 +732,7 @@ func abrir_cepas() -> void:
 	var m := juego.mundo
 	_texto(tt, tr("HUD_ESTADO_MUNDO") % [String.num(m.fraccion_infectada() * 100.0, 2).replace(".", ","),
 		String.num(m.fraccion_zombi() * 100.0, 2).replace(".", ","), int(m.cura * 100.0)], 12, F_SEMI, C_TENUE_OSC)
-	_boton(cab, "quitar", C_ROJO, 40, true, func(): cerrar_cepas())
+	_boton(cab, "cerrar", C_ROJO, 40, true, func(): cerrar_cepas())
 	var cuerpo := _fila(raiz, 14)
 	cuerpo.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	for rama in ["transmision", "sintomas", "resistencias"]:
@@ -763,7 +763,7 @@ func abrir_cepas() -> void:
 			b.add_theme_stylebox_override("panel", bs)
 			col.add_child(b)
 			var fb := _fila(b, 6)
-			_texto(fb, "%s  ·  %s" % ["I".repeat(int(mj.nivel)), tr("MEJ_" + id.to_upper())], 12, F_BOLD,
+			_texto(fb, "%s  ·  %s" % [["", "I", "II", "III", "IV"][int(mj.nivel)], tr("MEJ_" + id.to_upper())], 12, F_BOLD,
 				Color.WHITE if estado != "bloqueada" else C_TENUE_OSC).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			if estado == "hecha":
 				fb.add_child(IconoHUD.new("check", Color.WHITE, 14))
