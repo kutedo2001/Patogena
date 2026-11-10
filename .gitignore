@@ -4,3 +4,4 @@ build/
 *.tmp
 .import/
 export_presets.cfg.bak
+_lamina/
