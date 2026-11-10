@@ -284,3 +284,140 @@ def banco():
 for f in (gradilla_hematies, banco, pared_recta, pared_esquina, pared_puerta, pared_ventana, pared_pasamuros, cinta_recta, tuberia_recta, gradilla_sangre, bolsa_hematies):
     f()
     print("hecho:", f.__name__)
+
+
+# ------------------------------------------------------------------ objetos de pasillo y salas (R1.3)
+def _base_objeto(nombre):
+    limpiar(); comun._mats.clear()
+    return vacio(nombre)
+
+
+def recepcion():
+    """Mostrador de recepción 2×1 curvo: frente con franja y logo, encimera, monitor con pantalla, teclado, timbre,
+    bandeja de formularios y taburete detrás."""
+    r = _base_objeto("recepcion")
+    frente = mat("rec_frente", color=(0.3, 0.6, 0.66), rug=0.45)
+    enc = mat("rec_encimera", color=(0.97, 0.95, 0.9), rug=0.35)
+    nar = mat("tp_naranja", color=(0.98, 0.52, 0.14), rug=0.35)
+    gr = mat("grafito")
+    caja("frente", (1.8, 0.5, 0.62), (0, 0.05, 0.31), frente, bisel=0.12, segmentos=5, padre=r)
+    caja("franja", (1.84, 0.54, 0.05), (0, 0.05, 0.45), nar, bisel=0.025, segmentos=3, padre=r)
+    caja("encimera", (1.9, 0.62, 0.05), (0, 0.02, 0.645), enc, bisel=0.025, segmentos=3, padre=r)
+    caja("mesa_baja", (1.7, 0.32, 0.04), (0, -0.3, 0.46), enc, bisel=0.015, padre=r)
+    placa = mat_calcomania("placa_logo", os.path.join("assets/texturas/calcomanias", "placa_logo.png"), 0.4)
+    calcomania("logo", 0.5, 0.17, (0, 0.305, 0.25), placa, padre=r, giro=(math.radians(90), 0, math.pi))
+    # monitor
+    caja("mon_pie", (0.12, 0.08, 0.02), (-0.4, -0.25, 0.49), gr, bisel=0.008, padre=r)
+    caja("mon_cuello", (0.03, 0.03, 0.18), (-0.4, -0.25, 0.58), gr, bisel=0.008, padre=r)
+    caja("mon_cuerpo", (0.42, 0.04, 0.27), (-0.4, -0.24, 0.74), gr, bisel=0.015, padre=r)
+    pantalla_plano("pantalla", 0.38, 0.23, (-0.4, -0.215, 0.74), padre=r, giro=(math.radians(90), 0, math.pi))
+    caja("teclado", (0.34, 0.12, 0.02), (-0.4, -0.08, 0.49), mat("teclado", color=(0.9, 0.9, 0.88), rug=0.5), bisel=0.006, padre=r)
+    cilindro("timbre", 0.04, 0.025, (0.5, 0.15, 0.68), mat("cromo", color=(0.86, 0.87, 0.89), metal=1.0, rug=0.2), lados=24, bisel=0.008, padre=r)
+    esfera("timbre_boton", 0.012, (0.5, 0.15, 0.695), gr, padre=r)
+    for k in range(3):
+        caja(f"form{k}", (0.2, 0.28, 0.006), (0.15, 0.12, 0.675 + k * 0.008), mat("papel", color=(0.98, 0.98, 0.96), rug=0.7), bisel=0.0, padre=r, giro=(0, 0, math.radians(k * 6)))
+    # taburete
+    cilindro("tab_asiento", 0.15, 0.05, (0.25, -0.55, 0.42), mat("banco_cojin", color=(0.95, 0.5, 0.2), rug=0.6), lados=24, bisel=0.02, padre=r)
+    cilindro("tab_pie", 0.02, 0.38, (0.25, -0.55, 0.21), mat("cromo"), lados=12, padre=r)
+    cilindro("tab_base", 0.14, 0.02, (0.25, -0.55, 0.01), mat("cromo"), lados=24, padre=r)
+    exportar(os.path.join(SAL, "recepcion.glb"))
+
+
+def planta():
+    r = _base_objeto("planta")
+    cilindro("maceta", 0.16, 0.3, (0, 0, 0.15), mat("maceta", color=(0.95, 0.55, 0.2), rug=0.5), lados=32, bisel=0.03, padre=r)
+    cilindro("tierra", 0.145, 0.02, (0, 0, 0.3), mat("tierra", color=(0.25, 0.16, 0.1), rug=0.9), lados=32, padre=r)
+    hoja = mat("hoja", color=(0.22, 0.6, 0.3), rug=0.5)
+    for k in range(9):
+        a = k / 9 * math.tau
+        e = esfera(f"hoja{k}", 0.09, (math.cos(a) * 0.1, math.sin(a) * 0.1, 0.45 + (k % 3) * 0.08), hoja, padre=r, escala=(1.6, 0.6, 0.25))
+        e.rotation_euler = (math.radians(30), 0, a)
+    esfera("copa", 0.12, (0, 0, 0.62), hoja, padre=r, escala=(1, 1, 1.3))
+    exportar(os.path.join(SAL, "planta.glb"))
+
+
+def maquina_bebidas():
+    r = _base_objeto("maquina_bebidas")
+    cuerpo = mat("bebidas", color=(0.85, 0.15, 0.2), rug=0.4)
+    caja("cuerpo", (0.62, 0.5, 1.1), (0, 0, 0.55), cuerpo, bisel=0.05, segmentos=3, padre=r)
+    caja("vitrina", (0.4, 0.02, 0.62), (-0.06, 0.251, 0.68), mat("cristal", color=(0.75, 0.9, 0.95), rug=0.05, alfa=0.35), bisel=0.0, padre=r)
+    cols = [(0.2, 0.5, 0.9), (0.95, 0.75, 0.2), (0.3, 0.8, 0.4), (0.95, 0.4, 0.6)]
+    for f in range(4):
+        for c in range(4):
+            cilindro(f"lata{f}{c}", 0.03, 0.09, (-0.2 + c * 0.095, 0.2, 0.43 + f * 0.15), mat(f"lata{c}", color=cols[c], rug=0.3, metal=0.4), lados=16, padre=r)
+    caja("panel", (0.12, 0.02, 0.3), (0.22, 0.252, 0.75), mat("grafito"), bisel=0.01, padre=r)
+    for k in range(6):
+        caja(f"tecla{k}", (0.03, 0.01, 0.025), (0.205 + (k % 2) * 0.035, 0.263, 0.82 - (k // 2) * 0.04), mat("teclado", color=(0.9, 0.9, 0.88), rug=0.5), bisel=0.003, padre=r)
+    caja("bandeja", (0.36, 0.06, 0.1), (-0.06, 0.25, 0.18), mat("negro_mate", color=(0.05, 0.055, 0.06), rug=0.7), bisel=0.01, padre=r)
+    caja("cartel", (0.56, 0.02, 0.14), (0, 0.252, 1.03), mat("bebidas_cartel", color=(0.98, 0.95, 0.9), rug=0.5, emision=(1, 0.95, 0.85), fuerza=0.6), bisel=0.01, padre=r)
+    exportar(os.path.join(SAL, "maquina_bebidas.glb"))
+
+
+def papelera():
+    r = _base_objeto("papelera")
+    cilindro("cubo", 0.13, 0.36, (0, 0, 0.18), mat("papelera", color=(0.3, 0.5, 0.45), rug=0.5), lados=24, bisel=0.02, padre=r)
+    toro("aro", 0.13, 0.012, (0, 0, 0.36), mat("cromo", color=(0.86, 0.87, 0.89), metal=1.0, rug=0.2), padre=r)
+    esfera("papel", 0.04, (0.03, 0.02, 0.37), mat("papel", color=(0.98, 0.98, 0.96), rug=0.7), padre=r, escala=(1, 0.8, 0.7))
+    exportar(os.path.join(SAL, "papelera.glb"))
+
+
+def extintor():
+    r = _base_objeto("extintor")
+    rojo = mat("rojo_zona", color=(0.85, 0.1, 0.1), rug=0.4)
+    caja("placa", (0.22, 0.02, 0.5), (0, 0, 0.55), mat("placa_ext", color=(0.95, 0.95, 0.9), rug=0.5), bisel=0.01, padre=r)
+    cilindro("botella", 0.06, 0.32, (0, 0.08, 0.5), rojo, lados=24, bisel=0.02, padre=r)
+    cilindro("valvula", 0.025, 0.05, (0, 0.08, 0.69), mat("grafito"), lados=12, padre=r)
+    tubo_curvo("manguera", [(0, 0.08, 0.7), (0.06, 0.1, 0.66), (0.07, 0.12, 0.45)], 0.01, mat("negro_mate", color=(0.05, 0.055, 0.06), rug=0.7), padre=r)
+    exportar(os.path.join(SAL, "extintor.glb"))
+
+
+def carrito_extraccion():
+    """Carrito de extracción: bandejas con agujas, algodón, gradilla abierta donde va el tubo recién lleno y
+    contenedor amarillo de punzantes."""
+    r = _base_objeto("carrito_extraccion")
+    crem = mat("tp_crema", color=(0.97, 0.95, 0.88), rug=0.42)
+    cromo = mat("cromo", color=(0.86, 0.87, 0.89), metal=1.0, rug=0.2)
+    for z in (0.2, 0.55):
+        caja(f"bandeja{z}", (0.5, 0.36, 0.03), (0, 0, z), crem, bisel=0.012, padre=r)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            cilindro(f"poste{sx}{sy}", 0.012, 0.56, (sx * 0.22, sy * 0.15, 0.32), cromo, lados=10, padre=r)
+            cilindro(f"rueda{sx}{sy}", 0.03, 0.025, (sx * 0.22, sy * 0.15, 0.03), mat("goma"), lados=16, padre=r, giro=(math.radians(90), 0, 0))
+    caja("punzantes", (0.12, 0.12, 0.16), (0.15, 0.08, 0.65), mat("amarillo"), bisel=0.015, padre=r)
+    caja("punzantes_tapa", (0.13, 0.13, 0.02), (0.15, 0.08, 0.735), mat("rojo_zona", color=(0.85, 0.1, 0.1), rug=0.4), bisel=0.006, padre=r)
+    esfera("algodon", 0.05, (-0.15, 0.08, 0.59), mat("algodon", color=(1, 1, 1), rug=0.9), padre=r, escala=(1.2, 1, 0.6))
+    for k in range(4):
+        cilindro(f"jeringa{k}", 0.008, 0.12, (-0.1 + k * 0.03, -0.1, 0.575), mat("cristal", color=(0.85, 0.92, 0.95), rug=0.05, alfa=0.5), lados=8, padre=r, giro=(0, math.radians(90), 0))
+    exportar(os.path.join(SAL, "carrito_extraccion.glb"))
+
+
+def llenadora_gradillas():
+    """Puesto de carga 1×1 al principio de la cinta: el tubo lleno se mete en la gradilla abierta y, con 6, la
+    gradilla baja a la cinta por la ranura delantera (+X)."""
+    r = _base_objeto("llenadora_gradillas")
+    men = mat("tp_menta", color=(0.46, 0.78, 0.68), rug=0.38)
+    nar = mat("tp_naranja", color=(0.98, 0.52, 0.14), rug=0.35)
+    caja("cuerpo", (0.7, 0.8, 0.5), (-0.1, 0, 0.3), men, bisel=0.1, segmentos=4, padre=r)
+    caja("cinto", (0.73, 0.83, 0.05), (-0.1, 0, 0.5), nar, bisel=0.02, padre=r)
+    caja("encimera", (0.72, 0.82, 0.04), (-0.1, 0, 0.56), mat("tp_crema", color=(0.97, 0.95, 0.88), rug=0.42), bisel=0.015, padre=r)
+    caja("hueco", (0.38, 0.2, 0.02), (-0.1, 0, 0.58), mat("negro_mate", color=(0.05, 0.055, 0.06), rug=0.7), bisel=0.0, padre=r)
+    caja("salida_marco", (0.06, 0.86, 0.06), (0.38, 0, 0.66), mat("grafito"), bisel=0.012, padre=r)
+    caja("salida_franja", (0.065, 0.86, 0.02), (0.38, 0, 0.7), mat("franja_salida", color=(1.0, 0.55, 0.12), rug=0.35, emision=(1.0, 0.55, 0.12), fuerza=0.9), bisel=0.004, padre=r)
+    for s in (-1, 1):
+        caja(f"salida_lat{s}", (0.06, 0.05, 0.3), (0.38, s * 0.43, 0.5), mat("grafito"), bisel=0.01, padre=r)
+    pantalla_plano("pantalla", 0.16, 0.1, (-0.1, 0.405, 0.42), padre=r, giro=(math.radians(90), 0, math.pi))
+    exportar(os.path.join(SAL, "llenadora_gradillas.glb"))
+
+
+def cartel_empresa():
+    r = _base_objeto("cartel_empresa")
+    caja("marco", (0.6, 0.03, 0.42), (0, 0, 0.0), mat("marco_cartel", color=(0.15, 0.15, 0.18), rug=0.5), bisel=0.01, padre=r)
+    caja("fondo", (0.54, 0.035, 0.36), (0, 0, 0.0), mat("cartel_fondo", color=(0.98, 0.85, 0.3), rug=0.5), bisel=0.0, padre=r)
+    caja("franja", (0.54, 0.036, 0.08), (0, 0, -0.1), mat("rojo_zona", color=(0.85, 0.1, 0.1), rug=0.4), bisel=0.0, padre=r)
+    esfera("virus", 0.07, (0, 0.02, 0.06), mat("virus_cartel", color=(0.3, 0.75, 0.35), rug=0.4), padre=r, escala=(1, 0.3, 1))
+    exportar(os.path.join(SAL, "cartel_empresa.glb"))
+
+
+for f in (recepcion, planta, maquina_bebidas, papelera, extintor, carrito_extraccion, llenadora_gradillas, cartel_empresa):
+    f()
+    print("hecho:", f.__name__)
