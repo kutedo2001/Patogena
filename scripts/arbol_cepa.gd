@@ -44,18 +44,84 @@ func estado(id: String) -> String:
 			return "vista"          # la siguiente a una disponible: se ve, bloqueada
 	return "oculta"
 
-func _calcular() -> void:
-	_pos.clear()
-	var c := size * 0.5 + Vector2(40, 0)
-	var cuenta := {}
+## Nodos por capas: profundidad = camino más largo desde la raíz de su rama; los de la misma capa se
+## abren en abanico. Así las ramas se bifurcan y se vuelven a juntar como un árbol de incremental.
+func _profundidad(id: String) -> int:
+	var m := Fabrica.mejora(id)
+	var p := 0
+	for r in m.requiere:
+		p = maxi(p, _profundidad(r) + 1)
+	return p
+
+var _c := Vector2.ZERO
+var _etq := {}           # rama → posición del nombre (más allá del nodo más lejano)
+
+func _mejora(id: String) -> Dictionary:
 	for m in Fabrica.datos.cepa.mejoras:
-		var rama: String = m.rama
-		var k: int = cuenta.get(rama, 0)
-		cuenta[rama] = k + 1
-		# cada rama se curva un poco y zigzaguea; el óvalo aprovecha el ancho del panel
-		var a := deg_to_rad(RAMAS[rama]) + k * 0.07 + (0.13 if k % 2 == 0 else -0.13) * minf(k, 1)
-		var radio := 88.0 + k * 31.0
-		_pos[m.id] = c + Vector2(cos(a) * radio * 1.3, sin(a) * radio * 0.78)
+		if m.id == id:
+			return m
+	return {}
+
+func _calcular() -> void:
+	# posiciones en bruto alrededor de (0,0); luego se escala y centra para que quepa todo
+	var bruto := {}
+	var capas := {}          # rama|prof → [ids]
+	for m in Fabrica.datos.cepa.mejoras:
+		var clave := "%s|%d" % [m.rama, _profundidad(m.id)]
+		if not capas.has(clave):
+			capas[clave] = []
+		capas[clave].append(m.id)
+	# abanico por rama: radio por profundidad, ángulo repartido dentro del sector
+	# y ordenado por el ángulo medio de los padres (baricentro) para que no se crucen líneas
+	var ang := {}
+	var lejos := {}
+	var max_prof := 0
+	for clave in capas:
+		max_prof = maxi(max_prof, int(clave.split("|")[1]))
+	for rama in RAMAS:
+		for prof in max_prof + 1:
+			var clave := "%s|%d" % [rama, prof]
+			if not capas.has(clave):
+				continue
+			var ids: Array = capas[clave].duplicate()
+			var A := deg_to_rad(RAMAS[rama])
+			var media := func(id):
+				var req: Array = _mejora(id).requiere
+				if req.is_empty():
+					return A
+				var t := 0.0
+				for r in req:
+					t += ang.get(r, A)
+				return t / req.size()
+			ids.sort_custom(func(x, y): return media.call(x) < media.call(y))
+			var n := ids.size()
+			var paso := minf(deg_to_rad(100.0) / maxf(n - 1, 1), deg_to_rad(30.0))
+			var r := 120.0 + prof * 75.0
+			lejos[rama] = maxf(lejos.get(rama, 0.0), r)
+			for i in n:
+				var t := A + (i - (n - 1) * 0.5) * paso
+				ang[ids[i]] = t
+				bruto[ids[i]] = Vector2(cos(t), sin(t)) * r
+	var etq := {}
+	for rama in RAMAS:
+		var a := deg_to_rad(RAMAS[rama])
+		etq[rama] = Vector2(cos(a), sin(a)) * (lejos.get(rama, 100.0) + 70.0)
+	var caja := Rect2(Vector2.ZERO, Vector2.ZERO)
+	for id in bruto:
+		caja = caja.expand(bruto[id])
+	for rama in etq:
+		caja = caja.expand(etq[rama])
+	caja = caja.grow_individual(70, 30, 70, 40)   # medio nombre de nodo/rama y radio
+	# X e Y por separado: el recuadro es apaisado y las ramas no; así se aprovecha todo y no se pisan
+	var esc := Vector2(minf(1.4, size.x / maxf(caja.size.x, 1.0)), minf(1.6, size.y / maxf(caja.size.y, 1.0)))
+	var desp := size * 0.5 - caja.get_center() * esc
+	_c = desp
+	_pos.clear()
+	for id in bruto:
+		_pos[id] = desp + bruto[id] * esc
+	_etq.clear()
+	for rama in etq:
+		_etq[rama] = desp + etq[rama] * esc
 
 func _draw() -> void:
 	if fab == null:
@@ -71,13 +137,14 @@ func _draw() -> void:
 	while y < size.y:
 		draw_line(Vector2(0, y), Vector2(size.x, y), Color(REJILLA, 0.5), 1.0)
 		y += paso
-	var c := size * 0.5 + Vector2(40, 0)
-	# conexiones
+	var c := _c
+	# conexiones (una línea por requisito: las ramas se separan y se juntan)
 	for m in Fabrica.datos.cepa.mejoras:
-		var desde: Vector2 = c if m.requiere.is_empty() else _pos[m.requiere[0]]
 		var e := estado(m.id)
 		var col: Color = COLOR_RAMA[m.rama] if e == "hecha" else (Color(COLOR_RAMA[m.rama], 0.55) if e in ["curso", "libre"] else Color(TENUE, 0.5 if e == "vista" else 0.18))
-		draw_line(desde, _pos[m.id], col, 3.0 if e == "hecha" else 1.5, true)
+		var origenes: Array = [c] if m.requiere.is_empty() else m.requiere.map(func(r): return _pos[r])
+		for desde in origenes:
+			draw_line(desde, _pos[m.id], col, 3.0 if e == "hecha" else 1.5, true)
 	# centro: la cepa
 	var lat := 1.0 + 0.05 * sin(_t * 3.0)
 	draw_circle(c, 34.0 * lat, Color(0.12, 0.3, 0.12))
@@ -90,9 +157,7 @@ func _draw() -> void:
 	draw_string(F_BOLD, c + Vector2(-40, 58), tr("HUD_CEPA").to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 80, 13, TINTA)
 	# nombres de rama
 	for rama in RAMAS:
-		var a := deg_to_rad(RAMAS[rama])
-		var p := c + Vector2(cos(a) * 120.0 * 1.3, sin(a) * 120.0 * 0.78) + Vector2(0, -26)
-		p = p.clamp(Vector2(70, 20), size - Vector2(70, 10))
+		var p: Vector2 = _etq[rama] + Vector2(0, 4)
 		draw_string(F_BOLD, p - Vector2(70, 0), tr("RAMA_" + rama.to_upper()).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 140, 13, COLOR_RAMA[rama])
 	# nodos
 	for m in Fabrica.datos.cepa.mejoras:

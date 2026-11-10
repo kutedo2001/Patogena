@@ -595,7 +595,7 @@
     "rama": "transmision",
     "nivel": 2,
     "requiere": [
-     "agua"
+     "estornudos"
     ],
     "pide": {
      "vector": 50,
@@ -613,7 +613,7 @@
     "rama": "transmision",
     "nivel": 3,
     "requiere": [
-     "ratas"
+     "agua"
     ],
     "pide": {
      "capside": 40,
@@ -630,7 +630,7 @@
     "rama": "transmision",
     "nivel": 3,
     "requiere": [
-     "mosquitos"
+     "ratas"
     ],
     "pide": {
      "nucleo_zombi": 20,
@@ -647,6 +647,7 @@
     "rama": "transmision",
     "nivel": 4,
     "requiere": [
+     "mosquitos",
      "aves"
     ],
     "pide": {
@@ -737,7 +738,7 @@
     "rama": "sintomas",
     "nivel": 2,
     "requiere": [
-     "insomnio"
+     "nauseas"
     ],
     "pide": {
      "neurotoxina": 60,
@@ -770,7 +771,8 @@
     "rama": "sintomas",
     "nivel": 3,
     "requiere": [
-     "hambre"
+     "mordisco",
+     "insomnio"
     ],
     "pide": {
      "nucleo_zombi": 20,
@@ -787,7 +789,7 @@
     "rama": "sintomas",
     "nivel": 4,
     "requiere": [
-     "rabia"
+     "hambre"
     ],
     "pide": {
      "nucleo_zombi": 50,
@@ -803,7 +805,8 @@
     "rama": "sintomas",
     "nivel": 4,
     "requiere": [
-     "necrosis"
+     "necrosis",
+     "rabia"
     ],
     "pide": {
      "nucleo_zombi": 100
@@ -870,7 +873,7 @@
     "rama": "resistencias",
     "nivel": 2,
     "requiere": [
-     "humedad"
+     "calor"
     ],
     "pide": {
      "capside": 30,
@@ -904,7 +907,7 @@
     "rama": "resistencias",
     "nivel": 3,
     "requiere": [
-     "farmacos2"
+     "humedad"
     ],
     "pide": {
      "nucleo_zombi": 30,
@@ -920,6 +923,7 @@
     "rama": "resistencias",
     "nivel": 4,
     "requiere": [
+     "farmacos2",
      "camuflaje"
     ],
     "pide": {

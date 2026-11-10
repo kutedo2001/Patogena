@@ -149,10 +149,10 @@ func _ascensor_y_hub() -> void:
 		sala.aceptar(f, "tubo_plasma", 0, Vector2i(0, 0))
 	f.elegir_mejora("frio")
 	comprobar(f.cepa_entregado.is_empty(), "cambiar a una mejora que no pide plasma no guarda el plasma")
-	var h := f.poner_muelle_envio(Vector2i(5, 5))
+	var h := f.poner_muelle_envio(Vector2i(10, 10))
 	h.destino = "india"
 	for i in 10:
-		h.aceptar(f, "caja_vacunas", 0, Vector2i(5, 5))
+		h.aceptar(f, "caja_vacunas", 0, Vector2i(10, 10))
 	comprobar(f.vacunas_vendidas == 10 and f.vendidas_destino.get("india", 0) == 10 and h.viajes == 1, "10 vacunas a la India, una furgoneta sale (%d €)" % int(f.ingresos))
 	# mundo
 	var m := Mundo.new()

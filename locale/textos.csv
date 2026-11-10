@@ -368,3 +368,8 @@ AVISO_ELIGE_MEJORA,Primero elige una mejora en el árbol de la cepa.,First pick 
 TUT_SALTAR,Saltar tutorial,Skip tutorial
 TUT_VALE,Vale,OK
 PASO_SINTETIZAR,Entra en la sala y clic en ella: sintetiza la cepa en la mesa.,Go into the room and click it: synthesise the strain at the bench.
+OBJ_PROTEINA,Proteína vírica,Viral protein
+OBJ_VECTOR,Vector,Vector
+OBJ_NEUROTOXINA,Neurotoxina,Neurotoxin
+OBJ_CAPSIDE,Cápside,Capsid
+OBJ_NUCLEO_ZOMBI,Núcleo zombi,Zombie core

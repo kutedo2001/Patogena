@@ -80,6 +80,12 @@ func _ready() -> void:
 		juego.final.connect(mostrar_final)
 		if juego.inicio_pendiente:
 			_preguntar_continuar.call_deferred()
+		if "--demo_arbol" in OS.get_cmdline_user_args():
+			juego.fab.cepa_hechas = ["tos", "fiebre", "frio", "estornudos", "nauseas"]
+			juego.fab.elegir_mejora("calor")
+			juego.fab.cepa_entregado = {"proteina": 18, "bolsa_suero": 60}
+			_cepas_sel = "calor"
+			abrir_cepas.call_deferred()
 		juego.tutorial.correo.connect(_mostrar_correo)
 		juego.aviso.connect(func(k: String): _avisos.push_front(tr(k)); _avisos.resize(mini(_avisos.size(), 3)); if k.begins_with("AVISO_NO") or k == "AVISO_SIN_DINERO": Sonido.tocar("error"))
 	_refrescar(true)
@@ -763,14 +769,18 @@ func abrir_cepas() -> void:
 		_texto(fi, "%s  %d/%d" % [tr("OBJ_" + str(o).to_upper()), hecho, int(sel.pide[o])], 12, F_SEMI, P_TINTA)
 	if not sel.desbloquea.is_empty():
 		_texto(dc, tr("HUD_DESBLOQUEA").to_upper(), 10, F_BOLD, P_TENUE)
-		var fd := _fila(dc, 4)
 		for id in sel.desbloquea:
 			var ic: String = id
+			var nombre := tr("CONS_ROBOT_CEPAS") if id == "robot_cepas" else str(id)
 			for cat in Juego.CATALOGO:
 				for en in Juego.CATALOGO[cat]:
 					if en[0] == id:
 						ic = en[1]
+						nombre = tr(en[2])
+			var fd := _fila(dc, 8)
 			_bandeja(fd, ic, 34).tooltip_text = tr("DESC_" + str(id).to_upper())
+			var tn := _texto(fd, nombre, 12, F_SEMI, P_TINTA)
+			tn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if _cepas_sel in f.cepa_hechas:
 		_texto(dc, tr("HUD_MEJORA_HECHA"), 13, F_BOLD, C_OK)
 	elif _cepas_sel == f.cepa_actual and f.cepa_sintesis >= 0.0:
