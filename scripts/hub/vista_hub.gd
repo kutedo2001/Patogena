@@ -6,6 +6,7 @@ extends Node3D
 
 const TP := "res://assets/modelos/tp/"
 var h: Hospital
+var pasamuros := {}      # bordes con pasamuros (los pone la Planta al cruzar paredes con cintas)
 var _estatico: Node3D
 var _objs := {}          # Objeto.id → Node3D
 var _modelos := {}
@@ -50,6 +51,8 @@ func reconstruir() -> void:
 			add_child(n)
 			n.transform = transform_objeto(o.tipo, o.origen, o.giro)
 			_objs[o.id] = n
+		else:
+			_objs[o.id].transform = transform_objeto(o.tipo, o.origen, o.giro)
 	for id in _objs.keys():
 		if not vivos.has(id):
 			_objs[id].queue_free()
@@ -112,7 +115,7 @@ func _paredes() -> void:
 					if hechos.has(clave):
 						continue
 					hechos[clave] = true
-					var k := "pared_puerta" if (c == s.puerta and l == s.lado) else "pared_recta"
+					var k := "pared_puerta" if (c == s.puerta and l == s.lado) else ("pared_pasamuros" if pasamuros.has(clave) else "pared_recta")
 					var medio := (centro(c) + centro(f)) * 0.5
 					var gir := 0.0 if l == 1 or l == 3 else 90.0
 					_pieza(k, medio, gir, zoc)

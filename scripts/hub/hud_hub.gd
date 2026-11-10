@@ -110,6 +110,9 @@ func _draw() -> void:
 		_catalogo_salas(tam)
 	elif catalogo == "objetos":
 		_catalogo_objetos(tam)
+	elif catalogo == "personal":
+		_catalogo_personal(tam)
+	_objetivos(tam)
 	if j.seleccion and j.modo == "":
 		_ficha(tam)
 	if j.modo != "":
@@ -123,7 +126,7 @@ func _menu(tam: Vector2) -> void:
 	_redondo(Vector2(98, y), 46, Color("3d8a7f"), "mapa", tr("HUB_MUNDO"), func(): pass, false)
 	_redondo(Vector2(210, y), 40, NARANJA, "salas", tr("HUB_SALAS"), func(): catalogo = "" if catalogo == "salas" else "salas")
 	_redondo(Vector2(314, y), 40, Color("58a35a"), "objetos", tr("HUB_OBJETOS"), func(): catalogo = "" if catalogo == "objetos" else "objetos")
-	_redondo(Vector2(418, y), 40, Color("3f7fc4"), "personal", tr("HUB_PERSONAL"), func(): pass, false)
+	_redondo(Vector2(418, y), 40, Color("3f7fc4"), "personal", tr("HUB_PERSONAL"), func(): catalogo = "" if catalogo == "personal" else "personal")
 	_redondo(Vector2(522, y), 40, Color("8a5cc2"), "info", tr("HUB_INFO"), func(): pass, false)
 
 func _dinero(tam: Vector2) -> void:
@@ -136,10 +139,17 @@ func _dinero(tam: Vector2) -> void:
 	_txt(r.position + Vector2(198, 91), tr("HUD_REPUTACION"), 16, F_S, TENUE)
 	_txt(r.position + Vector2(28, 132), tr("HUB_DIA") % 1, 20, F_S, TINTA)
 	var vel := ["pausa", "play", "rapido"]
+	var valores := [0.0, 1.0, 3.0]
 	for i in 3:
 		var c := r.position + Vector2(262 + i * 52, 122)
-		draw_circle(c, 21, VERDE if i == 1 else CREMA2)
-		IconosTP.dibujar(self, c, 11, vel[i], CREMA if i == 1 else VERDE)
+		var activo: bool = is_equal_approx(j.velocidad, valores[i])
+		draw_circle(c, 21, VERDE if activo else CREMA2)
+		IconosTP.dibujar(self, c, 11, vel[i], CREMA if activo else VERDE)
+		var v: float = valores[i]
+		_zonas.append([Rect2(c - Vector2(21, 21), Vector2(42, 42)), func(): j.velocidad = v])
+	var gente := j.pl.personas.filter(func(p): return p.rol != "paciente").size()
+	var pacientes := j.pl.personas.size() - gente
+	_txt(r.position + Vector2(200, 52), tr("HUB_RESUMEN") % [pacientes, gente], 15, F_S, TENUE, 220, HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _euros(v: float) -> String:
 	var n := int(round(v))
@@ -199,12 +209,86 @@ func _catalogo_objetos(tam: Vector2) -> void:
 		_txt(cr.position + Vector2(12, 80), _euros(float(Hospital.datos.objetos[t].precio)), 15, F_B, VERDE)
 		_zonas.append([cr, func(): catalogo = ""; j.empezar_objeto(t)])
 
+func _catalogo_personal(tam: Vector2) -> void:
+	var roles: Array = Hospital.datos.personal.keys()
+	var r := Rect2(24, tam.y - 196 - 170, 250 * roles.size() + 24, 170)
+	_panel(r, 24)
+	_paneles.append(r)
+	var modelos_icono := {"cientifico": "personal", "tecnico": "personal", "becario": "gradilla"}
+	for i in roles.size():
+		var rol: String = roles[i]
+		var d: Dictionary = Hospital.datos.personal[rol]
+		var cr := Rect2(r.position.x + 16 + i * 250, r.position.y + 16, 238, 138)
+		var hover := cr.has_point(get_local_mouse_position())
+		_panel(cr, 16, CREMA2.lightened(0.3) if hover else CREMA2, Color("3f7fc4"), 3, false)
+		draw_circle(cr.position + Vector2(38, 40), 24, Color("3f7fc4"))
+		IconosTP.dibujar(self, cr.position + Vector2(38, 40), 14, modelos_icono.get(rol, "personal"), CREMA)
+		_txt(cr.position + Vector2(72, 36), tr("ROL_" + rol.to_upper()), 18, F_B, TINTA)
+		var n := j.pl.personas.filter(func(p): return p.rol == rol).size()
+		_txt(cr.position + Vector2(72, 58), tr("HUB_EN_PLANTILLA") % n, 14, F_S, TENUE)
+		_txt(cr.position + Vector2(16, 88), tr("DESC_ROL_" + rol.to_upper()), 13, F_S, TENUE, 210)
+		_txt(cr.position + Vector2(16, 124), tr("HUB_CONTRATAR") % _euros(float(d.precio)), 15, F_B, VERDE)
+		_txt(cr.position + Vector2(130, 124), tr("HUB_SUELDO") % int(d.sueldo_min), 13, F_S, TENUE, 96, HORIZONTAL_ALIGNMENT_RIGHT)
+		_zonas.append([cr, func(): j.contratar(rol)])
+
+## Objetivos de Dirección (arriba a la derecha): guían la primera partida hasta automatizar.
+func _objetivos(tam: Vector2) -> void:
+	var pl: Planta = j.pl
+	var h: Hospital = j.h
+	var tiene := func(t: String) -> bool:
+		for s in h.salas:
+			if s.tipo == t and h.completa(s):
+				return true
+		return false
+	var rol := func(r: String) -> int:
+		return pl.personas.filter(func(p): return p.rol == r).size()
+	var cinta_a_cf := false
+	for m in pl.maquinas.values():
+		if m.o.tipo == "centrifuga":
+			for b in pl.bocas(m.o):
+				if b.tipo == "entrada" and pl.cintas.has(b.c):
+					cinta_a_cf = true
+	var obj := [
+		[tr("OBJ1_EXTRACCION"), 1 if tiene.call("extraccion") else 0, 1],
+		[tr("OBJ1_CIENTIFICO"), mini(rol.call("cientifico"), 1), 1],
+		[tr("OBJ1_LAB"), 1 if tiene.call("lab_sangre") else 0, 1],
+		[tr("OBJ1_TECNICO"), mini(rol.call("tecnico") + maxi(rol.call("cientifico") - 1, 0), 1), 1],
+		[tr("OBJ1_MUELLE"), 1 if pl.maquinas.values().any(func(m): return m.o.tipo == "muelle") and (rol.call("becario") > 0 or not pl.cintas.is_empty()) else 0, 1],
+		[tr("OBJ1_VENDER"), mini(int(pl.ventas.get("gradilla_hematies", 0)), 5), 5],
+		[tr("OBJ1_CINTA"), 1 if cinta_a_cf else 0, 1],
+	]
+	# se ven los hechos recientes y los tres siguientes
+	var primero := 0
+	for i in obj.size():
+		if obj[i][1] < obj[i][2]:
+			primero = maxi(0, i - 1)
+			break
+		primero = maxi(0, obj.size() - 4)
+	var vis := obj.slice(primero, mini(primero + 4, obj.size()))
+	var r := Rect2(tam.x - 400, 24, 376, 76 + vis.size() * 58)
+	_panel(r, 26)
+	_paneles.append(r)
+	_panel(Rect2(r.position, Vector2(r.size.x, 56)), 26, VERDE, VERDE, 0, false)
+	draw_rect(Rect2(r.position + Vector2(5, 30), Vector2(r.size.x - 10, 26)), VERDE)
+	_txt(r.position + Vector2(26, 38), tr("HUB_OBJETIVOS"), 21, F_B, CREMA)
+	for i in vis.size():
+		var y := r.position.y + 92 + i * 58
+		var hecho: bool = vis[i][1] >= vis[i][2]
+		draw_circle(Vector2(r.position.x + 34, y - 6), 13, VERDE2 if hecho else CREMA2)
+		if hecho:
+			IconosTP.dibujar(self, Vector2(r.position.x + 34, y - 6), 9, "check", CREMA)
+		_txt(Vector2(r.position.x + 58, y), vis[i][0], 16, F_S, TENUE if hecho else TINTA, 300)
+		if vis[i][2] > 1:
+			draw_rect(Rect2(r.position.x + 58, y + 10, 230, 8), CREMA2)
+			draw_rect(Rect2(r.position.x + 58, y + 10, 230 * float(vis[i][1]) / vis[i][2], 8), NARANJA)
+			_txt(Vector2(r.position.x + 296, y + 20), "%d/%d" % [vis[i][1], vis[i][2]], 14, F_B, TENUE)
+
 func _ficha(tam: Vector2) -> void:
 	var s: Hospital.Sala = j.seleccion
 	var d: Dictionary = Hospital.datos.salas[s.tipo]
 	var faltan := j.h.faltan(s)
 	var alto := 300 + faltan.size() * 34
-	var r := Rect2(24, 140, 420, alto)
+	var r := Rect2(24, 24, 420, alto)
 	_panel(r, 26)
 	_paneles.append(r)
 	_panel(Rect2(r.position, Vector2(r.size.x, 92)), 26, VERDE, VERDE, 0, false)
@@ -232,7 +316,7 @@ func _ficha(tam: Vector2) -> void:
 	_boton(Rect2(r.position.x + 218, by, 186, 52), tr("HUB_VENDER"), ROJO, func(): j.vender_seleccion())
 
 func _barra_construccion(tam: Vector2) -> void:
-	var r := Rect2(tam.x * 0.5 - 380, 24, 760, 96)
+	var r := Rect2(tam.x * 0.5 - 400, 24, 680, 96)
 	_panel(r, 26)
 	_paneles.append(r)
 	var titulo := ""
@@ -251,6 +335,9 @@ func _barra_construccion(tam: Vector2) -> void:
 		"objeto":
 			titulo = tr("HUB_COLOCANDO") % tr("OBJ_" + j.tipo.to_upper())
 			detalle = tr("HUB_OBJETO_AYUDA")
+		"cinta":
+			titulo = tr("HUB_COLOCANDO") % tr("OBJ_CINTA")
+			detalle = tr("HUB_CINTA_AYUDA")
 	_txt(r.position + Vector2(28, 40), titulo, 21, F_B, VERDE)
 	var err := ""
 	if not j.errores.is_empty():

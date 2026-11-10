@@ -84,7 +84,7 @@
    "salas": [
     "extraccion"
    ],
-   "modelo": "res://assets/modelos/estaciones/camilla.glb",
+   "modelo": "res://assets/modelos/tp/camilla_tp.glb",
    "base": 90,
    "uso": [
     {

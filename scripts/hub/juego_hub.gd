@@ -7,7 +7,11 @@ extends Node3D
 signal cambio
 
 var h := Hospital.new()
+var pl := Planta.new(h)
 var vista: VistaHub
+var vista_planta: VistaPlanta
+var velocidad := 1.0
+var _linea: Array = []         # cinta en curso: [[casilla, giro], ...]
 var camara: CamaraDirector
 var hud: Control
 var modo := ""                 # "", "sala_plano", "sala_puerta", "objeto"
@@ -38,11 +42,22 @@ func _ready() -> void:
 	if Sonido.yo == null:
 		add_child(Sonido.new())
 	vista = VistaHub.new(h)
+	vista.pasamuros = pl.pasamuros
 	add_child(vista)
+	vista_planta = VistaPlanta.new(pl, vista)
+	add_child(vista_planta)
 	camara = CamaraDirector.new()
 	add_child(camara)
 	camara.limites = Rect2(h.parcela.position.x - 2, h.parcela.position.y - 2, h.parcela.size.x + 4, h.parcela.size.y + 4)
 	camara.fijar(Vector3(h.parcela.get_center().x, 0, h.parcela.get_center().y + 0.5), 16.0)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--centro="):
+			var c := a.trim_prefix("--centro=").split(",")
+			var d := 6.0
+			for b in OS.get_cmdline_user_args():
+				if b.begins_with("--dist="):
+					d = float(b.trim_prefix("--dist="))
+			camara.fijar(Vector3(float(c[0]), 0, float(c[1])), d)
 	_marcas = Node3D.new()
 	add_child(_marcas)
 	var capa := CanvasLayer.new()
@@ -54,19 +69,27 @@ func _ready() -> void:
 
 ## Demostración: el laboratorio de la pantalla objetivo construido con la simulación (para capturas).
 func _demo() -> void:
-	var ex := h.construir_sala("extraccion", Rect2i(9, 1, 3, 4), Vector2i(10, 4), 1)
-	h.poner_objeto("camilla", Vector2i(11, 1), 0)
-	h.poner_objeto("carrito_extraccion", Vector2i(9, 1), 0)
+	h.dinero = 20000
+	h.construir_sala("extraccion", Rect2i(9, 1, 3, 4), Vector2i(10, 4), 1)
+	pl.poner("camilla", Vector2i(11, 1), 0)
+	pl.poner("llenadora_gradillas", Vector2i(9, 2), 0)
+	pl.poner("carrito_extraccion", Vector2i(11, 3), 0)
 	var lab := h.construir_sala("lab_sangre", Rect2i(3, 1, 6, 4), Vector2i(5, 4), 1)
-	h.poner_objeto("centrifuga", Vector2i(5, 1), 0)
-	h.poner_objeto("planta", Vector2i(8, 1), 0)
-	h.poner_objeto("banco", Vector2i(3, 5), 0)
-	h.poner_objeto("banco", Vector2i(6, 5), 0)
-	h.poner_objeto("planta", Vector2i(2, 5), 0)
-	h.poner_objeto("maquina_bebidas", Vector2i(12, 5), 0)
-	h.poner_objeto("recepcion", Vector2i(8, 7), 2)
-	h.poner_objeto("papelera", Vector2i(5, 5), 0)
-	seleccion = lab
+	pl.poner("centrifuga", Vector2i(5, 1), 0)
+	pl.poner("muelle", Vector2i(1, 2), 0)
+	for c in [Vector2i(8, 2), Vector2i(7, 2), Vector2i(4, 2), Vector2i(3, 2), Vector2i(2, 2)]:
+		pl.poner_cinta(c, 2)
+	pl.poner("banco", Vector2i(3, 6), 0)
+	pl.poner("banco", Vector2i(6, 6), 0)
+	pl.poner("planta", Vector2i(2, 6), 0)
+	pl.poner("maquina_bebidas", Vector2i(12, 6), 0)
+	pl.poner("recepcion", Vector2i(10, 8), 2)
+	pl.poner("papelera", Vector2i(5, 6), 0)
+	pl.contratar("cientifico")
+	pl.contratar("tecnico")
+	for i in int(60 / Planta.PASO):
+		pl.paso(Planta.PASO)
+	h.dinero = 6000
 
 # ------------------------------------------------------------------ acciones (las usan el HUD y las pruebas)
 func empezar_sala(t: String) -> void:
@@ -76,6 +99,9 @@ func empezar_sala(t: String) -> void:
 	cambio.emit()
 
 func empezar_objeto(t: String) -> void:
+	if t == "cinta":
+		empezar_cinta()
+		return
 	_quitar_fantasma()
 	modo = "objeto"
 	tipo = t
@@ -83,6 +109,23 @@ func empezar_objeto(t: String) -> void:
 	_fantasma = vista._cargar(Hospital.datos.objetos[t].modelo)
 	add_child(_fantasma)
 	cambio.emit()
+
+func empezar_cinta() -> void:
+	_quitar_fantasma()
+	modo = "cinta"
+	tipo = "cinta"
+	_linea = []
+	cambio.emit()
+
+func contratar(rol: String) -> void:
+	if pl.contratar(rol):
+		Sonido.tocar("pulsador", 0.7)
+	else:
+		Sonido.tocar("error", 0.6)
+	cambio.emit()
+
+func _process(dt: float) -> void:
+	pl.avanzar(dt * velocidad)
 
 func cancelar() -> void:
 	modo = ""
@@ -100,7 +143,7 @@ func seleccionar(s: Hospital.Sala) -> void:
 
 func vender_seleccion() -> void:
 	if seleccion:
-		h.vender_sala(seleccion)
+		pl.vender_sala(seleccion)
 		seleccion = null
 		vista.reconstruir()
 		cambio.emit()
@@ -119,9 +162,12 @@ func _unhandled_input(ev: InputEvent) -> void:
 	if ev is InputEventKey and ev.pressed and not ev.echo:
 		if ev.keycode == KEY_ESCAPE:
 			cancelar()
-		elif ev.keycode == KEY_R and modo == "objeto":
+		elif ev.keycode == KEY_R and modo in ["objeto", "cinta"]:
 			giro = (giro + 1) % 4
-			_actualizar_objeto()
+			_actualizar_objeto() if modo == "objeto" else _dibujar_linea()
+		elif ev.keycode == KEY_SPACE:
+			velocidad = 0.0 if velocidad > 0.0 else 1.0
+			cambio.emit()
 	if ev is InputEventMouseMotion:
 		_mover(casilla_bajo(ev.position))
 	elif ev is InputEventMouseButton:
@@ -144,6 +190,55 @@ func _mover(c: Vector2i) -> void:
 			_dibujar_plano()
 		"objeto":
 			_actualizar_objeto()
+		"cinta":
+			if _arrastrando:
+				_linea = _trazar(_ini, c)
+			_dibujar_linea()
+
+## Cinta arrastrada como en Alchemy Factory: recta en el eje largo y luego el corto; cada tramo apunta al siguiente.
+func _trazar(a: Vector2i, b: Vector2i) -> Array:
+	var cs := [a]
+	var d := b - a
+	var p := a
+	var primero := Vector2i(signi(d.x), 0) if absi(d.x) >= absi(d.y) else Vector2i(0, signi(d.y))
+	var segundo := Vector2i(0, signi(d.y)) if absi(d.x) >= absi(d.y) else Vector2i(signi(d.x), 0)
+	while (primero.x != 0 and p.x != b.x) or (primero.y != 0 and p.y != b.y):
+		p += primero
+		cs.append(p)
+	while p != b:
+		p += segundo
+		cs.append(p)
+	var r := []
+	for i in cs.size():
+		var dir: Vector2i = (cs[i + 1] - cs[i]) if i < cs.size() - 1 else ((cs[i] - cs[i - 1]) if i > 0 else Vector2i(1, 0) if giro == 0 else Hospital.DIRS[giro])
+		r.append([cs[i], Hospital.DIRS.find(dir)])
+	return r
+
+func _dibujar_linea() -> void:
+	_limpiar_marcas()
+	errores = []
+	var lista := _linea if not _linea.is_empty() else [[_cursor, giro]]
+	for t in lista:
+		var e := pl.validar_cinta(t[0], t[1])
+		if not e.is_empty() and errores.is_empty():
+			errores = e
+		_marca(t[0], Color(0.3, 0.9, 0.45, 0.4) if e.is_empty() else Color(1.0, 0.3, 0.25, 0.45))
+		var f := MeshInstance3D.new()
+		var pm := PrismMesh.new()
+		pm.size = Vector3(0.3, 0.3, 0.02)
+		f.mesh = pm
+		var holder := Node3D.new()
+		holder.position = VistaHub.centro(t[0]) + Vector3(0, 0.02, 0)
+		holder.rotation.y = atan2(float(Hospital.DIRS[t[1]].x), float(Hospital.DIRS[t[1]].y))
+		f.rotation_degrees = Vector3(90, 0, 0)
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(1, 1, 1, 0.85)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		f.material_override = m
+		holder.add_child(f)
+		_marcas.add_child(holder)
+	cambio.emit()
 
 func _clic(c: Vector2i, pulsado: bool) -> void:
 	match modo:
@@ -176,7 +271,7 @@ func _clic(c: Vector2i, pulsado: bool) -> void:
 						cancelar()
 		"objeto":
 			if pulsado:
-				var o := h.poner_objeto(tipo, c, giro)
+				var o := pl.poner(tipo, c, giro)
 				if o:
 					Sonido.tocar("construir", 0.6)
 					vista.reconstruir()
@@ -188,6 +283,23 @@ func _clic(c: Vector2i, pulsado: bool) -> void:
 						cancelar()
 						seleccionar(s)
 					cambio.emit()
+		"cinta":
+			if pulsado:
+				_ini = c
+				_arrastrando = true
+				_linea = _trazar(c, c)
+				_dibujar_linea()
+			elif _arrastrando:
+				_arrastrando = false
+				var puestas := 0
+				for t in _linea:
+					if pl.poner_cinta(t[0], t[1]):
+						puestas += 1
+				if puestas > 0:
+					Sonido.tocar("construir", 0.6)
+					vista.reconstruir()
+				_linea = []
+				_dibujar_linea()
 		"":
 			if pulsado:
 				seleccionar(h.sala_en(c))

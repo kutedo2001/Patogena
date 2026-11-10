@@ -425,3 +425,40 @@ def cartel_empresa():
 for f in (recepcion, planta, maquina_bebidas, papelera, extintor, carrito_extraccion, llenadora_gradillas, cartel_empresa):
     f()
     print("hecho:", f.__name__)
+
+
+def camilla_tp():
+    """Camilla de extracción 1×2 (largo en X): colchón a 0,40 (la animación de tumbarse apoya ahí), almohada en -X,
+    reposabrazos abatible en +Y (lado del científico) con el tubo de muestra, barandilla en -Y, pie de gotero,
+    ruedas con freno y pedal de altura."""
+    r = _base_objeto("camilla_tp")
+    cromo = mat("cromo", color=(0.86, 0.87, 0.89), metal=1.0, rug=0.2)
+    colchon = mat("colchon", color=(0.32, 0.62, 0.66), rug=0.55)
+    sabana = mat("sabana", color=(0.97, 0.97, 0.95), rug=0.7)
+    gr = mat("grafito")
+    caja("chasis", (1.7, 0.6, 0.06), (0, 0, 0.27), mat("tp_crema", color=(0.97, 0.95, 0.88), rug=0.42), bisel=0.025, segmentos=3, padre=r)
+    caja("columna", (0.3, 0.22, 0.2), (0, 0, 0.15), gr, bisel=0.03, padre=r)
+    caja("base", (1.5, 0.5, 0.05), (0, 0, 0.06), gr, bisel=0.02, padre=r)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            cilindro(f"rueda{sx}{sy}", 0.04, 0.03, (sx * 0.68, sy * 0.22, 0.04), mat("goma"), lados=20, padre=r, giro=(math.radians(90), 0, 0))
+            caja(f"horquilla{sx}{sy}", (0.03, 0.05, 0.05), (sx * 0.68, sy * 0.22, 0.08), cromo, bisel=0.006, padre=r)
+    caja("pedal", (0.12, 0.08, 0.02), (0.3, 0.27, 0.06), mat("rojo_zona", color=(0.85, 0.1, 0.1), rug=0.45), bisel=0.008, padre=r)
+    caja("colchon", (1.64, 0.56, 0.1), (0, 0, 0.35), colchon, bisel=0.04, segmentos=3, padre=r)
+    caja("sabana", (1.2, 0.565, 0.012), (0.2, 0, 0.402), sabana, bisel=0.004, padre=r)
+    caja("almohada", (0.28, 0.44, 0.07), (-0.66, 0, 0.43), sabana, bisel=0.03, segmentos=3, padre=r)
+    # barandilla en -Y
+    for x in (-0.55, 0.55):
+        cilindro(f"bar_poste{x}", 0.012, 0.16, (x, -0.3, 0.45), cromo, lados=10, padre=r)
+    cilindro("bar_larguero", 0.014, 1.15, (0, -0.3, 0.53), cromo, lados=10, padre=r, giro=(0, math.radians(90), 0))
+    # reposabrazos de extracción en +Y, a la altura del brazo del paciente (centro del cuerpo)
+    caja("reposa_soporte", (0.06, 0.12, 0.06), (0.05, 0.33, 0.33), gr, bisel=0.01, padre=r)
+    caja("reposa", (0.42, 0.13, 0.04), (0.05, 0.4, 0.38), colchon, bisel=0.018, padre=r)
+    cilindro("goteo_pie", 0.012, 1.0, (-0.86, -0.34, 0.78), cromo, lados=10, padre=r)
+    caja("goteo_brazo", (0.18, 0.012, 0.012), (-0.86, -0.34, 1.27), cromo, bisel=0.0, padre=r)
+    esfera("goteo_bolsa", 0.05, (-0.79, -0.34, 1.2), mat("cristal", color=(0.85, 0.92, 0.95), rug=0.05, alfa=0.5), padre=r, escala=(0.7, 0.35, 1.2))
+    exportar(os.path.join(SAL, "camilla_tp.glb"))
+
+
+camilla_tp()
+print("hecho: camilla_tp")

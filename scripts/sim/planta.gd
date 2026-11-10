@@ -119,6 +119,23 @@ func quitar(o: Hospital.Objeto) -> void:
 	maquinas.erase(o.id)
 	h.quitar_objeto(o)
 
+func vender_sala(s: Hospital.Sala) -> void:
+	for o in h.objetos_de(s):
+		maquinas.erase(o.id)
+		if o.tipo == "cinta":
+			cintas.erase(o.origen)
+	for p in personas:
+		if p.objeto and p.objeto.sala == s:
+			if p.rol == "paciente":
+				p.objeto = null
+				_ir(p, h.entrada, "saliendo")
+			else:
+				p.objeto = null
+				p.sala = null
+				p.ruta = []
+				p.estado = "libre"
+	h.vender_sala(s)
+
 func contratar(rol: String) -> Persona:
 	var d: Dictionary = Hospital.datos.personal[rol]
 	if h.dinero < float(d.precio):

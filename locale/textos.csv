@@ -423,3 +423,25 @@ OBJ_RECEPCION,Recepción,Reception
 PERSONAL_CIENTIFICO,científico,scientist
 PERSONAL_TECNICO,técnico,technician
 HUD_REPUTACION,Reputación,Reputation
+HUB_RESUMEN,%d pacientes · %d en plantilla,%d patients · %d staff
+ROL_CIENTIFICO,Científico,Scientist
+ROL_TECNICO,Técnica de laboratorio,Lab technician
+ROL_BECARIO,Becario,Intern
+DESC_ROL_CIENTIFICO,"Saca sangre en la camilla. Si falta técnico, también lleva la centrífuga.",Draws blood at the gurney. Can run the centrifuge if no technician.
+DESC_ROL_TECNICO,Lleva la centrífuga desde su consola.,Runs the centrifuge from its console.
+DESC_ROL_BECARIO,Lleva las gradillas a mano de una máquina a otra mientras no haya cinta.,Carries racks by hand until there are belts.
+HUB_EN_PLANTILLA,%d en plantilla,%d hired
+HUB_CONTRATAR,Contratar · %s,Hire · %s
+HUB_SUELDO,%d €/min,%d €/min
+HUB_OBJETIVOS,Objetivos de Dirección,Management goals
+OBJ1_EXTRACCION,Construye una sala de extracción,Build a blood draw room
+OBJ1_CIENTIFICO,Contrata un científico,Hire a scientist
+OBJ1_LAB,Laboratorio con su centrífuga,Lab with its centrifuge
+OBJ1_TECNICO,Contrata una técnica,Hire a technician
+OBJ1_MUELLE,Muelle de envío y un becario,Shipping dock and an intern
+OBJ1_VENDER,Vende gradillas de hematíes,Sell red cell racks
+OBJ1_CINTA,Cinta que lleve la sangre a la centrífuga,Belt feeding the centrifuge
+OBJ_CINTA,Cinta transportadora,Conveyor belt
+OBJ_MUELLE,Muelle de envío,Shipping dock
+SALA_ALMACEN,Almacén,Storeroom
+HUB_CINTA_AYUDA,Arrastra para tender la cinta · cruza paredes con un pasamuros · clic derecho para terminar,Drag to lay belt · crosses walls with a pass-through · right click to finish
