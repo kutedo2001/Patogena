@@ -373,3 +373,53 @@ OBJ_VECTOR,Vector,Vector
 OBJ_NEUROTOXINA,Neurotoxina,Neurotoxin
 OBJ_CAPSIDE,Cápside,Capsid
 OBJ_NUCLEO_ZOMBI,Núcleo zombi,Zombie core
+HUB_MUNDO,Mundo,World
+HUB_SALAS,Salas,Rooms
+HUB_OBJETOS,Objetos,Items
+HUB_PERSONAL,Personal,Staff
+HUB_INFO,Info,Info
+HUB_DIA,Día %d,Day %d
+HUB_MINIMO,Mínimo %d × %d,Minimum %d × %d
+HUB_POR_CASILLA,%d € por casilla,%d € per tile
+HUB_OBJETOS_DE,Objetos · %s,Items · %s
+HUB_PASILLO,pasillo,corridor
+HUB_SALA_LISTA,Sala lista para trabajar,Room ready to work
+HUB_FALTA,FALTA,MISSING
+HUB_PERSONAL_SALA,Necesita: %s,Needs: %s
+HUB_ANADIR_OBJETOS,Añadir objetos,Add items
+HUB_VENDER,Vender,Sell
+HUB_CANCELAR,Cancelar,Cancel
+HUB_CONSTRUYENDO,Construyendo: %s,Building: %s
+HUB_PLANO,%d × %d (mínimo %d × %d) · %s,%d × %d (minimum %d × %d) · %s
+HUB_ARRASTRA,Arrastra el plano en el suelo (mínimo %d × %d),Drag the floor plan (minimum %d × %d)
+HUB_PON_PUERTA,Pon la puerta,Place the door
+HUB_PUERTA_AYUDA,Mueve el ratón por el borde de la sala y haz clic donde quieras la puerta,Move along the room edge and click where the door goes
+HUB_COLOCANDO,Colocando: %s,Placing: %s
+HUB_OBJETO_AYUDA,Clic para colocar · R para girar · clic derecho para terminar,Click to place · R to rotate · right click to finish
+HUB_E_PEQUENA,La sala es demasiado pequeña,The room is too small
+HUB_E_FUERA,Se sale de la parcela,Outside the plot
+HUB_E_OTRA_SALA,Se pisa con otra sala,Overlaps another room
+HUB_E_OBJETO,Hay objetos en medio,Items in the way
+HUB_E_ENTRADA,Tapa la entrada del edificio,Blocks the building entrance
+HUB_E_DINERO,No hay dinero suficiente,Not enough money
+HUB_E_OCUPADO,Ya hay algo ahí,Something is already there
+HUB_E_PARED,Atraviesa una pared,Crosses a wall
+HUB_E_PUERTA,Taparía una puerta,Would block a door
+HUB_E_ZONA,No va en esta sala,Doesn't belong in this room
+HUB_E_USO,Necesita sitio libre delante para usarlo,Needs free space to be used
+HUB_E_CAMINO,Cortaría el paso a otra cosa,Would block the way
+SALA_EXTRACCION,Sala de extracción,Blood draw room
+SALA_LAB_SANGRE,Laboratorio de sangre,Blood lab
+SALA_DESCANSO,Sala de descanso,Staff room
+OBJ_CAMILLA,Camilla,Gurney
+OBJ_CARRITO_EXTRACCION,Carrito de extracción,Draw cart
+OBJ_LLENADORA_GRADILLAS,Llenadora de gradillas,Rack filler
+OBJ_CENTRIFUGA,Centrífuga,Centrifuge
+OBJ_BANCO,Banco,Bench
+OBJ_PLANTA,Planta,Plant
+OBJ_PAPELERA,Papelera,Bin
+OBJ_MAQUINA_BEBIDAS,Máquina de bebidas,Drinks machine
+OBJ_RECEPCION,Recepción,Reception
+PERSONAL_CIENTIFICO,científico,scientist
+PERSONAL_TECNICO,técnico,technician
+HUD_REPUTACION,Reputación,Reputation
