@@ -10,7 +10,7 @@ Fábrica 3D isométrica de un laboratorio farmacéutico que provoca un apocalips
 - Documento de diseño: https://claude.ai/artifact/XVYRKWeQAvMiSUE9AbUn59 (copia en docs/diseno.md)
 - Hoja de ruta: https://claude.ai/artifact/8sb5FNiWcgFMr6jQvdGpbe (fuente en docs/hoja_de_ruta.html, slug 3fc02851-ded8-4547-9b89-502ae83981ed)
 - Prototipos de concepto (three.js, solo referencia): https://claude.ai/artifact/Q7pVRafGUfrY7P8g9AKu38
-- Puerta actual: 4 (mecánica principal divertida) · Pantalla objetivo: docs/referencias/objetivo.png y objetivo_detalle.png (aprobada 9-nov)
+- Puerta actual: 4 (mecánica principal, rediseño 2.0) · Pantalla objetivo: docs/referencias/objetivo_2.png (aprobada 10-nov; estilo Two Point Hospital + automatización Alchemy Factory, ver docs/referencias/two_point_alchemy.md)
 
 ## Reglas
 1. Hoja de ruta primero: toda petición pasa a tareas con ficha antes de tocar código; se enseña a Edu y se empieza.
@@ -19,6 +19,7 @@ Fábrica 3D isométrica de un laboratorio farmacéutico que provoca un apocalips
 4. Gráficos pieza a pieza: cada asset o lote se enseña a Edu en una lámina con la cámara del juego y al lado de las referencias antes de montarlo.
 5. Personas, caras, manos y animales: nunca con primitivas ni esculpido por código (pack CC0 recoloreado).
 6. Ningún texto flotando sobre el mundo: luces e iconos de estado en las máquinas; el resto en paneles del HUD.
+8. Nada se atraviesa: ni personas con muebles, ni objetos entre sí, ni piezas de una máquina, ni en las animaciones. Cada mueble tiene sus puntos de uso medidos con la animación (sentarse, tumbarse, trabajar) y cada lámina pasa la comprobación de solapes antes de enseñarse.
 7. Detalle máximo, siempre (lo pide Edu): al zoom máximo todo aguanta. Piezas pequeñas (tornillos, juntas, cables, rejillas, pegatinas), pantallas vivas con información, objetos pieza a pieza (vidrio con grosor, líquidos con menisco, tapones moleteados) y procesos animados que se ven (botellas llenándose, tubos entrando y saliendo, rotores, pórticos, burbujas). El listón mínimo es el lote 1 (P3.4c–e); cada lote nuevo, igual o más.
 
 ## Sincronización

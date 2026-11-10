@@ -31,10 +31,12 @@ func _initialize() -> void:
 	_extraccion()
 	_pasillo()
 	var cam := Camera3D.new()
-	cam.fov = 32.0
+	cam.fov = 32.0 if not OS.get_cmdline_user_args().has("banco") else 14.0
 	var piv := Vector3(3.1, 0.3, 0.45)
 	var d := Vector3(sin(deg_to_rad(45.0)) * cos(deg_to_rad(52.0)), sin(deg_to_rad(52.0)), cos(deg_to_rad(45.0)) * cos(deg_to_rad(52.0)))
 	mundo.add_child(cam)
+	if OS.get_cmdline_user_args().has("banco"):
+		piv = Vector3(1.8, 0.3, 0.6)
 	cam.look_at_from_position(piv + d * 12.6, piv)
 	cam.current = true
 	if _hud:
@@ -125,21 +127,21 @@ func _extraccion() -> void:
 
 func _pasillo() -> void:
 	_cargar(TP + "recepcion.glb", Vector3(5.4, 0, 1.55), 180)
-	_persona("Suit_Female", Vector3(5.6, 0, 1.0), 0, "Idle_A", 0.4)
+	_persona("Suit_Female", Vector3(5.15, 0, 1.15), 0, "Sit_Chair_Idle", 0.4)
 	_persona("Casual_Male", Vector3(5.2, 0, 2.25), 180, "Idle_B", 0.3)
 	_persona("Casual2_Female", Vector3(5.8, 0, 2.75), -150, "Idle_A", 0.6)
 	_cargar(TP + "planta.glb", Vector3(4.2, 0, 1.55), 0)
-	for b in [[Vector3(1.4, 0, 0.55), 180], [Vector3(3.6, 0, 0.55), 180]]:
+	for b in [[Vector3(1.45, 0, 0.55), 180], [Vector3(3.75, 0, 0.55), 180]]:
 		_cargar(TP + "banco.glb", b[0], b[1])
-	_persona("Casual_Female", Vector3(0.8, 0.0, 0.62), 0, "Sit_Chair_Idle", 0.2)
-	_persona("OldClassy_Male", Vector3(2.0, 0.0, 0.62), 0, "Sit_Chair_Idle", 0.6)
-	_persona("Casual3_Male", Vector3(3.6, 0.0, 0.62), 0, "Sit_Chair_Idle", 0.4)
+	_persona("Casual_Female", Vector3(0.85, 0.0, 0.74), 0, "Sit_Chair_Idle", 0.2)
+	_persona("OldClassy_Male", Vector3(2.05, 0.0, 0.74), 0, "Sit_Chair_Idle", 0.6)
+	_persona("Casual3_Male", Vector3(3.75, 0.0, 0.74), 0, "Sit_Chair_Idle", 0.4)
 	_persona("Casual_Bald", Vector3(3.6, 0, 2.2), -60, "Walking_A", 0.3)
 	_persona("Worker_Male", Vector3(2.6, 0, 1.6), 30, "Walking_B", 0.6)
-	_cargar(TP + "maquina_bebidas.glb", Vector3(4.75, 0, 0.42), 180)
-	_cargar(TP + "planta.glb", Vector3(0.25, 0, 0.35), 0)
+	_cargar(TP + "maquina_bebidas.glb", Vector3(5.1, 0, 0.42), 180)
+	_cargar(TP + "planta.glb", Vector3(0.18, 0, 0.3), 0)
 	_cargar(TP + "planta.glb", Vector3(-3.6, 0, -0.4), 0)
-	_cargar(TP + "papelera.glb", Vector3(2.75, 0, 0.35), 0)
+	_cargar(TP + "papelera.glb", Vector3(2.6, 0, 0.3), 0)
 	var ext := _cargar(TP + "extintor.glb", Vector3(8.0, 0, 1.0), -90)
 	var c1 := _cargar(TP + "cartel_empresa.glb", Vector3(2.7, 0.75, 0.1), 180)
 	var c2 := _cargar(TP + "cartel_empresa.glb", Vector3(6.6, 0.75, 0.1), 180)
@@ -260,6 +262,8 @@ func _pieza(k: String, pos: Vector3, giro: float, zocalo := Color(0, 0, 0, 0)) -
 
 func _persona(n: String, pos: Vector3, giro: float, anim: String, t: float) -> Node3D:
 	var p := _cargar(PJ + n + ".glb", pos, giro)
+	if anim.begins_with("Sit"):
+		p.set_meta("sentado", true)
 	p.scale = Vector3.ONE * 0.3
 	for mi in p.find_children("*", "MeshInstance3D", true, false):
 		var mm: Mesh = (mi as MeshInstance3D).mesh
@@ -282,8 +286,50 @@ func _persona(n: String, pos: Vector3, giro: float, anim: String, t: float) -> N
 			ap.pause()
 	return p
 
+## Comprobación de solapes (Edu 10-nov: nada se atraviesa). Cajas de cada objeto colocado en el suelo, encogidas
+## 3 cm; se ignoran paredes, suelos, cintas con lo que llevan encima y los pares que se tocan a propósito.
+func _solapes() -> void:
+	var cajas := []
+	for n in mundo.get_children():
+		if not (n is Node3D) or n is Camera3D or n is DirectionalLight3D or n is WorldEnvironment:
+			continue
+		var nom := String(n.scene_file_path).get_file().get_basename()
+		if n.has_meta("sentado"):
+			nom = "sentado_" + nom
+		if nom == "" or nom.begins_with("pared") or nom.begins_with("cinta") or nom.begins_with("tuberia"):
+			continue
+		var bb := AABB()
+		var primero := true
+		for mi in n.find_children("*", "MeshInstance3D", true, false):
+			if mi.get_parent() is Skeleton3D:
+				continue
+			var b: AABB = (mi as MeshInstance3D).global_transform * (mi as MeshInstance3D).get_aabb()
+			bb = b if primero else bb.merge(b)
+			primero = false
+		if primero:
+			# personas: cilindro aproximado de 0,36 × 0,36 alrededor de su origen
+			bb = AABB(n.global_position - Vector3(0.18, 0, 0.18), Vector3(0.36, 0.8, 0.36))
+		var e := Vector3(minf(0.03, bb.size.x * 0.4), minf(0.03, bb.size.y * 0.4), minf(0.03, bb.size.z * 0.4))
+		cajas.append([nom, AABB(bb.position + e, bb.size - e * 2).abs()])
+	var permitido := ["banco:sentado", "recepcion:sentado", "gradilla", "camilla:Casual2_Male", "llenadora_gradillas:gradilla_sangre", "almacen:gradilla"]
+	var n_solapes := 0
+	for i in cajas.size():
+		for j in range(i + 1, cajas.size()):
+			if cajas[i][1].intersects(cajas[j][1]):
+				var par := "%s:%s" % [cajas[i][0], cajas[j][0]]
+				var ok := false
+				for pm in permitido:
+					if pm in par or ("gradilla" in par and pm == "gradilla"):
+						ok = true
+				if not ok:
+					n_solapes += 1
+					print("SOLAPE ", par, " ", cajas[i][1].intersection(cajas[j][1]).size)
+	print("solapes: ", n_solapes)
+
 func _process(_d: float) -> bool:
 	_f += 1
+	if _f == 2:
+		_solapes()
 	if _f == 8:
 		root.get_texture().get_image().save_png(_salida)
 		print("lamina: ", _salida)

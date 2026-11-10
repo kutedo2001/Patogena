@@ -274,6 +274,10 @@ def banco():
         caja(f"respaldo{i}", (0.54, 0.07, 0.3), (x, -0.19, 0.42), cojin, bisel=0.03, segmentos=3, padre=r, giro=(math.radians(-10), 0, 0))
         caja(f"costura{i}", (0.4, 0.004, 0.004), (x, 0.0, 0.276), mat("costura", color=(0.22, 0.42, 0.34), rug=0.7), bisel=0.0, padre=r)
     caja("larguero", (1.8, 0.05, 0.03), (0, 0, 0.19), cromo, bisel=0.008, padre=r)
+    # reposabrazos entre plazas: la animación de sentarse apoya las manos a ±0,24 de la plaza y a 0,43 de alto
+    for x in (-0.9, -0.3, 0.3, 0.9):
+        caja(f"reposa{x}", (0.06, 0.36, 0.035), (x, -0.02, 0.385), mat("banco_reposa", color=(0.22, 0.42, 0.36), rug=0.5), bisel=0.012, padre=r)
+        cilindro(f"reposa_pie{x}", 0.014, 0.12, (x, 0.1, 0.31), cromo, lados=10, padre=r)
     for x in (-0.82, 0.82):
         for y in (-0.15, 0.15):
             cilindro(f"pata{x}{y}", 0.018, 0.19, (x, y, 0.095), cromo, lados=12, padre=r)
@@ -317,8 +321,8 @@ def recepcion():
     for k in range(3):
         caja(f"form{k}", (0.2, 0.28, 0.006), (0.15, 0.12, 0.675 + k * 0.008), mat("papel", color=(0.98, 0.98, 0.96), rug=0.7), bisel=0.0, padre=r, giro=(0, 0, math.radians(k * 6)))
     # taburete
-    cilindro("tab_asiento", 0.15, 0.05, (0.25, -0.55, 0.42), mat("banco_cojin", color=(0.95, 0.5, 0.2), rug=0.6), lados=24, bisel=0.02, padre=r)
-    cilindro("tab_pie", 0.02, 0.38, (0.25, -0.55, 0.21), mat("cromo"), lados=12, padre=r)
+    cilindro("tab_asiento", 0.15, 0.05, (0.25, -0.55, 0.255), mat("banco_cojin", color=(0.95, 0.5, 0.2), rug=0.6), lados=24, bisel=0.02, padre=r)
+    cilindro("tab_pie", 0.02, 0.23, (0.25, -0.55, 0.12), mat("cromo"), lados=12, padre=r)
     cilindro("tab_base", 0.14, 0.02, (0.25, -0.55, 0.01), mat("cromo"), lados=24, padre=r)
     exportar(os.path.join(SAL, "recepcion.glb"))
 

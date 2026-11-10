@@ -73,3 +73,9 @@ Formato: síntoma · causa · arreglo · comprobación · cómo evitarlo.
 - **Arreglo:** la postura depende de «estación lista + científico cerca + quieto», que no depende del orden.
 - **Comprobación:** fotogramas de la partida real (`--prueba_raton --seq_camilla`), no de la demo.
 - **Evitar:** verificar las animaciones en la partida real; nada de leer banderas que la simulación reinicia a mitad de fotograma.
+
+## B12 · Las personas atraviesan el banco en la pantalla objetivo — resuelto (R1.3)
+- **Síntoma:** los pacientes sentados metían el tronco en el respaldo y las manos en el asiento de al lado.
+- **Causa:** la animación de sentarse (KayKit) echa el cuerpo 0,29 hacia atrás y apoya las manos en reposabrazos a ±0,24 y 0,43 de alto; el banco no tenía reposabrazos y la persona se colocaba en el centro del asiento.
+- **Arreglo:** puntos de uso medidos con los huesos de la animación (origen 0,19 delante del centro del banco), reposabrazos entre plazas a 0,40, taburete de recepción a la altura de la animación; comprobación de solapes en la lámina (0 solapes).
+- **Evitar:** regla 8 del CLAUDE.md; ningún mueble sin sus puntos de uso medidos.
