@@ -50,7 +50,7 @@ func _initialize() -> void:
 		_pieza(k, Vector3(x + 0.5, 0, 0), 0)        # pared delantera
 		_pieza("pared_recta", Vector3(x + 0.5, 0, -4), 0)
 	for z in 4:
-		_pieza("pared_recta", Vector3(0, 0, -z - 0.5), 90)
+		_pieza("pared_pasamuros" if z == 1 else "pared_recta", Vector3(0, 0, -z - 0.5), 90)
 		_pieza("pared_pasamuros" if z == 1 else "pared_recta", Vector3(5, 0, -z - 0.5), 90)
 	for p in [Vector3(0, 0, 0), Vector3(5, 0, 0), Vector3(0, 0, -4), Vector3(5, 0, -4)]:
 		_pieza("pared_esquina", p, 0)

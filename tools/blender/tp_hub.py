@@ -14,7 +14,7 @@ from comun import *
 SAL = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else "."
 os.makedirs(SAL, exist_ok=True)
 
-ALTO = 0.62        # pared visible (bajada)
+ALTO = 1.0         # pared visible: a la altura de la cabeza, como Two Point (Edu 10-nov)
 GRUESO = 0.18
 Z_CINTA = 0.38     # superficie de la cinta
 ANCHO_CINTA = 0.8
@@ -35,8 +35,8 @@ def tramo_pared(padre, x0, x1, z0=0.0, z1=ALTO, m=None, nombre="p"):
     m = m or mats_pared()
     L = x1 - x0
     cx = (x0 + x1) / 2
-    capas = [(0.0, 0.035, "rodapie", GRUESO + 0.012), (0.035, 0.3, "zocalo", GRUESO), (0.3, 0.335, "franja", GRUESO + 0.006),
-             (0.335, ALTO - 0.02, "alta", GRUESO), (ALTO - 0.02, ALTO + 0.012, "remate", GRUESO + 0.03)]
+    capas = [(0.0, 0.035, "rodapie", GRUESO + 0.012), (0.035, 0.42, "zocalo", GRUESO), (0.42, 0.46, "franja", GRUESO + 0.006),
+             (0.46, ALTO - 0.02, "alta", GRUESO), (ALTO - 0.02, ALTO + 0.012, "remate", GRUESO + 0.03)]
     for a, b, k, g in capas:
         a2, b2 = max(a, z0), min(b, z1)
         if b2 - a2 < 1e-4:
@@ -48,7 +48,7 @@ def tramo_pared(padre, x0, x1, z0=0.0, z1=ALTO, m=None, nombre="p"):
         for i in range(1, n):
             x = x0 + L * i / n
             for s in (-1, 1):
-                caja(f"{nombre}_junta{i}{s}", (0.008, 0.004, ALTO - 0.36), (x, s * (GRUESO / 2 + 0.001), 0.335 + (ALTO - 0.36) / 2),
+                caja(f"{nombre}_junta{i}{s}", (0.008, 0.004, ALTO - 0.49), (x, s * (GRUESO / 2 + 0.001), 0.46 + (ALTO - 0.49) / 2),
                      mat("junta", color=(0.68, 0.66, 0.74), rug=0.8), bisel=0.0, padre=padre)
 
 
@@ -64,8 +64,8 @@ def pared_esquina():
     r = vacio("pared_esquina")
     m = mats_pared()
     caja("pilar", (GRUESO + 0.02, GRUESO + 0.02, ALTO), (0, 0, ALTO / 2), m["alta"], bisel=0.012, padre=r)
-    caja("pilar_zocalo", (GRUESO + 0.024, GRUESO + 0.024, 0.265), (0, 0, 0.035 + 0.1325), m["zocalo"], bisel=0.008, padre=r)
-    caja("pilar_franja", (GRUESO + 0.03, GRUESO + 0.03, 0.035), (0, 0, 0.3175), m["franja"], bisel=0.004, padre=r)
+    caja("pilar_zocalo", (GRUESO + 0.024, GRUESO + 0.024, 0.385), (0, 0, 0.035 + 0.1925), m["zocalo"], bisel=0.008, padre=r)
+    caja("pilar_franja", (GRUESO + 0.03, GRUESO + 0.03, 0.04), (0, 0, 0.44), m["franja"], bisel=0.004, padre=r)
     caja("pilar_remate", (GRUESO + 0.05, GRUESO + 0.05, 0.03), (0, 0, ALTO + 0.0), m["remate"], bisel=0.01, padre=r)
     exportar(os.path.join(SAL, "pared_esquina.glb"))
 
@@ -93,10 +93,10 @@ def pared_puerta():
         caja(nom + "_hoja", (w, 0.045, ALTO - 0.02), (cx, 0, ALTO / 2), hoja, bisel=0.012, padre=bis)
         caja(nom + "_patadas", (w - 0.03, 0.05, 0.12), (cx, 0, 0.08), chapa, bisel=0.006, padre=bis)
         for sy in (-1, 1):
-            cilindro(nom + f"_ojo{sy}", 0.075, 0.052, (cx, sy * 0.0, 0.43), chapa, lados=32, bisel=0.006, padre=bis, giro=(math.radians(90), 0, 0))
-        cilindro(nom + "_vidrio", 0.06, 0.056, (cx, 0, 0.43), vid, lados=32, padre=bis, giro=(math.radians(90), 0, 0))
+            cilindro(nom + f"_ojo{sy}", 0.075, 0.052, (cx, sy * 0.0, 0.66), chapa, lados=32, bisel=0.006, padre=bis, giro=(math.radians(90), 0, 0))
+        cilindro(nom + "_vidrio", 0.06, 0.056, (cx, 0, 0.66), vid, lados=32, padre=bis, giro=(math.radians(90), 0, 0))
         for sy in (-1, 1):
-            caja(nom + f"_empuje{sy}", (0.05, 0.006, 0.16), (cx - s * (w / 2 - 0.06), sy * 0.026, 0.3), chapa, bisel=0.002, padre=bis)
+            caja(nom + f"_empuje{sy}", (0.05, 0.006, 0.16), (cx - s * (w / 2 - 0.06), sy * 0.026, 0.48), chapa, bisel=0.002, padre=bis)
         caja(nom + "_burlete", (0.012, 0.05, ALTO - 0.04), (-s * w, 0, ALTO / 2), goma, bisel=0.0, padre=bis)
     # placa de sala encima (el juego le pone el icono de la sala)
     caja("placa_sala", (0.3, 0.02, 0.09), (0, GRUESO / 2 + 0.012, ALTO + 0.08), mat("placa", color=(0.2, 0.42, 0.5), rug=0.4), bisel=0.01, padre=r)
@@ -108,16 +108,16 @@ def pared_ventana():
     limpiar(); comun._mats.clear()
     r = vacio("pared_ventana")
     m = mats_pared()
-    tramo_pared(r, -0.5, 0.5, 0.0, 0.3, m, "bajo")
-    caja("alfeizar", (0.96, GRUESO + 0.05, 0.03), (0, 0, 0.31), m["remate"], bisel=0.01, padre=r)
+    tramo_pared(r, -0.5, 0.5, 0.0, 0.46, m, "bajo")
+    caja("alfeizar", (0.96, GRUESO + 0.05, 0.03), (0, 0, 0.47), m["remate"], bisel=0.01, padre=r)
     marco = mat("marco_ventana", color=(0.98, 0.98, 0.97), rug=0.5)
     for s in (-1, 1):
-        caja(f"jamba{s}", (0.06, GRUESO + 0.01, ALTO - 0.3), (s * 0.47, 0, 0.3 + (ALTO - 0.3) / 2), marco, bisel=0.01, padre=r)
-    caja("parteluz", (0.035, GRUESO - 0.04, ALTO - 0.31), (0, 0, 0.3 + (ALTO - 0.3) / 2), marco, bisel=0.008, padre=r)
+        caja(f"jamba{s}", (0.06, GRUESO + 0.01, ALTO - 0.46), (s * 0.47, 0, 0.46 + (ALTO - 0.46) / 2), marco, bisel=0.01, padre=r)
+    caja("parteluz", (0.035, GRUESO - 0.04, ALTO - 0.47), (0, 0, 0.46 + (ALTO - 0.46) / 2), marco, bisel=0.008, padre=r)
     caja("dintel", (1.0, GRUESO + 0.03, 0.03), (0, 0, ALTO), m["remate"], bisel=0.01, padre=r)
-    caja("vidrio", (0.88, 0.02, ALTO - 0.33), (0, 0, 0.3 + (ALTO - 0.3) / 2), mat("cristal", color=(0.72, 0.88, 0.95), rug=0.05, alfa=0.3), bisel=0.0, padre=r)
+    caja("vidrio", (0.88, 0.02, ALTO - 0.49), (0, 0, 0.46 + (ALTO - 0.46) / 2), mat("cristal", color=(0.72, 0.88, 0.95), rug=0.05, alfa=0.3), bisel=0.0, padre=r)
     for s in (-1, 1):
-        caja(f"brillo{s}", (0.05, 0.022, 0.18), (s * 0.2 - 0.05, 0, 0.47), mat("brillo", color=(1, 1, 1), rug=0.1, alfa=0.35), bisel=0.0, padre=r,
+        caja(f"brillo{s}", (0.05, 0.022, 0.18), (s * 0.2 - 0.05, 0, 0.72), mat("brillo", color=(1, 1, 1), rug=0.1, alfa=0.35), bisel=0.0, padre=r,
              giro=(0, math.radians(30), 0))
     exportar(os.path.join(SAL, "pared_ventana.glb"))
 
