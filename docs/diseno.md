@@ -1,6 +1,6 @@
 # Documento de diseño · Patógena S.A.
 
-Copia en markdown del documento vivo: https://claude.ai/artifact/XVYRKWeQAvMiSUE9AbUn59 (manda el documento vivo si difieren). Versión aprobada en la puerta 2, 8-nov-2026.
+Copia en markdown del documento vivo: https://claude.ai/artifact/XVYRKWeQAvMiSUE9AbUn59 (manda el documento vivo si difieren). Versión aprobada en la puerta 2, 8-nov-2026. **Rediseño 2.0 del 10-nov** (sección «Rediseño 2.0»): manda sobre el resto.
 
 ## Resumen y pilares
 
@@ -112,6 +112,154 @@ Sustituye a lo que contradiga en «Mecánicas de la versión 1».
 - **Quitar devuelve el 100 %**.
 - **Dinero**: el muelle de envío (con su camión) compra lo que le dejas: vacunas a buen precio y plasma barato al «banco de sangre»; Dirección paga cada hito. Nunca hay bloqueo sin salida.
 - **Tutorial con historia**: el científico llega al sótano; los correos de Dirección presentan el «Proyecto Reinicio» con su tono corporativo y van dando pasos, con marcas en el mundo (flecha sobre el objetivo) y en el HUD, hasta la primera mutación.
+
+## Rediseño 2.0: Two Point Hospital + Alchemy Factory (10-nov-2026) — MANDA SOBRE LO ANTERIOR
+
+Decidido con Edu el 10-nov: **Two Point Hospital** para todo el hub (salas, construcción, aspecto de máquinas e interfaz) y **Alchemy Factory** para la automatización; **Factorio** para lo que AF no resuelva. Vista de director, todo mezclado (máquinas y cintas dentro de las salas) y personajes CC0 caricaturescos. Análisis de las referencias en `docs/referencias/two_point_alchemy.md`. Donde esta sección choque con las anteriores, manda esta.
+
+**La regla del rediseño: cada cosa y cada pieza tiene sentido.** Antes de añadir una pieza hay que poder contestar qué es en un laboratorio de verdad, por qué tiene esa forma y qué pasaría si no estuviera.
+
+### Cómo se juega
+- **Eres la dirección.** Ya no hay un científico que lleves tú; no hay mochila ni WASD.
+  - Con el ratón construyes salas, colocas máquinas y cintas, contratas personal y lo asignas.
+  - El personal hace el trabajo.
+- **El bucle:**
+  1. Llegan pacientes.
+  2. El personal les saca sangre y la lleva a mano a las máquinas.
+  3. Montas cintas y tuberías para que nadie tenga que llevar nada.
+  4. Fabricas productos y los envías.
+  5. Con eso mejoras la cepa en la sala de cepas y el mundo se va convirtiendo.
+- **La gracia, segundo a segundo** (la de Two Point más la de Alchemy Factory):
+  - ver a la gente hacer cosas absurdas con total seriedad;
+  - resolver dónde va cada sala y por dónde pasa cada cinta;
+  - cuadrar cuántas máquinas alimenta una cinta;
+  - ver cómo la fábrica se queda sola funcionando.
+
+### El edificio y las salas (Two Point)
+- **El laboratorio es una planta con pasillos.** Se amplía comprando parcelas, como los solares de Two Point.
+- **Cómo se construye una sala:**
+  1. Se arrastra el plano; se pueden añadir o quitar casillas.
+  2. Se pone la puerta y, si quieres, ventanas.
+  3. Se colocan los objetos obligatorios (marcados con estrella).
+  4. Se confirma con el visto verde.
+  5. Después se puede editar o vender.
+- **Huellas:** cada objeto marca la casilla desde la que se usa. Si queda tapada, no se puede confirmar.
+
+| Sala | Mínimo | Obligatorio | Personal | Qué pasa dentro |
+| --- | --- | --- | --- | --- |
+| Recepción (objeto de pasillo) | — | mostrador | recepcionista | el paciente se registra y espera en los bancos del pasillo |
+| Sala de extracción | 3×3 | camilla, carrito de extracción | científico o becario | se tumba el paciente, se le saca sangre y se va mareado |
+| Laboratorio de sangre | 3×4 | puesto de control | técnico | centrífugas |
+| Laboratorio genético | 4×4 | puesto de control, estufa de cultivo | técnico | estufa, secuenciador y biorreactor |
+| Sala de mezclas | 3×4 | puesto de control | técnico | mezcladora, destilador y sintetizador |
+| Envasado | 3×4 | puesto de control | técnico | envasadora |
+| Almacén y muelle | 4×4 | muelle de carga | becario | entran los pedidos y salen los envíos |
+| Sala de cepas | 4×5 | mesa de ingeniería, cámara de la cepa | científico | árbol de mejoras y síntesis |
+| Sala de máquinas | 3×3 | generador | conserje | energía |
+| Sala de descanso | 2×3 | máquina de café | — | el personal recupera energía |
+| Sala de cápsulas (tarde) | 4×4 | cápsula | científico | gente en cápsulas que da sangre sin parar |
+
+- **Máquinas por tipo de sala.** Las máquinas solo se colocan en la sala que les corresponde, como la máquina de rayos X de Two Point.
+  - Cada sala necesita un técnico presente para que sus máquinas funcionen. Un técnico atiende todas las de su sala.
+  - El técnico se ve trabajando en el puesto de control y acude a la máquina que se atasca.
+- **Pasillo:** recepción, bancos, máquinas de café, plantas, papeleras, extintores y carteles de la empresa.
+  - Los objetos de pasillo suben el ánimo de pacientes y personal.
+
+### Personal
+- **Científico:** extrae sangre, trabaja en la sala de cepas y puede hacer de técnico.
+- **Técnico:** atiende un laboratorio.
+- **Becario:** lleva y trae. Mientras no haya cintas, carga en una gradilla lo que sale de una sala y lo deja en la boca de entrada de la siguiente. Es el transporte manual que la cinta sustituye.
+- **Conserje:** limpia sangre y vómitos y repara máquinas.
+- **Recepcionista.**
+- **Zombis** (tras liberar el virus): personal gratis que lleva cosas y extrae sangre, pero asusta a los pacientes.
+- **Atributos:** cada persona tiene sueldo, energía y uno o dos rasgos con gracia (p. ej. «hemofóbico»: trabaja más lento en extracción).
+
+### Pacientes
+- **Recorrido:** entran por la puerta del edificio → recepción → bancos → sala de extracción → se van mareados, tambaleándose.
+- **Llegada:** depende de la reputación y de las campañas (bocadillo gratis, análisis gratuito, contrato con un hospital).
+- **Colas:** cada sala tiene su cola, visible en su ficha.
+
+### Logística con sentido (Alchemy Factory; Factorio donde haga falta)
+- **Cada cosa viaja en su envase real.**
+  - **Sólidos:** tubo de extracción, bolsa de hematíes, bolsa de plaquetas, placa de Petri, eppendorf de ADN, vial de vector, bote de proteína, cápsides, viales y cajas de vacunas, frasco de reactivo. Van por **cinta**.
+  - **Líquidos:** plasma, agua, suero, medio de cultivo, caldo de viriones, neurotoxina. Van por **tubería** y se guardan en **depósitos**.
+- **Bocas fijas.** Cada máquina tiene sus entradas y salidas en su sitio:
+  - **Tolva de sólidos:** ranura con cortina de lamas y bandeja donde se ve lo que espera amontonado.
+  - **Brida de tubería:** con el color del líquido y una mirilla que enseña el nivel.
+  - **Bandeja de salida:** pone el objeto en una cinta de una casilla.
+  - Una cinta solo conecta por una boca. Al construir se ven las bocas con flechas (verde entra, naranja sale).
+- **Cintas.**
+  - Forma: anchas (0,8 casillas), a 0,45 m sobre patas, con raíles y rodillos en los extremos.
+  - Carga: objetos grandes en fila.
+  - Colocación: se colocan arrastrando y, si cruzas una cinta con otra, se crea un divisor o un unificador. Más adelante, divisor con filtro.
+  - Obstáculo: la cinta no se puede pisar.
+- **Cruzar paredes y pasillos.**
+  - **Pasamuros:** módulo de pared, como una ventana, con cortina de lamas por donde pasa la cinta o la tubería.
+  - **Paso bajo suelo:** como la cinta subterránea de Factorio, hasta 4 casillas; la gente camina por encima. Así no se corta un pasillo.
+- **Tuberías.**
+  - Van a ras de suelo, pegadas a la pared, sin dirección, con el color del contenido (rojo sangre, ámbar plasma, azul agua, verde suero, morado viriones).
+  - Cruzan igual que las cintas: por pasamuros o bajo el suelo.
+- **Colchones:**
+  - **Caja de almacén** (1×1, 1 entrada y 1 salida; la grande, 2 y 2);
+  - **depósito** para líquidos (2×2, con el nivel a la vista).
+- **Velocidades que cuadran.**
+  - La cinta empieza en 60 objetos/min y la tubería en 120 l/min.
+  - Cada máquina está ajustada a números redondos, para que la proporción se pueda calcular: 1 cinta → 2 centrífugas → 1 envasadora.
+  - Las mejoras de cinta y de máquinas van a la par, como en Alchemy Factory.
+
+### Cadena con sentido (sustituye a la tabla de recetas; los números se cierran con el bot)
+
+| Máquina (sala) | Entra | Sale | Sentido |
+| --- | --- | --- | --- |
+| Camilla (extracción) | paciente | tubo de sangre | se extrae a tubo, como en un análisis |
+| Centrífuga (sangre) | 6 tubos de sangre | plasma rico en plaquetas (tubería) + bolsa de hematíes (cinta) | la centrífuga separa la sangre en sus partes: una entrada, dos salidas |
+| Centrífuga, segunda vuelta | plasma rico (tubería) | plasma (tubería) + bolsa de plaquetas (cinta) | las plaquetas salen al centrifugar el plasma |
+| Toma de agua (pared) | — | agua (tubería) | el agua llega de la red |
+| Mezcladora (mezclas) | agua + frasco de reactivo | suero (tubería) | se disuelve el reactivo |
+| Mezcladora | plasma + agua | medio de cultivo (tubería) | el medio se hace con plasma |
+| Estufa de cultivo (genético) | medio + placa vacía (pedido) | placa con colonias | las colonias crecen en la estufa |
+| Secuenciador (genético) | placa con colonias | eppendorf de ADN o tubo de ARN | se extrae el material genético |
+| Biorreactor (genético) | ADN + medio | caldo de viriones (tubería) | el virus se multiplica en el caldo |
+| Envasadora (envasado) | caldo de viriones + suero + viales vacíos (pedido) | caja de vacunas (cinta) | se llenan los viales y se encajan |
+| Sintetizador (mezclas) | plasma + ARN | bote de proteína | |
+| Incubadora de vectores (genético) | hematíes + ADN | vial de vector | el vector se cultiva en glóbulos rojos |
+| Destilador (mezclas) | suero + proteína | neurotoxina (tubería) | |
+| Impresora molecular (genético) | proteína + vector | cápsides | |
+| Fusionador (cepas) | cápside + neurotoxina + vectores | núcleo zombi | |
+| Muelle (almacén) | cajas | dinero, y la cepa se siembra en el destino elegido | |
+
+### Aspecto (Two Point, con el detalle máximo de siempre)
+- **Personas:** pack CC0 caricaturesco.
+- **Paredes:**
+  - gruesas y bajadas, con remate blanco, zócalo de color, franja y parte alta clara;
+  - cada tipo de sala, con su color y su acabado por dentro;
+  - suelos propios por sala y pasillo de baldosa verde agua.
+- **Máquinas:**
+  - grandes, redondeadas y exageradas, con una parte enorme que se mueve y cuenta lo que hace, y la persona al lado;
+  - siguen con el detalle máximo de la regla 7: tornillos, cables, pantallas vivas y procesos que se ven. El volumen es el de Two Point; el detalle, el nuestro.
+- **Luz:** cálida y suave, con AO, en pastel saturado. El gore en rojo saturado como acento.
+- **Cámara:** girada 45° respecto a la rejilla, giro en pasos de 90°, inclinación de 52°.
+
+### Interfaz (Two Point)
+- **Abajo a la izquierda:** menú redondo Salas · Objetos · Contratar · Info (personal, pacientes, productos).
+- **Abajo a la derecha:** dinero, reputación, velocidad y fecha.
+- **Arriba a la derecha:** objetivos, correos de LISA y eventos.
+- **Fichas:** de sala, persona o máquina, con pestañas y botones de acción abajo.
+- **Catálogos:** con miniaturas y precio.
+- **Superposiciones:** flujo de cintas, energía y ánimo.
+- **Texto:** nada sobre el mundo; las luces de estado van en las máquinas.
+
+### Qué se queda y qué se va
+- **Se queda:**
+  - el árbol de la cepa y el mundo (regiones, cura, campañas);
+  - energía, cápsulas, guardado, sonido y LISA;
+  - las recetas como base de datos;
+  - los objetos de laboratorio modelados (tubos, viales, bolsas), retocados al estilo nuevo.
+- **Se va:**
+  - el científico que manejas, la mochila y el WASD;
+  - estaciones con «mejora a máquina»: ahora se automatiza con personal y cintas;
+  - el tutorial basado en el científico. Se rehace con LISA y salas.
+- **Orden:** pantalla objetivo nueva (puerta 3) → núcleo (salas, personal, pacientes, logística, interfaz) → prueba de 15 minutos (puerta 4) → migrar el resto → trozo vertical (puerta 5).
 
 ## Contenido y números
 
