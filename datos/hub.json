@@ -1,21 +1,420 @@
 {
-  "_nota": "Rediseño 2.0 (R2). Salas estilo Two Point: tamaño mínimo, objetos obligatorios, personal. Objetos: tam en casillas (ancho x fondo con giro 0), base = giro del modelo para que su frente mire a +y (sur, hacia la cámara), uso = casillas locales desde las que se usa (huella) con la animación. Casilla = 1 m.",
-  "parcela_inicial": [0, 0, 16, 11],
-  "precio_casilla_sala": 40,
-  "salas": {
-    "extraccion": {"min": [3, 3], "obligatorios": ["camilla", "carrito_extraccion"], "personal": "cientifico", "zocalo": [0.25, 0.47, 0.70], "suelo": "tp_suelo_extraccion"},
-    "lab_sangre": {"min": [4, 3], "obligatorios": ["centrifuga"], "personal": "tecnico", "zocalo": [0.36, 0.26, 0.52], "suelo": "tp_suelo_lab"},
-    "descanso": {"min": [2, 3], "obligatorios": ["maquina_bebidas"], "personal": "", "zocalo": [0.85, 0.5, 0.2], "suelo": "tp_suelo_pasillo"}
+ "_nota": "Rediseño 2.0 (R2). Salas estilo Two Point: tamaño mínimo, objetos obligatorios, personal. Objetos: tam en casillas (ancho x fondo con giro 0), base = giro del modelo para que su frente mire a +y (sur, hacia la cámara), uso = casillas locales desde las que se usa (huella) con la animación. Casilla = 1 m.",
+ "parcela_inicial": [
+  0,
+  0,
+  16,
+  11
+ ],
+ "precio_casilla_sala": 40,
+ "salas": {
+  "extraccion": {
+   "min": [
+    3,
+    3
+   ],
+   "obligatorios": [
+    "camilla",
+    "llenadora_gradillas"
+   ],
+   "personal": "cientifico",
+   "zocalo": [
+    0.25,
+    0.47,
+    0.7
+   ],
+   "suelo": "tp_suelo_extraccion"
   },
-  "objetos": {
-    "camilla":            {"tam": [1, 2], "precio": 300, "salas": ["extraccion"], "modelo": "res://assets/modelos/estaciones/camilla.glb", "base": 90, "uso": [{"c": [-1, 0], "anim": "Working_B", "quien": "personal"}, {"c": [0, 0], "anim": "Lie_Idle", "quien": "paciente", "tumbado": true}]},
-    "carrito_extraccion": {"tam": [1, 1], "precio": 80, "salas": ["extraccion"], "modelo": "res://assets/modelos/tp/carrito_extraccion.glb", "base": 0, "uso": []},
-    "llenadora_gradillas": {"tam": [1, 1], "precio": 250, "salas": ["extraccion"], "modelo": "res://assets/modelos/tp/llenadora_gradillas.glb", "base": 180, "uso": [{"c": [0, 1], "anim": "Working_A", "quien": "personal"}]},
-    "centrifuga":         {"tam": [2, 2], "precio": 1200, "salas": ["lab_sangre"], "modelo": "res://assets/modelos/tp/tp_centrifuga.glb", "base": 180, "uso": [{"c": [0, 2], "anim": "Working_A", "quien": "personal"}]},
-    "banco":              {"tam": [2, 1], "precio": 60, "salas": ["", "descanso"], "modelo": "res://assets/modelos/tp/banco.glb", "base": 180, "asientos": 3, "uso": [{"c": [0, 0], "anim": "Sit_Chair_Idle", "quien": "paciente", "sentado": true}]},
-    "planta":             {"tam": [1, 1], "precio": 30, "salas": ["*"], "modelo": "res://assets/modelos/tp/planta.glb", "base": 0, "uso": []},
-    "papelera":           {"tam": [1, 1], "precio": 15, "salas": ["*"], "modelo": "res://assets/modelos/tp/papelera.glb", "base": 0, "uso": []},
-    "maquina_bebidas":    {"tam": [1, 1], "precio": 200, "salas": ["", "descanso"], "modelo": "res://assets/modelos/tp/maquina_bebidas.glb", "base": 180, "uso": [{"c": [0, 1], "anim": "Interact", "quien": "todos"}]},
-    "recepcion":          {"tam": [2, 1], "precio": 400, "salas": [""], "modelo": "res://assets/modelos/tp/recepcion.glb", "base": 180, "uso": [{"c": [0, -1], "anim": "Sit_Chair_Idle", "quien": "recepcionista", "sentado": true}, {"c": [0, 1], "anim": "Idle_B", "quien": "paciente"}]}
+  "lab_sangre": {
+   "min": [
+    4,
+    3
+   ],
+   "obligatorios": [
+    "centrifuga"
+   ],
+   "personal": "tecnico",
+   "zocalo": [
+    0.36,
+    0.26,
+    0.52
+   ],
+   "suelo": "tp_suelo_lab"
+  },
+  "descanso": {
+   "min": [
+    2,
+    3
+   ],
+   "obligatorios": [
+    "maquina_bebidas"
+   ],
+   "personal": "",
+   "zocalo": [
+    0.85,
+    0.5,
+    0.2
+   ],
+   "suelo": "tp_suelo_pasillo"
+  },
+  "almacen": {
+   "min": [
+    3,
+    3
+   ],
+   "obligatorios": [
+    "muelle"
+   ],
+   "personal": "",
+   "zocalo": [
+    0.55,
+    0.45,
+    0.3
+   ],
+   "suelo": "tp_suelo_lab"
   }
+ },
+ "objetos": {
+  "camilla": {
+   "tam": [
+    1,
+    2
+   ],
+   "precio": 300,
+   "salas": [
+    "extraccion"
+   ],
+   "modelo": "res://assets/modelos/estaciones/camilla.glb",
+   "base": 90,
+   "uso": [
+    {
+     "c": [
+      -1,
+      0
+     ],
+     "anim": "Working_B",
+     "quien": "cientifico"
+    },
+    {
+     "c": [
+      0,
+      0
+     ],
+     "anim": "Lie_Idle",
+     "quien": "paciente",
+     "tumbado": true
+    }
+   ]
+  },
+  "carrito_extraccion": {
+   "tam": [
+    1,
+    1
+   ],
+   "precio": 80,
+   "salas": [
+    "extraccion"
+   ],
+   "modelo": "res://assets/modelos/tp/carrito_extraccion.glb",
+   "base": 0,
+   "uso": []
+  },
+  "llenadora_gradillas": {
+   "tam": [
+    1,
+    1
+   ],
+   "precio": 250,
+   "salas": [
+    "extraccion"
+   ],
+   "modelo": "res://assets/modelos/tp/llenadora_gradillas.glb",
+   "base": 180,
+   "uso": [],
+   "bocas": [
+    {
+     "c": [
+      -1,
+      0
+     ],
+     "dir": 2,
+     "tipo": "salida"
+    }
+   ]
+  },
+  "centrifuga": {
+   "tam": [
+    2,
+    2
+   ],
+   "precio": 1200,
+   "salas": [
+    "lab_sangre"
+   ],
+   "modelo": "res://assets/modelos/tp/tp_centrifuga.glb",
+   "base": 180,
+   "uso": [
+    {
+     "c": [
+      0,
+      2
+     ],
+     "anim": "Working_A",
+     "quien": "tecnico"
+    }
+   ],
+   "bocas": [
+    {
+     "c": [
+      2,
+      1
+     ],
+     "dir": 2,
+     "tipo": "entrada",
+     "acepta": "gradilla_sangre"
+    },
+    {
+     "c": [
+      -1,
+      1
+     ],
+     "dir": 2,
+     "tipo": "salida"
+    }
+   ]
+  },
+  "banco": {
+   "tam": [
+    2,
+    1
+   ],
+   "precio": 60,
+   "salas": [
+    "",
+    "descanso"
+   ],
+   "modelo": "res://assets/modelos/tp/banco.glb",
+   "base": 180,
+   "asientos": 3,
+   "uso": [
+    {
+     "c": [
+      0,
+      0
+     ],
+     "anim": "Sit_Chair_Idle",
+     "quien": "paciente",
+     "sentado": true
+    }
+   ]
+  },
+  "planta": {
+   "tam": [
+    1,
+    1
+   ],
+   "precio": 30,
+   "salas": [
+    "*"
+   ],
+   "modelo": "res://assets/modelos/tp/planta.glb",
+   "base": 0,
+   "uso": []
+  },
+  "papelera": {
+   "tam": [
+    1,
+    1
+   ],
+   "precio": 15,
+   "salas": [
+    "*"
+   ],
+   "modelo": "res://assets/modelos/tp/papelera.glb",
+   "base": 0,
+   "uso": []
+  },
+  "maquina_bebidas": {
+   "tam": [
+    1,
+    1
+   ],
+   "precio": 200,
+   "salas": [
+    "",
+    "descanso"
+   ],
+   "modelo": "res://assets/modelos/tp/maquina_bebidas.glb",
+   "base": 180,
+   "uso": [
+    {
+     "c": [
+      0,
+      1
+     ],
+     "anim": "Interact",
+     "quien": "todos"
+    }
+   ]
+  },
+  "recepcion": {
+   "tam": [
+    2,
+    1
+   ],
+   "precio": 400,
+   "salas": [
+    ""
+   ],
+   "modelo": "res://assets/modelos/tp/recepcion.glb",
+   "base": 180,
+   "uso": [
+    {
+     "c": [
+      0,
+      -1
+     ],
+     "anim": "Sit_Chair_Idle",
+     "quien": "recepcionista",
+     "sentado": true
+    },
+    {
+     "c": [
+      0,
+      1
+     ],
+     "anim": "Idle_B",
+     "quien": "paciente"
+    }
+   ]
+  },
+  "muelle": {
+   "tam": [
+    1,
+    1
+   ],
+   "precio": 350,
+   "salas": [
+    "",
+    "almacen"
+   ],
+   "modelo": "res://assets/modelos/estaciones/almacen.glb",
+   "base": 90,
+   "uso": [],
+   "bocas": [
+    {
+     "c": [
+      1,
+      0
+     ],
+     "dir": 2,
+     "tipo": "entrada",
+     "acepta": "*"
+    },
+    {
+     "c": [
+      -1,
+      0
+     ],
+     "dir": 0,
+     "tipo": "entrada",
+     "acepta": "*"
+    },
+    {
+     "c": [
+      0,
+      1
+     ],
+     "dir": 3,
+     "tipo": "entrada",
+     "acepta": "*"
+    },
+    {
+     "c": [
+      0,
+      -1
+     ],
+     "dir": 1,
+     "tipo": "entrada",
+     "acepta": "*"
+    }
+   ]
+  },
+  "cinta": {
+   "tam": [
+    1,
+    1
+   ],
+   "precio": 20,
+   "salas": [
+    "*"
+   ],
+   "modelo": "res://assets/modelos/tp/cinta_recta.glb",
+   "base": 0,
+   "uso": []
+  }
+ },
+ "personal": {
+  "cientifico": {
+   "precio": 600,
+   "sueldo_min": 12,
+   "modelos": [
+    "Doctor_Male_Old",
+    "Doctor_Male_Young"
+   ],
+   "hace": [
+    "extraccion",
+    "lab_sangre"
+   ]
+  },
+  "tecnico": {
+   "precio": 450,
+   "sueldo_min": 9,
+   "modelos": [
+    "Doctor_Female_Young",
+    "Doctor_Female_Old"
+   ],
+   "hace": [
+    "lab_sangre"
+   ]
+  },
+  "becario": {
+   "precio": 250,
+   "sueldo_min": 5,
+   "modelos": [
+    "Worker_Male",
+    "Worker_Female"
+   ],
+   "hace": [
+    "transporte"
+   ]
+  }
+ },
+ "ritmo": {
+  "llegada_s": 6.0,
+  "recepcion_s": 2.0,
+  "extraccion_s": 5.0,
+  "centrifuga_s": 7.0,
+  "andar": 1.6,
+  "cinta": 1.2,
+  "tubos_por_gradilla": 4,
+  "plasma_l_por_gradilla": 3
+ },
+ "precios": {
+  "gradilla_hematies": 90,
+  "gradilla_sangre": 40,
+  "plasma_l": 6,
+  "pasamuros": 50
+ },
+ "pacientes_modelos": [
+  "Casual_Male",
+  "Casual_Female",
+  "Casual2_Male",
+  "Casual2_Female",
+  "Casual3_Male",
+  "Casual_Bald",
+  "OldClassy_Male",
+  "Suit_Male",
+  "Suit_Female"
+ ]
 }

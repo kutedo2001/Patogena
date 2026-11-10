@@ -93,9 +93,9 @@ func _guion() -> void:
 	await _mover(_pantalla(Vector2i(3, 1)))
 	await _captura("camilla_fantasma")
 	await _clic(_pantalla(Vector2i(3, 1)))
-	comprobar(j.h.objeto_en(Vector2i(3, 2)) != null and j.tipo == "carrito_extraccion", "camilla colocada; pasa al carrito")
+	comprobar(j.h.objeto_en(Vector2i(3, 2)) != null and j.tipo == "llenadora_gradillas", "camilla colocada; pasa a la llenadora")
 	await _clic(_pantalla(Vector2i(1, 1)))
-	comprobar(ex != null and j.h.completa(ex) and j.modo == "" and j.seleccion == ex, "con el carrito la sala queda completa y seleccionada")
+	comprobar(ex != null and j.h.completa(ex) and j.modo == "" and j.seleccion == ex, "con la llenadora la sala queda completa y seleccionada")
 	await _captura("extraccion_lista")
 	# 5. laboratorio de sangre pegado
 	await _clic(Vector2(210, alto - 110))
